@@ -11,7 +11,7 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfo
 import java.util.concurrent.ConcurrentHashMap
 
 @RestController
-class DynamicRouteController(@Autowired val context: ApplicationContext) {
+class DynamicRouteController() {
 
     @Autowired
     private lateinit var handlerMapping: RequestMappingHandlerMapping
