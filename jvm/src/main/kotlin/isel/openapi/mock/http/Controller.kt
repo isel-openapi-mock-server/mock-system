@@ -4,6 +4,7 @@ import isel.openapi.mock.services.DynamicRoutesServices
 import isel.openapi.mock.utils.extractApiSpec
 import isel.openapi.mock.utils.parseOpenApi
 import isel.openapi.mock.utils.validateOpenApi
+import jakarta.servlet.http.HttpServletRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -81,10 +82,5 @@ data class NewRoute(val path: String, val method: String, val response: String)
 data class RemoveRoute(val path: String, val method: String)
 data class OpenApiSpec(val spec: String)
 
-class DynamicHandler(private val response: String) {
-    @ResponseBody
-    fun handle(): String {
-        return response
-    }
-}
+
 
