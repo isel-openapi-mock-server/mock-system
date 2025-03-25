@@ -32,7 +32,8 @@ data class ApiParameter(
 data class ApiRequestBody(
     val contentType: String,
     val schemaType: String?,
-    val required: Boolean
+    val required: Boolean,
+    val parameters: Map<String, Any>
 )
 
 data class ApiResponse(

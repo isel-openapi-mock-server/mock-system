@@ -1,6 +1,8 @@
 package isel.openapi.mock.utils
 
 import io.swagger.v3.oas.models.OpenAPI
+import io.swagger.v3.oas.models.media.ObjectSchema
+import io.swagger.v3.oas.models.media.Schema
 import io.swagger.v3.parser.OpenAPIV3Parser
 
 fun validateOpenApi(json: String): Boolean {
@@ -35,11 +37,12 @@ fun extractApiSpec(openAPI: OpenAPI): ApiSpec {
                         } ?: emptyList(),
                         requestBody = operation.requestBody?.let { reqBody ->
                             val mediaType = reqBody.content?.keys?.firstOrNull() ?: "unknown"
-                            val schemaType = reqBody.content?.get(mediaType)?.schema?.type
+                            val schema = reqBody.content?.get(mediaType)?.schema
                             ApiRequestBody(
                                 contentType = mediaType,
-                                schemaType = schemaType,
-                                required = reqBody.required ?: false
+                                schemaType = schema?.type ?: "unknown",
+                                required = reqBody.required ?: false,
+                                parameters = schema?.let { extractSchemaProperties(it) } ?: emptyMap()
                             )
                         },
                         responses = operation.responses.map { (statusCode, response) ->
@@ -54,4 +57,19 @@ fun extractApiSpec(openAPI: OpenAPI): ApiSpec {
             )
         }
     )
+}
+
+fun extractSchemaProperties(schema: Schema<*>): Map<String, Any> {
+    val properties = mutableMapOf<String, Any>()
+
+    if (schema is ObjectSchema && schema.properties != null) {
+        schema.properties.forEach { (name, propertySchema) ->
+            properties[name] = if (propertySchema is ObjectSchema) {
+                extractSchemaProperties(propertySchema) // Se for um objeto, extrai recursivamente
+            } else {
+                propertySchema.type ?: "unknown"
+            }
+        }
+    }
+    return properties
 }

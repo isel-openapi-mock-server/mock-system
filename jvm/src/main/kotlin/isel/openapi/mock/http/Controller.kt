@@ -1,8 +1,11 @@
-package isel.openapi.mock
+package isel.openapi.mock.http
 
+import isel.openapi.mock.services.DynamicRoutesServices
+import isel.openapi.mock.utils.extractApiSpec
+import isel.openapi.mock.utils.parseOpenApi
+import isel.openapi.mock.utils.validateOpenApi
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationContext
-import org.springframework.http.HttpMethod
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping
 import java.lang.reflect.Method
@@ -11,18 +14,14 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfo
 import java.util.concurrent.ConcurrentHashMap
 
 @RestController
-class DynamicRouteController() {
-
-    @Autowired
-    private lateinit var handlerMapping: RequestMappingHandlerMapping
-
-    private val dynamicRoutes = ConcurrentHashMap<String, RequestMappingInfo>()
-
+class DynamicRouteController(
+    private val dynamicRoutesServices: DynamicRoutesServices
+) {
     @GetMapping("/hello")
     fun hello(): String {
         return "Hello, World!"
     }
-
+/*
     @PostMapping("/new")
     fun addDynamicRoute(@RequestBody newRoute: NewRoute): String {
         val method = when (newRoute.method.uppercase()) {
@@ -48,6 +47,8 @@ class DynamicRouteController() {
         return "Route added: ${newRoute.path} [${newRoute.method}]"
     }
 
+ */
+/*
     @PostMapping("/remove-route")
     fun removeDynamicRoute(@RequestBody removeRoute: RemoveRoute): String {
         val mappingInfo = dynamicRoutes.remove(removeRoute.path)
@@ -58,10 +59,27 @@ class DynamicRouteController() {
             "Route not found: ${removeRoute.path}"
         }
     }
+
+ */
+
+    @PostMapping("/openapi")
+    fun addOpenApiSpec(
+        @RequestBody openApiSpec: OpenApiSpec
+    ): ResponseEntity<*> {
+        if(!validateOpenApi(openApiSpec.spec)) {
+            return ResponseEntity.badRequest().body("Invalid OpenAPI Spec")
+        }
+        val openApi = parseOpenApi(openApiSpec.spec)
+            ?: return ResponseEntity.badRequest().body("Invalid OpenAPI Spec")
+        val apiSpec = extractApiSpec(openApi)
+        val res = dynamicRoutesServices.addDynamicRoute(apiSpec)
+        return ResponseEntity.ok(res)
+    }
 }
 
 data class NewRoute(val path: String, val method: String, val response: String)
 data class RemoveRoute(val path: String, val method: String)
+data class OpenApiSpec(val spec: String)
 
 class DynamicHandler(private val response: String) {
     @ResponseBody

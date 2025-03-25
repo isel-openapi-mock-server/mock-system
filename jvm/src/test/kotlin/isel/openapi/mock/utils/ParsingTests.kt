@@ -65,6 +65,8 @@ class ParsingTests {
         assertTrue { requestBody!!.contentType == "application/json" }
         assertTrue { requestBody!!.schemaType == "object" }
         assertTrue { requestBody!!.required }
+        assertTrue { requestBody!!.parameters.size == 3 }
+        assertTrue { requestBody!!.parameters["inviteCode"] == "string" }
     }
 
     val openAPIDefinition = """
