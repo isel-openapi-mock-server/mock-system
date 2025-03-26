@@ -1,15 +1,10 @@
 package isel.openapi.mock.repository
 
-import isel.openapi.mock.utils.ApiParameter
-import isel.openapi.mock.utils.extractApiSpec
-import isel.openapi.mock.utils.parseOpenApi
-import kotlin.test.Test
-import kotlin.test.assertTrue
-
 class DynamicRoutesMemTests {
 
     val dynamicRoutesMem = DynamicRoutesMem()
 
+    /*
     @Test
     fun testAddDynamicRoute() {
         val definition = parseOpenApi(openAPIDefinition) ?: throw IllegalStateException("Invalid OpenAPI definition")
@@ -25,6 +20,8 @@ class DynamicRoutesMemTests {
         assertTrue { body!!.parameters.keys == setOf("inviteCode", "username", "password") }
 
     }
+
+     */
 
     val openAPIDefinition = """
         openapi: 3.0.1

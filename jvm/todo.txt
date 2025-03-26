@@ -1,0 +1,1 @@
+SecurityRequirement para uma class nossa
