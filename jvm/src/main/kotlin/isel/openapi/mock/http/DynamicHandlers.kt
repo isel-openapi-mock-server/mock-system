@@ -1,21 +1,15 @@
 package isel.openapi.mock.http
 
-import isel.openapi.mock.parsingServices.model.ApiParameter
-import isel.openapi.mock.parsingServices.model.ApiRequestBody
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.web.bind.annotation.ResponseBody
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.swagger.v3.oas.models.media.IntegerSchema
-import io.swagger.v3.oas.models.media.ObjectSchema
-import io.swagger.v3.oas.models.media.StringSchema
-import isel.openapi.mock.parsingServices.model.Location
-import isel.openapi.mock.parsingServices.model.Type
+import isel.openapi.mock.parsingServices.model.*
 import isel.openapi.mock.utils.Either
 import isel.openapi.mock.utils.Failure
-import isel.openapi.mock.utils.Success
 import isel.openapi.mock.utils.failure
 import isel.openapi.mock.utils.success
+import jakarta.servlet.http.Cookie
 import org.springframework.http.ResponseEntity
 
 sealed class VerifyBodyError {
@@ -36,7 +30,14 @@ sealed class VerifyHeadersError {
 
 typealias VerifyHeadersResult = Either<VerifyHeadersError, Boolean>
 
+sealed class VerifyParamsError {
+
+}
+
+typealias VerifyParamsResult = Either<VerifyParamsError, Boolean>
+
 class BodyAndParamsDynamicHandler(
+    private val path: List<PathParts>,
     private val response: String,
     private val params: List<ApiParameter>?,
     private val body: ApiRequestBody?
@@ -46,8 +47,10 @@ class BodyAndParamsDynamicHandler(
         request: HttpServletRequest,
     ): ResponseEntity<*> {
         val requestBody = request.reader.readText()
-        val requestParams = request.parameterMap.mapValues { it.value[0] }
+        val requestQueryParams = request.parameterMap.mapValues { entry -> entry.value.map { value -> value.toTypedValue() } } // Mudei de it.value[0], para it.value
+        val requestPathParams = getPathParams(request.requestURI)
         val headers = request.headerNames.toList().associate { it to request.getHeader(it) }
+        val cookies = request.cookies
 
         if(body != null) {
             val bodyResult = verifyBody(requestBody, body)
@@ -71,6 +74,11 @@ class BodyAndParamsDynamicHandler(
             }
         }
 
+        val paramsResult = verifyParams(requestQueryParams, requestPathParams, cookies, params?.filter { it.location != Location.HEADER } ?: emptyList())
+        if (paramsResult is Failure) {
+            TODO()
+        }
+
         return ResponseEntity.ok(response)
     }
 
@@ -84,11 +92,158 @@ class BodyAndParamsDynamicHandler(
         return objectMapper.readValue<List<Any>>(arrayString)
     }
 
-    fun getPathParams() {
+    private fun getPathParams(
+        uri: String
+    ): Map<String, Any> {
+        val parts = uri.split("/").filter{ it.isNotBlank() }.ifEmpty { return emptyMap() }
+        val pathParams = mutableMapOf<String, Any>()
+        path.forEachIndexed{ idx, part ->
+            if (part is PathParts.Param) {
+                pathParams[part.name] = parts[idx].toTypedValue()
+            }
+        }
+        return pathParams
+    }
+
+    private fun String.toTypedValue(): Any {
+        return when {
+            toIntOrNull() != null -> toInt()    // Integer
+            toDoubleOrNull() != null -> toDouble()  // Number
+            equals("true", ignoreCase = true) || equals("false", ignoreCase = true) -> toBoolean() // Boolean
+            else -> this // String
+        }
+    }
+
+    private fun verifyParams(
+        queryParams: Map<String, List<Any>>,
+        pathParams: Map<String, Any>,
+        cookies: Array<Cookie>,
+        expectedParams: List<ApiParameter>,
+    ): VerifyParamsResult {
+        val expectedQueryParams = expectedParams.filter { it.location == Location.QUERY }
+        val expectedPathParams = expectedParams.filter { it.location == Location.PATH }
+        val expectedCookies = expectedParams.filter { it.location == Location.COOKIE }
+
+        var failed = false
+        val failList = mutableListOf<VerifyParamsError>()
+
+        if (
+            expectedQueryParams.isNotEmpty() && queryParams.isEmpty() ||
+            expectedQueryParams.isEmpty() && queryParams.isNotEmpty()
+        ) {
+            failed = true
+            // TODO adicionar erro à failList, para depois guardarmos os erros.
+        }
+
+        if (
+            expectedPathParams.isNotEmpty() && pathParams.isEmpty() ||
+            expectedPathParams.isEmpty() && pathParams.isNotEmpty()
+        ) {
+            failed = true
+            // TODO adicionar erro à failList, para depois guardarmos os erros.
+        }
+
+        if (
+            expectedCookies.isNotEmpty() && cookies.isEmpty() ||
+            expectedCookies.isEmpty() && cookies.isNotEmpty()
+        ) {
+            failed = true
+            // TODO adicionar erro à failList, para depois guardarmos os erros.
+        }
+
+
+        if (!failed && expectedQueryParams.isNotEmpty()) { // Nao sei se nao vemos se já tiver falhado, acho que nao
+            verifyQueryParams(queryParams, expectedQueryParams) // TODO Guardar os erros
+        }
+
+        if (!failed && expectedPathParams.isNotEmpty()) { // Nao sei se nao vemos se já tiver falhado, acho que nao
+            verifyPathParams(pathParams, expectedPathParams)// TODO guadar od ersos
+        }
+
+        if (!failed && expectedCookies.isNotEmpty()) { // Nao sei se nao vemos se já tiver falhado, acho que nao
+            verifyCookies(cookies, expectedCookies)// TODO guadar od ersos
+        }
+
         TODO()
     }
 
-    fun verifyParams() {
+
+    private fun verifyQueryParams(
+        queryParams: Map<String, List<Any>>,
+        expectedQueryParams: List<ApiParameter>
+    ): VerifyParamsResult {
+
+        expectedQueryParams.forEach { param ->
+            val values = queryParams[param.name]
+                ?: if (param.required) {
+                    TODO() // erro
+                }
+                else
+                    return@forEach
+            for (value in values) {
+                val valueType = convertToType(value)
+                // Verificar se nao tem valor, String vazia, e o param não o suporta.
+                if (
+                    valueType == Type.StringType &&
+                    (value as String).isBlank()
+                ) {
+                    if (!param.allowEmptyValue) {
+                        // TODO erro, o valor do param é vazio mas o param nao pode vir vazio
+                    }
+                    else {
+                        // O valor pode vir vazio, avança para o proximo ciclo do forEach.
+                        return@forEach
+                    }
+
+                }
+                if (valueType == param.type) {
+                    // TODO Sem problemas
+                }
+            }
+
+        }
+        TODO()
+    }
+
+    private fun verifyPathParams(
+        pathParams: Map<String, Any>,
+        expectedPathParams: List<ApiParameter>
+    ): VerifyParamsResult {
+
+        expectedPathParams.forEach { param ->
+            val value = pathParams[param.name]
+                ?: if (param.required) {
+                    TODO() // erro
+                }
+                else
+                    return@forEach
+
+            val valueType = convertToType(value)
+            // Verificar se nao tem valor, String vazia, e o param não o suporta.
+            if (
+                valueType == Type.StringType &&
+                (value as String).isBlank()
+            ) {
+                if (!param.allowEmptyValue) {
+                    // TODO erro, o valor do param é vazio mas o param nao pode vir vazio
+                }
+                else {
+                    // O valor pode vir vazio, avança para o proximo ciclo do forEach.
+                    return@forEach
+                }
+
+            }
+            if (valueType == param.type) {
+                // TODO Sem problemas
+            }
+        }
+        TODO()
+    }
+
+    private fun verifyCookies(
+        cookies: Array<Cookie>,
+        expectedCookies: List<ApiParameter>,
+    ): VerifyParamsResult {
         TODO()
     }
 

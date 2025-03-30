@@ -32,7 +32,6 @@ class Parsing {
 
     fun validateOpenApi(json: String): Boolean {
         val result = OpenAPIV3Parser().readContents(json)
-        println(result)
         return result.messages.isEmpty() // Se estiver vazio, a definição é válida.
     }
 

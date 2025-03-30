@@ -32,6 +32,7 @@ class DynamicRoutesServices(
                 }
 
                 val handler = BodyAndParamsDynamicHandler(
+                    apiPath.path,
                     operation.responses[0].statusCode.code.toString(),
                     operation.parameters,
                     operation.requestBody
