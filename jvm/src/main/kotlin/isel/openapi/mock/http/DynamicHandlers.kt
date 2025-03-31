@@ -12,6 +12,9 @@ import isel.openapi.mock.utils.success
 import jakarta.servlet.http.Cookie
 import org.springframework.http.ResponseEntity
 
+// TODO Fazer com que todas as sealed classes/intefaces implementem esta.
+interface VerificationError
+
 sealed class VerifyBodyError {
     data object InvalidBodyTypes: VerifyBodyError()
     data object InvalidBodyKeys: VerifyBodyError()
@@ -30,11 +33,11 @@ sealed class VerifyHeadersError {
 
 typealias VerifyHeadersResult = Either<VerifyHeadersError, Boolean>
 
-sealed class VerifyParamsError {
+
+// TODO separar nos tipos de params diferentes (query, path e cookies).
+sealed class VerifyParamsError: VerificationError {
 
 }
-
-typealias VerifyParamsResult = Either<VerifyParamsError, Boolean>
 
 class BodyAndParamsDynamicHandler(
     private val path: List<PathParts>,
@@ -51,6 +54,8 @@ class BodyAndParamsDynamicHandler(
         val requestPathParams = getPathParams(request.requestURI)
         val headers = request.headerNames.toList().associate { it to request.getHeader(it) }
         val cookies = request.cookies
+
+        val fails = mutableListOf<VerificationError>()
 
         if(body != null) {
             val bodyResult = verifyBody(requestBody, body)
@@ -74,10 +79,14 @@ class BodyAndParamsDynamicHandler(
             }
         }
 
-        val paramsResult = verifyParams(requestQueryParams, requestPathParams, cookies, params?.filter { it.location != Location.HEADER } ?: emptyList())
-        if (paramsResult is Failure) {
-            TODO()
-        }
+        val queryParamsResult = verifyQueryParams(requestQueryParams, params?.filter { it.location == Location.QUERY } ?: emptyList())
+        queryParamsResult.forEach { fails.add(it) }
+
+        val pathParamsResult = verifyPathParams(requestPathParams, params?.filter { it.location == Location.PATH } ?: emptyList())
+        pathParamsResult.forEach { fails.add(it) }
+
+        val cookiesResult = verifyCookies(cookies, params?.filter { it.location == Location.COOKIE } ?: emptyList())
+        cookiesResult.forEach { fails.add(it) }
 
         return ResponseEntity.ok(response)
     }
@@ -114,137 +123,194 @@ class BodyAndParamsDynamicHandler(
         }
     }
 
-    private fun verifyParams(
-        queryParams: Map<String, List<Any>>,
-        pathParams: Map<String, Any>,
-        cookies: Array<Cookie>,
-        expectedParams: List<ApiParameter>,
-    ): VerifyParamsResult {
-        val expectedQueryParams = expectedParams.filter { it.location == Location.QUERY }
-        val expectedPathParams = expectedParams.filter { it.location == Location.PATH }
-        val expectedCookies = expectedParams.filter { it.location == Location.COOKIE }
-
-        var failed = false
-        val failList = mutableListOf<VerifyParamsError>()
-
-        if (
-            expectedQueryParams.isNotEmpty() && queryParams.isEmpty() ||
-            expectedQueryParams.isEmpty() && queryParams.isNotEmpty()
-        ) {
-            failed = true
-            // TODO adicionar erro à failList, para depois guardarmos os erros.
-        }
-
-        if (
-            expectedPathParams.isNotEmpty() && pathParams.isEmpty() ||
-            expectedPathParams.isEmpty() && pathParams.isNotEmpty()
-        ) {
-            failed = true
-            // TODO adicionar erro à failList, para depois guardarmos os erros.
-        }
-
-        if (
-            expectedCookies.isNotEmpty() && cookies.isEmpty() ||
-            expectedCookies.isEmpty() && cookies.isNotEmpty()
-        ) {
-            failed = true
-            // TODO adicionar erro à failList, para depois guardarmos os erros.
-        }
-
-
-        if (!failed && expectedQueryParams.isNotEmpty()) { // Nao sei se nao vemos se já tiver falhado, acho que nao
-            verifyQueryParams(queryParams, expectedQueryParams) // TODO Guardar os erros
-        }
-
-        if (!failed && expectedPathParams.isNotEmpty()) { // Nao sei se nao vemos se já tiver falhado, acho que nao
-            verifyPathParams(pathParams, expectedPathParams)// TODO guadar od ersos
-        }
-
-        if (!failed && expectedCookies.isNotEmpty()) { // Nao sei se nao vemos se já tiver falhado, acho que nao
-            verifyCookies(cookies, expectedCookies)// TODO guadar od ersos
-        }
-
-        TODO()
-    }
-
-
     private fun verifyQueryParams(
         queryParams: Map<String, List<Any>>,
         expectedQueryParams: List<ApiParameter>
-    ): VerifyParamsResult {
+    ): List<VerifyParamsError> {
+        var failed = false
+        val failList = mutableListOf<VerifyParamsError>()
+
+        if (expectedQueryParams.isNotEmpty() && queryParams.isEmpty()) {
+            failed = true
+            // TODO adicionar erro à failList, para depois guardarmos os erros.
+        }
+
+        if (expectedQueryParams.isEmpty() && queryParams.isNotEmpty()) {
+            failed = true
+            // TODO ERRO, adcionar à lista
+        }
+
+        if (failed) return failList
 
         expectedQueryParams.forEach { param ->
             val values = queryParams[param.name]
-                ?: if (param.required) {
-                    TODO() // erro
+            // O paramametro esperado não vem no pedido
+            if (values == null) {
+                // O parametro é necessário.
+                if (param.required) {
+                    failed = true
+                    // TODO Erro, adicionar a lista
                 }
-                else
-                    return@forEach
+                return@forEach
+            }
+
             for (value in values) {
                 val valueType = convertToType(value)
-                // Verificar se nao tem valor, String vazia, e o param não o suporta.
+                // Verificar se nao tem valor(String vazia).
                 if (
                     valueType == Type.StringType &&
                     (value as String).isBlank()
                 ) {
+                    // O param não suporta valor a vazio.
                     if (!param.allowEmptyValue) {
+                        failed = true
                         // TODO erro, o valor do param é vazio mas o param nao pode vir vazio
                     }
-                    else {
-                        // O valor pode vir vazio, avança para o proximo ciclo do forEach.
-                        return@forEach
-                    }
+                    // avança para o proximo ciclo do forEach.
+                    return@forEach
+                }
 
+                if (valueType != param.type) {
+                    failed = true
+                    // TODO Erro, adicionar a lista
                 }
-                if (valueType == param.type) {
-                    // TODO Sem problemas
-                }
+
             }
 
         }
-        TODO()
+
+        return if (failed) failList
+        else emptyList()
+
     }
 
     private fun verifyPathParams(
         pathParams: Map<String, Any>,
         expectedPathParams: List<ApiParameter>
-    ): VerifyParamsResult {
+    ): List<VerifyParamsError> {
+        var failed = false
+        val failList = mutableListOf<VerifyParamsError>()
+
+        if (expectedPathParams.isNotEmpty() && pathParams.isEmpty()) {
+            failed = true
+            // TODO adicionar erro à failList, para depois guardarmos os erros.
+        }
+
+        if (expectedPathParams.isEmpty() && pathParams.isNotEmpty()) {
+            failed = true
+            // TODO ERRO, adcionar à lista
+        }
+
+        if (failed) return failList
+
 
         expectedPathParams.forEach { param ->
             val value = pathParams[param.name]
-                ?: if (param.required) {
-                    TODO() // erro
+
+            // O paramametro esperado não vem no pedido
+            if (value == null) {
+                // O parametro é necessário.
+                if (param.required) {
+                    failed = true
+                    // TODO Erro, adicionar a lista
                 }
-                else
-                    return@forEach
+                return@forEach
+            }
 
             val valueType = convertToType(value)
-            // Verificar se nao tem valor, String vazia, e o param não o suporta.
+
+            // Verificar se nao tem valor, String vazia.
             if (
                 valueType == Type.StringType &&
                 (value as String).isBlank()
             ) {
+                // O param não o suporta valor a vazio.
                 if (!param.allowEmptyValue) {
+                    failed = true
                     // TODO erro, o valor do param é vazio mas o param nao pode vir vazio
                 }
-                else {
-                    // O valor pode vir vazio, avança para o proximo ciclo do forEach.
-                    return@forEach
-                }
+
+                // avança para o proximo ciclo do forEach.
+                return@forEach
 
             }
-            if (valueType == param.type) {
-                // TODO Sem problemas
+
+            if (valueType != param.type) {
+                failed = true
+                // TODO Erro, adicionar a lista
             }
+
         }
-        TODO()
+
+        return if (failed) failList
+        else emptyList()
+
     }
 
     private fun verifyCookies(
         cookies: Array<Cookie>,
         expectedCookies: List<ApiParameter>,
-    ): VerifyParamsResult {
-        TODO()
+    ): List<VerifyParamsError> {
+
+        var failed = false
+        val failList = mutableListOf<VerifyParamsError>()
+
+        if (expectedCookies.isNotEmpty() && cookies.isEmpty()) {
+            failed = true
+            // TODO adicionar erro à failList, para depois guardarmos os erros.
+        }
+
+        if (expectedCookies.isEmpty() && cookies.isNotEmpty()) {
+            failed = true
+            // TODO ERRO, adcionar à lista
+        }
+
+        if (failed) return failList
+
+        expectedCookies.forEach { expCookie ->
+
+            val cookie = cookies.firstOrNull{ it.name == expCookie.name }
+
+            // O paramametro esperado não vem no pedido
+            if (cookie == null) {
+                // O parametro é necessário.
+                if (expCookie.required) {
+                    failed = true
+                    // TODO Erro, adicionar a lista
+                }
+                return@forEach
+            }
+
+            val value = cookie.value
+
+            val valueType = convertToType(value) // TODO ?????
+
+            // Verificar se nao tem valor, String vazia.
+            if (
+                valueType == Type.StringType &&
+                (value as String).isBlank()
+            ) {
+                // O cookie não o suporta valor a vazio.
+                if (!expCookie.allowEmptyValue) {
+                    failed = true
+                    // TODO erro, o valor do cookie é vazio mas o cookie nao pode vir vazio
+                }
+
+                // avança para o proximo ciclo do forEach.
+                return@forEach
+
+            }
+
+            if (valueType != expCookie.type) {
+                failed = true
+                // TODO Erro, adicionar a lista
+            }
+
+        }
+
+        return if (failed) failList
+        else emptyList()
+
     }
 
     fun verifyHeaders(
