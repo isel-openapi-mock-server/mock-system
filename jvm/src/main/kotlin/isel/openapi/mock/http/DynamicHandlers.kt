@@ -15,24 +15,20 @@ import org.springframework.http.ResponseEntity
 // TODO Fazer com que todas as sealed classes/intefaces implementem esta.
 interface VerificationError
 
-sealed class VerifyBodyError {
-    data object InvalidBodyTypes: VerifyBodyError()
-    data object InvalidBodyKeys: VerifyBodyError()
-    data object InvalidBodyFormat: VerifyBodyError()
+sealed class VerifyBodyError: VerificationError {
+    data class InvalidBodyTypes(val name: String?, val expectedType: Type, val receivedType: Type): VerifyBodyError()
+    data class InvalidBodyKeys(val expectedKeys: String, val receivedKeys: String): VerifyBodyError()
+    data class InvalidBodyFormat(val expectedBodyType: Type): VerifyBodyError()
+    data class InvalidArrayElement(val expectedType: Type, val receivedType: Type): VerifyBodyError()
 }
 
-typealias VerifyBodyResult = Either<VerifyBodyError, Boolean>
-
-sealed class VerifyHeadersError {
-    data object InvalidType: VerifyHeadersError()
-    data object InvalidHeader: VerifyHeadersError()
-    data object InvalidContentType: VerifyHeadersError()
-    data object InvalidHeaderFormat: VerifyHeadersError()
-    data object MissingHeader: VerifyHeadersError()
+sealed class VerifyHeadersError: VerificationError {
+    data class InvalidType(val headerKey: String, val expectedType: Type, val receivedType: Type): VerifyHeadersError()
+    data class InvalidHeader(val unexpectedHeaders: Set<String>): VerifyHeadersError()
+    data class InvalidContentType(val expectedType: String, val receivedType: String): VerifyHeadersError()
+    data class MissingHeader(val expectedHeaders: String): VerifyHeadersError()
+    data class MissingHeaderContent(val headerKey: String): VerifyHeadersError()
 }
-
-typealias VerifyHeadersResult = Either<VerifyHeadersError, Boolean>
-
 
 // TODO separar nos tipos de params diferentes (query, path e cookies).
 sealed class VerifyParamsError: VerificationError {
@@ -59,25 +55,11 @@ class BodyAndParamsDynamicHandler(
 
         if(body != null) {
             val bodyResult = verifyBody(requestBody, body)
-            if(bodyResult is Failure) {
-                return when(bodyResult.value) {
-                    is VerifyBodyError.InvalidBodyTypes -> ResponseEntity.badRequest().body("Invalid body types")
-                    is VerifyBodyError.InvalidBodyKeys -> ResponseEntity.badRequest().body("Invalid body keys")
-                    is VerifyBodyError.InvalidBodyFormat -> ResponseEntity.badRequest().body("Invalid body format")
-                }
-            }
+            bodyResult.forEach { fails.add(it) }
         }
 
         val headersResult = verifyHeaders(headers, params?.filter { it.location == Location.HEADER } ?: emptyList(), body?.contentType ?: "")
-        if(headersResult is Failure) {
-            return when(headersResult.value) {
-                is VerifyHeadersError.InvalidType -> ResponseEntity.badRequest().body("Invalid header type")
-                is VerifyHeadersError.InvalidHeader -> ResponseEntity.badRequest().body("Invalid header")
-                is VerifyHeadersError.InvalidContentType -> ResponseEntity.badRequest().body("Invalid content type")
-                is VerifyHeadersError.InvalidHeaderFormat -> ResponseEntity.badRequest().body("Invalid header format")
-                is VerifyHeadersError.MissingHeader -> ResponseEntity.badRequest().body("Missing header")
-            }
-        }
+        headersResult.forEach { fails.add(it) }
 
         val queryParamsResult = verifyQueryParams(requestQueryParams, params?.filter { it.location == Location.QUERY } ?: emptyList())
         queryParamsResult.forEach { fails.add(it) }
@@ -88,7 +70,10 @@ class BodyAndParamsDynamicHandler(
         val cookiesResult = verifyCookies(cookies, params?.filter { it.location == Location.COOKIE } ?: emptyList())
         cookiesResult.forEach { fails.add(it) }
 
-        return ResponseEntity.ok(response)
+        return if(fails.isNotEmpty()) {
+            //TODO: Converter os erros para um formato mais legível
+            ResponseEntity.badRequest().body(fails)
+        } else  ResponseEntity.ok(response)
     }
 
     private fun convertJsonToMap(jsonString: String): Map<String, Any> {
@@ -179,6 +164,7 @@ class BodyAndParamsDynamicHandler(
 
         }
 
+        //TODO: Retornar sempre a lista de erros (com os erros ou vazia)
         return if (failed) failList
         else emptyList()
 
@@ -242,6 +228,7 @@ class BodyAndParamsDynamicHandler(
 
         }
 
+        //TODO: Retornar sempre a lista de erros (com os erros ou vazia)
         return if (failed) failList
         else emptyList()
 
@@ -317,51 +304,71 @@ class BodyAndParamsDynamicHandler(
         headers: Map<String, String>,
         expectedHeaders: List<ApiParameter>,
         contentType: String
-    ): VerifyHeadersResult {
+    ): List<VerifyHeadersError> {
+
+        val failList = mutableListOf<VerifyHeadersError>()
+
         expectedHeaders.forEach { expectedHeader ->
             if(expectedHeader.required && !headers.containsKey(expectedHeader.name)) {
-                return failure(VerifyHeadersError.MissingHeader)
+                failList.add(VerifyHeadersError.MissingHeader(expectedHeader.name))
             }
             val headerValue = headers[expectedHeader.name]
             if(headerValue == null && expectedHeader.required) {
-                return failure(VerifyHeadersError.MissingHeader)
+                failList.add(VerifyHeadersError.MissingHeaderContent(expectedHeader.name))
             }
             if(headerValue != null && convertToType(headerValue) != expectedHeader.type) {
-                return failure(VerifyHeadersError.InvalidType)
+                failList.add(VerifyHeadersError.InvalidType(expectedHeader.name, expectedHeader.type, convertToType(headerValue)))
             }
         }
         if(headers["Content-Type"] != contentType) {
-            return failure(VerifyHeadersError.InvalidContentType)
+            failList.add(VerifyHeadersError.InvalidContentType(contentType, headers["Content-Type"] ?: ""))
         }
         val unexpectedHeaders = headers.keys - expectedHeaders.map { it.name }
         if(unexpectedHeaders.isNotEmpty()) {
-            return failure(VerifyHeadersError.InvalidHeader)
+            failList.add(VerifyHeadersError.InvalidHeader(unexpectedHeaders))
         }
-        return success(true)
+        return failList
     }
 
     fun verifyBody(
         body: String,
         expectedBody: ApiRequestBody
-    ): VerifyBodyResult {
-        return when(expectedBody.schemaType) {
-            is Type.NullType -> if(body.isEmpty()) success(true) else failure(VerifyBodyError.InvalidBodyTypes)
-            is Type.BooleanType -> if(body == "true" || body == "false") success(true) else failure(VerifyBodyError.InvalidBodyTypes)
-            is Type.IntegerType -> if(body.toIntOrNull() != null) success(true) else failure(VerifyBodyError.InvalidBodyTypes)
-            is Type.NumberType -> if(body.toDoubleOrNull() != null) success(true) else failure(VerifyBodyError.InvalidBodyTypes)
-            is Type.StringType -> if(body.isNotEmpty()) success(true) else failure(VerifyBodyError.InvalidBodyTypes)
+    ): List<VerifyBodyError> {
+
+        val failList = mutableListOf<VerifyBodyError>()
+
+        when(expectedBody.schemaType) {
+            is Type.NullType -> {
+                if(body.isNotEmpty())
+                    failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.schemaType))
+            }
+            is Type.BooleanType -> {
+                if(body != "true" && body != "false")
+                    failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.schemaType))
+            }
+            is Type.IntegerType -> {
+                if(body.toIntOrNull() == null)
+                    failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.schemaType))
+            }
+            is Type.NumberType -> {
+                if(body.toDoubleOrNull() == null)
+                    failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.schemaType))
+            }
+            is Type.StringType -> {
+                if(body.isEmpty())
+                    failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.schemaType))
+            }
             is Type.ArrayType -> {
                 try {
                     val array = convertStringToArray(body)
                     val elementType = expectedBody.schemaType.elementsType
                     array.forEach { element ->
                         if(elementType != convertToType(element)) {
-                            return failure(VerifyBodyError.InvalidBodyTypes)
+                            failList.add(VerifyBodyError.InvalidArrayElement(elementType, convertToType(element)))
                         }
                     }
-                    success(true)
                 } catch (e: Exception) {
-                    return failure(VerifyBodyError.InvalidBodyFormat)
+                    failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.schemaType))
                 }
             }
             is Type.ObjectType -> {
@@ -371,24 +378,26 @@ class BodyAndParamsDynamicHandler(
                     //Body experado extraido da definição openAPI e armazenado num map<string,Type>
                     val expectedBodyMap = expectedBody.schemaType.fieldsTypes
                     if(requestBodyMap.keys != expectedBodyMap.keys) {
-                        return failure(VerifyBodyError.InvalidBodyKeys)
+                        failList.add(VerifyBodyError.InvalidBodyKeys(expectedBodyMap.keys.toString(), requestBodyMap.keys.toString()))
                     }
                     //Converte o body recebido para um map<string,Type>
                     val requestBodyTypes = requestBodyMap.mapValues { convertToType(it.value) }
                     //Verifica se os tipos do body recebido correspondem aos tipos esperados
                     requestBodyTypes.forEach { (key, type) ->
                         if(type != expectedBodyMap[key]!!) {
-                            return failure(VerifyBodyError.InvalidBodyTypes)
+                            failList.add(VerifyBodyError.InvalidBodyTypes(key, expectedBodyMap[key]!!, type))
                         }
                     }
-                    success(true)
                     //Se o body não for um json a função convertJsonToMap lança uma exceção
                 } catch (e: Exception) {
-                    return failure(VerifyBodyError.InvalidBodyFormat)
+                    failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.schemaType))
                 }
             }
-            Type.UnknownType -> success(true)
+            Type.UnknownType -> { }
         }
+
+        return failList
+
     }
 
     fun convertToType(value: Any?): Type {

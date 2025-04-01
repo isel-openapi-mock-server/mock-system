@@ -4,9 +4,8 @@ import isel.openapi.mock.parsingServices.model.ApiParameter
 import isel.openapi.mock.parsingServices.model.ApiRequestBody
 import isel.openapi.mock.parsingServices.model.Location
 import isel.openapi.mock.parsingServices.model.ParameterStyle
+import isel.openapi.mock.parsingServices.model.PathParts
 import isel.openapi.mock.parsingServices.model.Type
-import isel.openapi.mock.utils.Failure
-import isel.openapi.mock.utils.Success
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
@@ -46,12 +45,17 @@ class DynamicHandlersTests {
         val dynamicHandler = BodyAndParamsDynamicHandler(
             response = "Response",
             params = null,
-            body = expectedBody
+            body = expectedBody,
+            path = listOf((PathParts.Static("users")))
         )
 
-        assertTrue { dynamicHandler.verifyBody(body, expectedBody) is Success }
-        assertTrue { dynamicHandler.verifyBody(body2, expectedBody) is Failure }
-        assertTrue { dynamicHandler.verifyBody(body3, expectedBody) is Failure }
+        val result1 = dynamicHandler.verifyBody(body, expectedBody)
+        val result2 = dynamicHandler.verifyBody(body2, expectedBody)
+        val result3 = dynamicHandler.verifyBody(body3, expectedBody)
+
+        assertTrue { result1.isEmpty() }
+        assertTrue { result2[0] == VerifyBodyError.InvalidBodyTypes("age", Type.IntegerType, Type.StringType) }
+        assertTrue { result3[0] == VerifyBodyError.InvalidBodyFormat(Type.ObjectType(mapOf("name" to Type.StringType, "age" to Type.IntegerType))) }
 
     }
 
@@ -77,11 +81,15 @@ class DynamicHandlersTests {
         val dynamicHandler = BodyAndParamsDynamicHandler(
             response = "Response",
             params = null,
-            body = expectedBody
+            body = expectedBody,
+            path = listOf((PathParts.Static("users")))
         )
 
-        assertTrue { dynamicHandler.verifyBody(body, expectedBody) is Success }
-        assertTrue { dynamicHandler.verifyBody(body2, expectedBody) is Failure }
+        val result1 = dynamicHandler.verifyBody(body, expectedBody)
+        val result2 = dynamicHandler.verifyBody(body2, expectedBody)
+
+        assertTrue { result1.isEmpty() }
+        assertTrue { result2[0] == VerifyBodyError.InvalidArrayElement(Type.IntegerType, Type.StringType) }
 
     }
 
@@ -130,11 +138,18 @@ class DynamicHandlersTests {
         val dynamicHandler = BodyAndParamsDynamicHandler(
             response = "Response",
             params = null,
-            body = expectedBody
+            body = expectedBody,
+            path = listOf((PathParts.Static("users")))
         )
 
-        assertTrue { dynamicHandler.verifyBody(body, expectedBody) is Success }
-        assertTrue { dynamicHandler.verifyBody(body2, expectedBody) is Failure }
+        val result1 = dynamicHandler.verifyBody(body, expectedBody)
+        val result2 = dynamicHandler.verifyBody(body2, expectedBody)
+
+        assertTrue { result1.isEmpty() }
+        assertTrue { result2[0] == VerifyBodyError.InvalidArrayElement(
+            Type.ObjectType(mapOf("name" to Type.StringType, "age" to Type.IntegerType)),
+            Type.ObjectType(mapOf("name" to Type.StringType, "age" to Type.StringType)))
+        }
 
     }
 
@@ -154,11 +169,16 @@ class DynamicHandlersTests {
         val dynamicHandler = BodyAndParamsDynamicHandler(
             response = "Response",
             params = null,
-            body = expectedBody
+            body = expectedBody,
+            path = listOf((PathParts.Static("users")))
         )
 
-        assertTrue { dynamicHandler.verifyBody(body, expectedBody) is Success }
-        assertTrue { dynamicHandler.verifyBody(body2, expectedBody) is Failure }
+        val result1 = dynamicHandler.verifyBody(body, expectedBody)
+        val result2 = dynamicHandler.verifyBody(body2, expectedBody)
+
+        assertTrue { result1.isEmpty() }
+        assertTrue { result2[0] == VerifyBodyError.InvalidBodyFormat(Type.NullType) }
+
     }
 
     @Test
@@ -178,12 +198,18 @@ class DynamicHandlersTests {
         val dynamicHandler = BodyAndParamsDynamicHandler(
             response = "Response",
             params = null,
-            body = expectedBody
+            body = expectedBody,
+            path = listOf((PathParts.Static("users")))
         )
 
-        assertTrue { dynamicHandler.verifyBody(body, expectedBody) is Success }
-        assertTrue { dynamicHandler.verifyBody(body2, expectedBody) is Success }
-        assertTrue { dynamicHandler.verifyBody(body3, expectedBody) is Failure }
+        val result1 = dynamicHandler.verifyBody(body, expectedBody)
+        val result2 = dynamicHandler.verifyBody(body2, expectedBody)
+        val result3 = dynamicHandler.verifyBody(body3, expectedBody)
+
+        assertTrue { result1.isEmpty() }
+        assertTrue { result2.isEmpty() }
+        assertTrue { result3[0] == VerifyBodyError.InvalidBodyFormat(Type.BooleanType) }
+
     }
 
     @Test
@@ -203,12 +229,18 @@ class DynamicHandlersTests {
         val dynamicHandler = BodyAndParamsDynamicHandler(
             response = "Response",
             params = null,
-            body = expectedBody
+            body = expectedBody,
+            path = listOf((PathParts.Static("users")))
         )
 
-        assertTrue { dynamicHandler.verifyBody(body, expectedBody) is Success }
-        assertTrue { dynamicHandler.verifyBody(body2, expectedBody) is Success }
-        assertTrue { dynamicHandler.verifyBody(body3, expectedBody) is Failure }
+        val result1 = dynamicHandler.verifyBody(body, expectedBody)
+        val result2 = dynamicHandler.verifyBody(body2, expectedBody)
+        val result3 = dynamicHandler.verifyBody(body3, expectedBody)
+
+        assertTrue { result1.isEmpty() }
+        assertTrue { result2.isEmpty() }
+        assertTrue { result3[0] == VerifyBodyError.InvalidBodyFormat(Type.NumberType) }
+
     }
 
     @Test
@@ -228,12 +260,18 @@ class DynamicHandlersTests {
         val dynamicHandler = BodyAndParamsDynamicHandler(
             response = "Response",
             params = null,
-            body = expectedBody
+            body = expectedBody,
+            path = listOf((PathParts.Static("users")))
         )
 
-        assertTrue { dynamicHandler.verifyBody(body, expectedBody) is Success }
-        assertTrue { dynamicHandler.verifyBody(body2, expectedBody) is Failure }
-        assertTrue { dynamicHandler.verifyBody(body3, expectedBody) is Success }
+        val result1 = dynamicHandler.verifyBody(body, expectedBody)
+        val result2 = dynamicHandler.verifyBody(body2, expectedBody)
+        val result3 = dynamicHandler.verifyBody(body3, expectedBody)
+
+        assertTrue { result1.isEmpty() }
+        assertTrue { result2[0] == VerifyBodyError.InvalidBodyFormat(Type.StringType) }
+        assertTrue { result3.isEmpty() }
+
     }
 
     @Test
@@ -253,12 +291,18 @@ class DynamicHandlersTests {
         val dynamicHandler = BodyAndParamsDynamicHandler(
             response = "Response",
             params = null,
-            body = expectedBody
+            body = expectedBody,
+            path = listOf((PathParts.Static("users")))
         )
 
-        assertTrue { dynamicHandler.verifyBody(body, expectedBody) is Success }
-        assertTrue { dynamicHandler.verifyBody(body2, expectedBody) is Failure }
-        assertTrue { dynamicHandler.verifyBody(body3, expectedBody) is Failure }
+        val result1 = dynamicHandler.verifyBody(body, expectedBody)
+        val result2 = dynamicHandler.verifyBody(body2, expectedBody)
+        val result3 = dynamicHandler.verifyBody(body3, expectedBody)
+
+        assertTrue { result1.isEmpty() }
+        assertTrue { result2[0] == VerifyBodyError.InvalidBodyFormat(Type.IntegerType) }
+        assertTrue { result3[0] == VerifyBodyError.InvalidBodyFormat(Type.IntegerType) }
+
     }
 
     @Test
@@ -311,14 +355,29 @@ class DynamicHandlersTests {
         val dynamicHandler = BodyAndParamsDynamicHandler(
             response = "Response",
             params = expectedHeaders,
-            body = null
+            body = null,
+            path = listOf((PathParts.Static("users")))
         )
 
-        assertTrue { dynamicHandler.verifyHeaders(headers, expectedHeaders, "application/json") is Success }
-        assertTrue { dynamicHandler.verifyHeaders(headers1, expectedHeaders, "application/json") is Success }
-        assertTrue { dynamicHandler.verifyHeaders(headers2, expectedHeaders, "application/json") is Failure }
-        assertTrue { dynamicHandler.verifyHeaders(headers3, expectedHeaders, "application/json") is Failure }
-        assertTrue { dynamicHandler.verifyHeaders(headers4, expectedHeaders, "application/json") is Failure }
+        val result1 = dynamicHandler.verifyHeaders(headers, expectedHeaders, "application/json")
+        val result2 = dynamicHandler.verifyHeaders(headers1, expectedHeaders, "application/json")
+        val result3 = dynamicHandler.verifyHeaders(headers2, expectedHeaders, "application/json")
+        val result4 = dynamicHandler.verifyHeaders(headers3, expectedHeaders, "application/json")
+        val result5 = dynamicHandler.verifyHeaders(headers4, expectedHeaders, "application/json")
+
+        assertTrue { result1.isEmpty() }
+        assertTrue { result2.isEmpty() }
+
+        assertTrue { result3.size == 3 }
+        assertTrue { result3[0] == VerifyHeadersError.MissingHeader("Content-Type") }
+        assertTrue { result3[1] == VerifyHeadersError.MissingHeaderContent("Content-Type") }
+        assertTrue { result3[2] == VerifyHeadersError.InvalidContentType("application/json", "") }
+
+        assertTrue { result4.size == 1 }
+        assertTrue { result4[0] == VerifyHeadersError.InvalidContentType("application/json", "application/problem") }
+
+        assertTrue { result5.size == 1 }
+        assertTrue { result5[0] == VerifyHeadersError.InvalidHeader(setOf("Extra")) }
 
     }
 
