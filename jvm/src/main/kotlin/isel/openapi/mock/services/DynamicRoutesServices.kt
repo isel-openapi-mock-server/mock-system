@@ -1,6 +1,6 @@
 package isel.openapi.mock.services
 
-import isel.openapi.mock.http.BodyAndParamsDynamicHandler
+import isel.openapi.mock.http.DynamicHandler
 import isel.openapi.mock.repository.DynamicRoutesMem
 import isel.openapi.mock.parsingServices.model.ApiSpec
 import isel.openapi.mock.parsingServices.model.HttpMethod
@@ -31,13 +31,13 @@ class DynamicRoutesServices(
                     else -> throw IllegalArgumentException("Unsupported method: ${operation.method}")
                 }
 
-                val handler = BodyAndParamsDynamicHandler(
+                val handler = DynamicHandler(
                     apiPath.path,
                     operation.responses[0].statusCode.code.toString(),
                     operation.parameters,
                     operation.requestBody
                 )
-                val methodInstance: Method = BodyAndParamsDynamicHandler::class.java.getMethod(
+                val methodInstance: Method = DynamicHandler::class.java.getMethod(
                     "handle", HttpServletRequest::class.java
                 )
 

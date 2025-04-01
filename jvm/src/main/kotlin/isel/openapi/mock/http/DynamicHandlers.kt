@@ -5,10 +5,6 @@ import org.springframework.web.bind.annotation.ResponseBody
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import isel.openapi.mock.parsingServices.model.*
-import isel.openapi.mock.utils.Either
-import isel.openapi.mock.utils.Failure
-import isel.openapi.mock.utils.failure
-import isel.openapi.mock.utils.success
 import jakarta.servlet.http.Cookie
 import org.springframework.http.ResponseEntity
 
@@ -35,13 +31,13 @@ sealed class VerifyParamsError: VerificationError {
 
 }
 
-class BodyAndParamsDynamicHandler(
+class DynamicHandler(
     private val path: List<PathParts>,
     private val response: String,
     private val params: List<ApiParameter>?,
     private val body: ApiRequestBody?
 ) {
-    @ResponseBody
+
     fun handle(
         request: HttpServletRequest,
     ): ResponseEntity<*> {

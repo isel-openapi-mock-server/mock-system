@@ -42,7 +42,7 @@ class DynamicHandlersTests {
             bom dia
         """.trimIndent()
 
-        val dynamicHandler = BodyAndParamsDynamicHandler(
+        val dynamicHandler = DynamicHandler(
             response = "Response",
             params = null,
             body = expectedBody,
@@ -78,7 +78,7 @@ class DynamicHandlersTests {
             [1,2,3,"4"]
         """.trimIndent()
 
-        val dynamicHandler = BodyAndParamsDynamicHandler(
+        val dynamicHandler = DynamicHandler(
             response = "Response",
             params = null,
             body = expectedBody,
@@ -135,7 +135,7 @@ class DynamicHandlersTests {
             ]
         """.trimIndent()
 
-        val dynamicHandler = BodyAndParamsDynamicHandler(
+        val dynamicHandler = DynamicHandler(
             response = "Response",
             params = null,
             body = expectedBody,
@@ -166,7 +166,7 @@ class DynamicHandlersTests {
         val body = ""
         val body2 = "null"
 
-        val dynamicHandler = BodyAndParamsDynamicHandler(
+        val dynamicHandler = DynamicHandler(
             response = "Response",
             params = null,
             body = expectedBody,
@@ -195,7 +195,7 @@ class DynamicHandlersTests {
         val body2 = "false"
         val body3 = "null"
 
-        val dynamicHandler = BodyAndParamsDynamicHandler(
+        val dynamicHandler = DynamicHandler(
             response = "Response",
             params = null,
             body = expectedBody,
@@ -226,7 +226,7 @@ class DynamicHandlersTests {
         val body2 = "3"
         val body3 = "null"
 
-        val dynamicHandler = BodyAndParamsDynamicHandler(
+        val dynamicHandler = DynamicHandler(
             response = "Response",
             params = null,
             body = expectedBody,
@@ -257,7 +257,7 @@ class DynamicHandlersTests {
         val body2 = ""
         val body3 = "null"
 
-        val dynamicHandler = BodyAndParamsDynamicHandler(
+        val dynamicHandler = DynamicHandler(
             response = "Response",
             params = null,
             body = expectedBody,
@@ -288,7 +288,7 @@ class DynamicHandlersTests {
         val body2 = "3.14"
         val body3 = "null"
 
-        val dynamicHandler = BodyAndParamsDynamicHandler(
+        val dynamicHandler = DynamicHandler(
             response = "Response",
             params = null,
             body = expectedBody,
@@ -352,7 +352,7 @@ class DynamicHandlersTests {
             "Extra" to "extra"
         )
 
-        val dynamicHandler = BodyAndParamsDynamicHandler(
+        val dynamicHandler = DynamicHandler(
             response = "Response",
             params = expectedHeaders,
             body = null,
