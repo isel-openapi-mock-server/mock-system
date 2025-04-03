@@ -27,8 +27,11 @@ sealed class VerifyHeadersError: VerificationError {
 }
 
 // TODO separar nos tipos de params diferentes (query, path e cookies).
-sealed class VerifyParamsError: VerificationError {
-
+sealed class VerifyParamsError : VerificationError {
+    data class InvalidType(val location: Location, val expectedType: Type, val receivedType: Type) : VerifyParamsError()
+    data class ParamCantBeEmpty(val location: Location, val paramName: String) : VerifyParamsError()
+    data class InvalidParam(val location: Location, val paramName: String) : VerifyParamsError()
+    data class MissingParam(val location: Location, val paramName: String) : VerifyParamsError()
 }
 
 class DynamicHandler(
@@ -67,7 +70,7 @@ class DynamicHandler(
         cookiesResult.forEach { fails.add(it) }
 
         return if(fails.isNotEmpty()) {
-            //TODO: Converter os erros para um formato mais legível
+            //TODO: Converter os erros para um formato mais legível.
             ResponseEntity.badRequest().body(fails)
         } else  ResponseEntity.ok(response)
     }
@@ -108,20 +111,23 @@ class DynamicHandler(
         queryParams: Map<String, List<Any>>,
         expectedQueryParams: List<ApiParameter>
     ): List<VerifyParamsError> {
-        var failed = false
+
         val failList = mutableListOf<VerifyParamsError>()
 
-        if (expectedQueryParams.isNotEmpty() && queryParams.isEmpty()) {
-            failed = true
-            // TODO adicionar erro à failList, para depois guardarmos os erros.
+        if (expectedQueryParams.isNotEmpty() && expectedQueryParams.any { it.required }  && queryParams.isEmpty()) {
+            val missingParams = expectedQueryParams.filter { it.required }
+            missingParams.forEach { param ->
+                failList.add(VerifyParamsError.MissingParam(Location.QUERY, param.name))
+            }
         }
 
         if (expectedQueryParams.isEmpty() && queryParams.isNotEmpty()) {
-            failed = true
-            // TODO ERRO, adcionar à lista
+            queryParams.keys.forEach { key ->
+                failList.add(VerifyParamsError.InvalidParam(Location.QUERY, key))
+            }
         }
 
-        if (failed) return failList
+        if(failList.isNotEmpty()) return failList
 
         expectedQueryParams.forEach { param ->
             val values = queryParams[param.name]
@@ -129,8 +135,7 @@ class DynamicHandler(
             if (values == null) {
                 // O parametro é necessário.
                 if (param.required) {
-                    failed = true
-                    // TODO Erro, adicionar a lista
+                    failList.add(VerifyParamsError.MissingParam(Location.QUERY, param.name))
                 }
                 return@forEach
             }
@@ -144,25 +149,18 @@ class DynamicHandler(
                 ) {
                     // O param não suporta valor a vazio.
                     if (!param.allowEmptyValue) {
-                        failed = true
-                        // TODO erro, o valor do param é vazio mas o param nao pode vir vazio
+                        failList.add(VerifyParamsError.ParamCantBeEmpty(Location.QUERY, param.name))
                     }
-                    // avança para o proximo ciclo do forEach.
                     return@forEach
                 }
 
                 if (valueType != param.type) {
-                    failed = true
-                    // TODO Erro, adicionar a lista
+                    failList.add(VerifyParamsError.InvalidType(Location.QUERY, param.type, valueType))
                 }
-
             }
-
         }
 
-        //TODO: Retornar sempre a lista de erros (com os erros ou vazia)
-        return if (failed) failList
-        else emptyList()
+        return failList
 
     }
 
@@ -170,20 +168,22 @@ class DynamicHandler(
         pathParams: Map<String, Any>,
         expectedPathParams: List<ApiParameter>
     ): List<VerifyParamsError> {
-        var failed = false
         val failList = mutableListOf<VerifyParamsError>()
 
         if (expectedPathParams.isNotEmpty() && pathParams.isEmpty()) {
-            failed = true
-            // TODO adicionar erro à failList, para depois guardarmos os erros.
+            val missingParams = expectedPathParams.filter { it.required }
+            missingParams.forEach { param ->
+                failList.add(VerifyParamsError.MissingParam(Location.PATH, param.name))
+            }
         }
 
         if (expectedPathParams.isEmpty() && pathParams.isNotEmpty()) {
-            failed = true
-            // TODO ERRO, adcionar à lista
+            pathParams.keys.forEach { key ->
+                failList.add(VerifyParamsError.InvalidParam(Location.PATH, key))
+            }
         }
 
-        if (failed) return failList
+        if (failList.isNotEmpty()) return failList
 
 
         expectedPathParams.forEach { param ->
@@ -193,12 +193,10 @@ class DynamicHandler(
             if (value == null) {
                 // O parametro é necessário.
                 if (param.required) {
-                    failed = true
-                    // TODO Erro, adicionar a lista
+                    failList.add(VerifyParamsError.MissingParam(Location.PATH, param.name))
                 }
                 return@forEach
             }
-
             val valueType = convertToType(value)
 
             // Verificar se nao tem valor, String vazia.
@@ -208,26 +206,15 @@ class DynamicHandler(
             ) {
                 // O param não o suporta valor a vazio.
                 if (!param.allowEmptyValue) {
-                    failed = true
-                    // TODO erro, o valor do param é vazio mas o param nao pode vir vazio
+                    failList.add(VerifyParamsError.ParamCantBeEmpty(Location.PATH, param.name))
                 }
-
-                // avança para o proximo ciclo do forEach.
                 return@forEach
-
             }
-
             if (valueType != param.type) {
-                failed = true
-                // TODO Erro, adicionar a lista
+                failList.add(VerifyParamsError.InvalidType(Location.PATH, param.type, valueType))
             }
-
         }
-
-        //TODO: Retornar sempre a lista de erros (com os erros ou vazia)
-        return if (failed) failList
-        else emptyList()
-
+        return failList
     }
 
     private fun verifyCookies(
