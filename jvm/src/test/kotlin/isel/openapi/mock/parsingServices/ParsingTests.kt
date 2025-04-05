@@ -126,6 +126,21 @@ class ParsingTests {
         assertTrue { extractedType == Type.ArrayType(Type.IntegerType) }
     }
 
+    @Test
+    fun securityParsingTest() {
+        val isValid = parsing.validateOpenApi(openAPIDefinition1)
+
+        assertTrue { isValid }
+
+        val definition = parsing.parseOpenApi(openAPIDefinition1) ?: throw IllegalStateException("Invalid OpenAPI definition")
+        val operations = parsing.extractApiSpec(definition).paths[0].operations
+
+        assertTrue { operations.size == 1 }
+        assertTrue { operations[0].method == HttpMethod.GET }
+        assertTrue { operations[0].security.size == 1 }
+        assertTrue { operations[0].security[0].containsKey("BearerAuth") }
+    }
+
     val openAPIDefinition = """
         openapi: 3.0.4
         info:
@@ -187,5 +202,66 @@ class ParsingTests {
                   description: "No Content"
         """.trimIndent()
 
+    val openAPIDefinition1 = """
+        openapi: 3.0.1
+        info:
+          title: ChIMP API
+          version: 1.0.0
+          description: API for Instant messaging application
+        servers:
+          - description: Localhost server for testing API
+            url: http://localhost:8080/api
+        paths:
+          /users/search:
+            get:
+              tags:
+                - Users
+              summary: Search for a user by username
+              security:
+                - BearerAuth: []
+              parameters:
+                - name: username
+                  in: query
+                  required: true
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  required: false
+                  schema:
+                    type: integer
+                - name: skip
+                  in: query
+                  required: false
+                  schema:
+                    type: integer
+        
+              responses:
+                '200':
+                  description: User retrieved successfully
+                  content:
+                    application/json:
+                      schema:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              example: 1
+                            username:
+                              type: string
+                              example: bob123
+                '500':
+                  description: Internal server error
+        components:
+          securitySchemes:
+            BearerAuth:
+              type: http
+              scheme: bearer
+              description: |
+                Bearer token for authentication. Format: "Bearer {token}"
+              bearerFormat: JWT
+    """.trimIndent()
 
 }

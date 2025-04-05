@@ -40,6 +40,17 @@ class Parsing {
     }
 
     fun extractApiSpec(openAPI: OpenAPI): ApiSpec {
+
+        val security = openAPI.security?.map { securityRequirement ->
+            securityRequirement.map { (name, scopes) ->
+                name to scopes
+            }
+        } ?: emptyList()
+
+        val a = openAPI.components.securitySchemes
+
+        println(a)
+
         return ApiSpec(
             servers = openAPI.servers.map { toApiServer(it) },
             name = openAPI.info.title,
@@ -74,7 +85,7 @@ class Parsing {
                                     schemaType = extractType(response.content?.get(contentType)?.schema)
                                 )
                             },
-                            servers = operation.servers?.map { it.url } ?: emptyList()
+                            servers = operation.servers?.map { it.url } ?: emptyList(),
                         )
                     }
                 )

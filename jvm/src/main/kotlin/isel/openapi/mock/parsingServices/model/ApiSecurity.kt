@@ -1,0 +1,27 @@
+package isel.openapi.mock.parsingServices.model
+
+interface ApiSecurity {
+}
+
+class ApiKeySecurity(
+    val name: String,
+    val inLocation: Location,
+) : ApiSecurity
+
+class OAuth2Security(
+    val flows: Map<String, OAuth2Flow>
+) : ApiSecurity
+
+class HttpSecurity(
+    val scheme: String,
+) : ApiSecurity
+
+class OpenIdConnectSecurity(
+    val openIdUrl: String
+) : ApiSecurity
+
+class OAuth2Flow(
+    val authorizationUrl: String,
+    val tokenUrl: String,
+    val scopes: Map<String, String>
+)

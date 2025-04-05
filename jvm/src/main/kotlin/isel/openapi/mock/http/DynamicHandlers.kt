@@ -47,7 +47,7 @@ class DynamicHandler(
         val requestBody = request.reader.readText()
         val requestQueryParams = request.parameterMap.mapValues { entry -> entry.value.map { value -> value.toTypedValue() } } // Mudei de it.value[0], para it.value
         val requestPathParams = getPathParams(request.requestURI)
-        val headers = request.headerNames.toList().associate { it to request.getHeader(it) }
+        val headers = request.headerNames.toList().associateWith { request.getHeader(it) }
         val cookies = request.cookies
 
         val fails = mutableListOf<VerificationError>()
@@ -306,7 +306,7 @@ class DynamicHandler(
         if(headers["Content-Type"] != contentType) {
             failList.add(VerifyHeadersError.InvalidContentType(contentType, headers["Content-Type"] ?: ""))
         }
-        val unexpectedHeaders = headers.keys - expectedHeaders.map { it.name }
+        val unexpectedHeaders = headers.keys - expectedHeaders.map { it.name }.toSet()
         if(unexpectedHeaders.isNotEmpty()) {
             failList.add(VerifyHeadersError.InvalidHeader(unexpectedHeaders))
         }
@@ -383,7 +383,7 @@ class DynamicHandler(
 
     }
 
-    fun convertToType(value: Any?): Type {
+    private fun convertToType(value: Any?): Type {
         return when (value) {
             null -> Type.NullType
             is Boolean -> Type.BooleanType
