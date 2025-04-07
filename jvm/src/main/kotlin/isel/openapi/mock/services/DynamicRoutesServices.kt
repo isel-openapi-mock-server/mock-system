@@ -40,6 +40,10 @@ class DynamicRoutesServices(
                 val methodInstance: Method = DynamicHandler::class.java.getMethod(
                     "handle", HttpServletRequest::class.java
                 )
+                 //http://localhost:8080/api1/apiPath.path
+
+                //api/1/2
+                //api/1/2?id=1
 
                 val mappingInfo = RequestMappingInfo
                     .paths(apiPath.fullPath)

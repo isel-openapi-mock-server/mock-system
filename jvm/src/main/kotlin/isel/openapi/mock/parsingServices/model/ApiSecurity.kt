@@ -25,3 +25,22 @@ class OAuth2Flow(
     val tokenUrl: String,
     val scopes: Map<String, String>
 )
+
+/**
+ *
+ */
+
+/**
+ * Expected response //host, path, method, statusCode = null, responseBody = null, responseHeaders = null
+ */
+
+/**
+ * response(host: String, path: String, method: HttpMethod, statusCode: StatusCode)
+ * .responseBody(body: String)
+ * .responseHeaders(headers: Map<String, String>)
+ */
+
+/**
+ * PUT
+ * Expected response
+ */

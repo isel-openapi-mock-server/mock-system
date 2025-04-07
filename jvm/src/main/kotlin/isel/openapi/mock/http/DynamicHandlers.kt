@@ -48,7 +48,7 @@ class DynamicHandler(
         val requestQueryParams = request.parameterMap.mapValues { entry -> entry.value.map { value -> value.toTypedValue() } } // Mudei de it.value[0], para it.value
         val requestPathParams = getPathParams(request.requestURI)
         val headers = request.headerNames.toList().associateWith { request.getHeader(it) }
-        val cookies = request.cookies
+        val cookies = request.cookies ?: emptyArray()
 
         val fails = mutableListOf<VerificationError>()
 

@@ -141,6 +141,36 @@ class ParsingTests {
         assertTrue { operations[0].security[0].containsKey("BearerAuth") }
     }
 
+    @Test
+    fun refTest() {
+        val isValid = parsing.validateOpenApi(openAPIDefinition3)
+
+        assertTrue { isValid }
+
+        val definition = parsing.parseOpenApi(openAPIDefinition3) ?: throw IllegalStateException("Invalid OpenAPI definition")
+        val operations = parsing.extractApiSpec(definition).paths[0].operations
+
+        assertTrue { operations.size == 1 }
+        assertTrue { operations[0].method == HttpMethod.POST }
+        assertTrue { operations[0].requestBody?.schemaType == Type.ObjectType(
+            mapOf(
+                "name" to Type.StringType,
+                "email" to Type.StringType,
+                "username" to Type.StringType,
+                "password" to Type.StringType
+            )
+        ) }
+        assertTrue {
+            operations[0].responses[0].schemaType == Type.ObjectType(
+                mapOf(
+                    "token" to Type.StringType,
+                    "username" to Type.StringType,
+                    "id" to Type.IntegerType
+                )
+            )
+        }
+    }
+
     val openAPIDefinition = """
         openapi: 3.0.4
         info:
@@ -263,5 +293,72 @@ class ParsingTests {
                 Bearer token for authentication. Format: "Bearer {token}"
               bearerFormat: JWT
     """.trimIndent()
+
+    val openAPIDefinition3 = """
+    openapi: 3.0.1
+    info:
+      title: ProjLS API
+      description: API for projLs
+      version: 1.0.0
+    servers:
+      - description: Localhost server for testing API
+        url: http://localhost:8080
+    paths:
+      /players:
+        description: The resource to create a new player
+        post:
+          tags:
+            - Players
+          summary: Adds a player
+          description: Adds a player to the system given a name and email
+          operationId: postPlayer
+          requestBody:
+            description: Player to add
+            content:
+              application/json:
+                schema:
+                  __REF__: '#/components/schemas/PlayerInput'
+            required: true
+          responses:
+            201:
+              description: Player created
+              content:
+                application/json:
+                  schema:
+                    __REF__: '#/components/schemas/PlayerOutput'
+    components:
+      schemas:
+        PlayerInput:
+          type: object
+          required:
+            - name
+            - email
+            - username
+            - password
+          properties:
+            name:
+              type: string
+            email:
+              type: string
+            username:
+              type: string
+            password:
+              type: string
+        PlayerOutput:
+          type: object
+          required:
+            - token
+            - username
+            - id
+          properties:
+            token:
+              type: string
+              format: uuid
+            username:
+              type: string
+            id:
+              type: integer
+""".trimIndent().replace("__REF__", "\$ref")
+
 
 }

@@ -41,15 +41,18 @@ class Parsing {
 
     fun extractApiSpec(openAPI: OpenAPI): ApiSpec {
 
-        val security = openAPI.security?.map { securityRequirement ->
-            securityRequirement.map { (name, scopes) ->
-                name to scopes
-            }
-        } ?: emptyList()
+        //map<String, Schema<*>>
+        // string -> SchemaName
+        // #/components/schemas/SchemaName
+        val allSchemas = openAPI.components?.schemas ?: emptyMap()
 
-        val a = openAPI.components.securitySchemes
-
-        println(a)
+        //TODO
+        val allResponse = openAPI.components?.responses ?: emptyMap()
+        val allParameters = openAPI.components?.parameters ?: emptyMap()
+        val allHeaders = openAPI.components?.headers ?: emptyMap()
+        val allLinks = openAPI.components?.links ?: emptyMap()
+        val allCallbacks = openAPI.components?.callbacks ?: emptyMap()
+        val allSecurity = openAPI.components?.securitySchemes ?: emptyMap()
 
         return ApiSpec(
             servers = openAPI.servers.map { toApiServer(it) },
@@ -73,7 +76,7 @@ class Parsing {
                                 val schema = reqBody.content?.get(mediaType)?.schema
                                 ApiRequestBody(
                                     contentType = mediaType,
-                                    schemaType = extractType(schema),
+                                    schemaType = extractType(schema, allSchemas),
                                     required = reqBody.required ?: false,
                                 )
                             },
@@ -82,7 +85,7 @@ class Parsing {
                                 ApiResponse(
                                     statusCode = fromCode(statusCode) ?: StatusCode.UNKNOWN,
                                     contentType = contentType,
-                                    schemaType = extractType(response.content?.get(contentType)?.schema)
+                                    schemaType = extractType(response.content?.get(contentType)?.schema, allSchemas),
                                 )
                             },
                             servers = operation.servers?.map { it.url } ?: emptyList(),
@@ -120,7 +123,18 @@ class Parsing {
         )
     }
 
-    fun extractType(schema: Schema<*>?): Type {
+    fun extractType(schema: Schema<*>?, allSchemas: Map<String, Schema<*>>? = null): Type {
+
+        if(allSchemas != null) {
+            val ref = schema?.`$ref`
+            if (ref != null) {
+
+                //O ref é do tipo "#/components/schemas/SchemaName"
+                val refSchema = allSchemas[ref.substringAfterLast("/")]
+                return extractType(refSchema)
+            }
+        }
+
         return when (schema) {
             is ObjectSchema -> ObjectType(
                 fieldsTypes = schema.properties?.mapValues { (_, propertySchema) ->
