@@ -2,7 +2,7 @@ package isel.openapi.mock.repository
 
 class DynamicRoutesMemTests {
 
-    val dynamicRoutesMem = DynamicRoutesMem()
+    //val dynamicRoutesMem = DynamicRoutesMem()
 
     /*
     @Test

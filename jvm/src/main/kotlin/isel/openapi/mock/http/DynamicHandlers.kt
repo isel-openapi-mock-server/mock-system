@@ -12,14 +12,14 @@ import org.springframework.http.ResponseEntity
 interface VerificationError
 
 sealed class VerifyBodyError: VerificationError {
-    data class InvalidBodyTypes(val name: String?, val expectedType: Type, val receivedType: Type): VerifyBodyError()
+    data class InvalidBodyTypes(val name: String?, val expectedType: String, val receivedType: String): VerifyBodyError()
     data class InvalidBodyKeys(val expectedKeys: String, val receivedKeys: String): VerifyBodyError()
-    data class InvalidBodyFormat(val expectedBodyType: Type): VerifyBodyError()
-    data class InvalidArrayElement(val expectedType: Type, val receivedType: Type): VerifyBodyError()
+    data class InvalidBodyFormat(val expectedBodyType: String): VerifyBodyError()
+    data class InvalidArrayElement(val expectedType: String, val receivedType: String): VerifyBodyError()
 }
 
 sealed class VerifyHeadersError: VerificationError {
-    data class InvalidType(val headerKey: String, val expectedType: Type, val receivedType: Type): VerifyHeadersError()
+    data class InvalidType(val headerKey: String, val expectedType: String, val receivedType: String): VerifyHeadersError()
     data class InvalidHeader(val unexpectedHeaders: Set<String>): VerifyHeadersError()
     data class InvalidContentType(val expectedType: String, val receivedType: String): VerifyHeadersError()
     data class MissingHeader(val expectedHeaders: String): VerifyHeadersError()
@@ -28,7 +28,7 @@ sealed class VerifyHeadersError: VerificationError {
 
 // TODO separar nos tipos de params diferentes (query, path e cookies).
 sealed class VerifyParamsError : VerificationError {
-    data class InvalidType(val location: Location, val expectedType: Type, val receivedType: Type) : VerifyParamsError()
+    data class InvalidType(val location: Location, val expectedType: String, val receivedType: String) : VerifyParamsError()
     data class ParamCantBeEmpty(val location: Location, val paramName: String) : VerifyParamsError()
     data class InvalidParam(val location: Location, val paramName: String) : VerifyParamsError()
     data class MissingParam(val location: Location, val paramName: String) : VerifyParamsError()
@@ -39,6 +39,7 @@ class DynamicHandler(
     private val response: String,
     private val params: List<ApiParameter>?,
     private val body: ApiRequestBody?
+    //private val operation: PathOperation, TODO
 ) {
 
     fun handle(
@@ -155,7 +156,7 @@ class DynamicHandler(
                 }
 
                 if (valueType != param.type) {
-                    failList.add(VerifyParamsError.InvalidType(Location.QUERY, param.type, valueType))
+                    failList.add(VerifyParamsError.InvalidType(Location.QUERY, param.type.toString(), valueType.toString()))
                 }
             }
         }
@@ -211,7 +212,7 @@ class DynamicHandler(
                 return@forEach
             }
             if (valueType != param.type) {
-                failList.add(VerifyParamsError.InvalidType(Location.PATH, param.type, valueType))
+                failList.add(VerifyParamsError.InvalidType(Location.PATH, param.type.toString(), valueType.toString()))
             }
         }
         return failList
@@ -300,16 +301,18 @@ class DynamicHandler(
                 failList.add(VerifyHeadersError.MissingHeaderContent(expectedHeader.name))
             }
             if(headerValue != null && convertToType(headerValue) != expectedHeader.type) {
-                failList.add(VerifyHeadersError.InvalidType(expectedHeader.name, expectedHeader.type, convertToType(headerValue)))
+                failList.add(VerifyHeadersError.InvalidType(expectedHeader.name, expectedHeader.type.toString(), convertToType(headerValue).toString()))
             }
         }
-        if(headers["Content-Type"] != contentType) {
-            failList.add(VerifyHeadersError.InvalidContentType(contentType, headers["Content-Type"] ?: ""))
+        if(headers["Content-Type"] != null) {
+            if(headers["Content-Type"] != contentType) {
+                failList.add(VerifyHeadersError.InvalidContentType(contentType, headers["Content-Type"] ?: ""))
+            }
         }
-        val unexpectedHeaders = headers.keys - expectedHeaders.map { it.name }.toSet()
-        if(unexpectedHeaders.isNotEmpty()) {
-            failList.add(VerifyHeadersError.InvalidHeader(unexpectedHeaders))
-        }
+        //val unexpectedHeaders = headers.keys - expectedHeaders.map { it.name }.toSet()
+        //if(unexpectedHeaders.isNotEmpty()) {
+        //    failList.add(VerifyHeadersError.InvalidHeader(unexpectedHeaders))
+        //}
         return failList
     }
 
@@ -323,23 +326,23 @@ class DynamicHandler(
         when(expectedBody.schemaType) {
             is Type.NullType -> {
                 if(body.isNotEmpty())
-                    failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.schemaType))
+                    failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.schemaType.toString()))
             }
             is Type.BooleanType -> {
                 if(body != "true" && body != "false")
-                    failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.schemaType))
+                    failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.schemaType.toString()))
             }
             is Type.IntegerType -> {
                 if(body.toIntOrNull() == null)
-                    failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.schemaType))
+                    failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.schemaType.toString()))
             }
             is Type.NumberType -> {
                 if(body.toDoubleOrNull() == null)
-                    failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.schemaType))
+                    failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.schemaType.toString()))
             }
             is Type.StringType -> {
                 if(body.isEmpty())
-                    failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.schemaType))
+                    failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.schemaType.toString()))
             }
             is Type.ArrayType -> {
                 try {
@@ -347,11 +350,11 @@ class DynamicHandler(
                     val elementType = expectedBody.schemaType.elementsType
                     array.forEach { element ->
                         if(elementType != convertToType(element)) {
-                            failList.add(VerifyBodyError.InvalidArrayElement(elementType, convertToType(element)))
+                            failList.add(VerifyBodyError.InvalidArrayElement(elementType.toString(), convertToType(element).toString()))
                         }
                     }
                 } catch (e: Exception) {
-                    failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.schemaType))
+                    failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.schemaType.toString()))
                 }
             }
             is Type.ObjectType -> {
@@ -368,12 +371,12 @@ class DynamicHandler(
                     //Verifica se os tipos do body recebido correspondem aos tipos esperados
                     requestBodyTypes.forEach { (key, type) ->
                         if(type != expectedBodyMap[key]!!) {
-                            failList.add(VerifyBodyError.InvalidBodyTypes(key, expectedBodyMap[key]!!, type))
+                            failList.add(VerifyBodyError.InvalidBodyTypes(key, expectedBodyMap[key]!!.toString(), type.toString()))
                         }
                     }
                     //Se o body não for um json a função convertJsonToMap lança uma exceção
                 } catch (e: Exception) {
-                    failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.schemaType))
+                    failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.schemaType.toString()))
                 }
             }
             Type.UnknownType -> { }
