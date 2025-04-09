@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="a709ed31-b4b1-4387-83b0-24e17b255a2d" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/gradle.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/jarRepositories.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/kotlinc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/material_theme_project_new.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/private-spring.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/workspace.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/.gitattributes" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/build.gradle.kts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/gradle/wrapper/gradle-wrapper.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/gradle/wrapper/gradle-wrapper.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/gradlew" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/gradlew.bat" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/settings.gradle.kts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/src/main/kotlin/isel/openapi/mock/JvmApplication.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/src/main/kotlin/isel/openapi/mock/http/Controller.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/src/main/kotlin/isel/openapi/mock/http/DynamicHandlers.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/src/main/kotlin/isel/openapi/mock/parsingServices/Parsing.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/src/main/kotlin/isel/openapi/mock/parsingServices/model/ApiParameter.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/src/main/kotlin/isel/openapi/mock/parsingServices/model/ApiPath.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/src/main/kotlin/isel/openapi/mock/parsingServices/model/ApiRequestBody.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/src/main/kotlin/isel/openapi/mock/parsingServices/model/ApiResponse.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/src/main/kotlin/isel/openapi/mock/parsingServices/model/ApiSecurity.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/src/main/kotlin/isel/openapi/mock/parsingServices/model/ApiServer.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/src/main/kotlin/isel/openapi/mock/parsingServices/model/ApiSpec.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/src/main/kotlin/isel/openapi/mock/parsingServices/model/PathOperation.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/src/main/kotlin/isel/openapi/mock/parsingServices/model/PathParts.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/src/main/kotlin/isel/openapi/mock/parsingServices/model/ServerVariable.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/src/main/kotlin/isel/openapi/mock/parsingServices/model/StatusCode.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/src/main/kotlin/isel/openapi/mock/parsingServices/model/Style.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/src/main/kotlin/isel/openapi/mock/parsingServices/model/Type.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/src/main/kotlin/isel/openapi/mock/parsingServices/model/enums.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/src/main/kotlin/isel/openapi/mock/repository/DynamicRoutesRepository.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/src/main/kotlin/isel/openapi/mock/services/Router.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/src/main/kotlin/isel/openapi/mock/utils/Either.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/src/main/resources/application.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/src/test/kotlin/isel/openapi/mock/JvmApplicationTests.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/src/test/kotlin/isel/openapi/mock/http/DynamicHandlersTests.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/src/test/kotlin/isel/openapi/mock/parsingServices/ParsingTests.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/src/test/kotlin/isel/openapi/mock/repository/DynamicRoutesMemTests.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../jvm/todo.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../modeloER.dia" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../modeloER.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../modeloER1.dia" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ExternalProjectsData">
+    <projectState path="$PROJECT_DIR$/jvm">
+      <ProjectState />
+    </projectState>
+  </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <task path="$PROJECT_DIR$/jvm">
+          <activation />
+        </task>
+        <projects_view>
+          <tree_state>
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="jvm" type="f1a62948:ProjectNode" />
+              </path>
+            </expand>
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 5
+}</component>
+  <component name="ProjectId" id="2uaggc3Rnk8tCFg0Zj9UiZL7P9R" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Gradle.Build jvm.executor": "Run",
+    "Gradle.Download Sources.executor": "Run",
+    "Gradle.ParsingTests.t.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "Spring Boot.AdminApplication.executor": "Run",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/diogo/ISEL/Projeto/private-spring/admin",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RunManager" selected="Spring Boot.AdminApplication">
+    <configuration name="ParsingTests.t" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/jvm" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":test" />
+            <option value="--tests" />
+            <option value="&quot;isel.openapi.mock.utils.ParsingTests.t&quot;" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>true</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="AdminApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+      <module name="jvm.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="isel.openapi.mock.AdminApplication" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="isel.openapi.mock.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="MockApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="jvm.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="isel.openapi.mock.MockApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Spring Boot.AdminApplication" />
+        <item itemvalue="Gradle.ParsingTests.t" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-fdfe4dae3a2d-intellij.indexing.shared.core-IU-243.22562.218" />
+        <option value="bundled-js-predefined-d6986cc7102b-deb605915726-JavaScript-IU-243.22562.218" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="a709ed31-b4b1-4387-83b0-24e17b255a2d" name="Changes" comment="" />
+      <created>1742492211345</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1742492211345</updated>
+      <workItem from="1742492212787" duration="45000" />
+      <workItem from="1743638996998" duration="121000" />
+      <workItem from="1743672254152" duration="113000" />
+      <workItem from="1744216097023" duration="826000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>
