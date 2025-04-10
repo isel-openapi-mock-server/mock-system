@@ -2,15 +2,20 @@ package isel.openapi.mock.http
 
 import isel.openapi.mock.parsingServices.Parsing
 import isel.openapi.mock.parsingServices.model.HttpMethod
+import isel.openapi.mock.services.DynamicHandlerError
+import isel.openapi.mock.services.DynamicHandlerServices
 import isel.openapi.mock.services.Router
+import isel.openapi.mock.utils.Failure
+import isel.openapi.mock.utils.Success
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
 class DynamicRouteController(
-    private val router: Router,
-    private val parsing: Parsing
+    private val router: Router, //TODO: tirar
+    private val parsing: Parsing,
+    private val services: DynamicHandlerServices
 ) {
     @PostMapping("/openapi")
     fun addOpenApiSpec(
@@ -40,17 +45,25 @@ class DynamicRouteController(
             "DELETE" -> HttpMethod.DELETE
             else -> return ResponseEntity.badRequest().body("Unsupported method")
         }
-        val handler = router.match("mock", method, request.requestURI)
-            ?:
-            return ResponseEntity
-                .badRequest()
-                .body("No matching route found for ${request.requestURI} with method ${request.method}")
-        return handler.handle(request)
+        val res = services.executeDynamicHandler(
+            host = request.serverName,
+            method = method,
+            uri = request.requestURI,
+            request = request
+        )
+        return when (res) {
+            is Success -> {
+                ResponseEntity.status(res.value.statusCode.code).build<Unit>()
+            }
+            is Failure -> {
+                when (res.value) {
+                    is DynamicHandlerError.NotFound -> {
+                        ResponseEntity.notFound().build<Unit>()
+                    }
+                }
+            }
+        }
     }
-
 }
 
 data class OpenApiSpec(val spec: String)
-
-
-

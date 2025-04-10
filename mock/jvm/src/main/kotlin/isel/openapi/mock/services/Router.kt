@@ -33,7 +33,7 @@ class Router(
 
                 val handler = DynamicHandler(
                     apiPath.path,
-                    operation.responses[0].statusCode.code.toString(),
+                    operation.responses,
                     operation.parameters,
                     operation.requestBody,
                     operation.headers

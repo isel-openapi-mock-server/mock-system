@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.ResponseBody
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import isel.openapi.mock.parsingServices.model.*
+import isel.openapi.mock.utils.Either
 import jakarta.servlet.http.Cookie
 import org.springframework.http.ResponseEntity
 
@@ -34,9 +35,14 @@ sealed class VerifyParamsError : VerificationError {
     data class MissingParam(val location: Location, val paramName: String) : VerifyParamsError()
 }
 
+class HandlerResult(
+    val fails: List<VerificationError>,
+    val response: Response
+)
+
 class DynamicHandler(
     private val path: List<PathParts>,
-    private val response: String,
+    private val response: List<Response>,
     private val params: List<ApiParameter>?,
     private val body: ApiRequestBody?,
     private val headers : List<ApiHeader>?,
@@ -45,7 +51,7 @@ class DynamicHandler(
 
     fun handle(
         request: HttpServletRequest,
-    ): ResponseEntity<*> {
+    ): HandlerResult {
         val requestBody = request.reader.readText()
         val requestQueryParams = request.parameterMap.mapValues { entry -> entry.value.map { value -> value.toTypedValue() } } // Mudei de it.value[0], para it.value
         val requestPathParams = getPathParams(request.requestURI)
@@ -71,10 +77,12 @@ class DynamicHandler(
         val cookiesResult = verifyCookies(cookies, params?.filter { it.location == Location.COOKIE } ?: emptyList())
         cookiesResult.forEach { fails.add(it) }
 
-        return if(fails.isNotEmpty()) {
-            //TODO: Converter os erros para um formato mais legível.
-            ResponseEntity.badRequest().body(fails)
-        } else  ResponseEntity.ok(response)
+        val response = if(fails.isEmpty()) {
+            response.firstOrNull { it.statusCode == StatusCode.OK } ?: response.first()
+        } else {
+            response.firstOrNull { it.statusCode == StatusCode.BAD_REQUEST } ?: response.first()
+        }
+        return HandlerResult(fails, response)
     }
 
     private fun convertJsonToMap(jsonString: String): Map<String, Any> {
