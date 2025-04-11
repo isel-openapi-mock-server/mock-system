@@ -26,6 +26,8 @@ dependencies {
 	implementation("com.google.guava:guava:32.1.2-jre")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
+	implementation("com.github.erosb:json-sKema:0.20.0")
+
 	// for JDBI
 	implementation("org.jdbi:jdbi3-core:3.37.1")
 	implementation("org.jdbi:jdbi3-kotlin:3.37.1")

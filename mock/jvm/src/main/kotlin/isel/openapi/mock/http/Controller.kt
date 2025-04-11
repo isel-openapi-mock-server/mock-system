@@ -46,7 +46,7 @@ class DynamicRouteController(
             else -> return ResponseEntity.badRequest().body("Unsupported method")
         }
         val res = services.executeDynamicHandler(
-            host = request.serverName,
+            host = "mock",
             method = method,
             uri = request.requestURI,
             request = request

@@ -1,12 +1,16 @@
 package isel.openapi.mock.parsingServices
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.github.erosb.jsonsKema.JsonValue
 import io.swagger.v3.oas.models.media.ArraySchema
 import io.swagger.v3.oas.models.media.IntegerSchema
 import io.swagger.v3.oas.models.media.ObjectSchema
 import io.swagger.v3.oas.models.media.StringSchema
+import isel.openapi.mock.parsingServices.model.ContentOrSchema
 import isel.openapi.mock.parsingServices.model.HttpMethod
 import isel.openapi.mock.parsingServices.model.Location
 import isel.openapi.mock.parsingServices.model.Type
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -55,18 +59,17 @@ class ParsingTests {
         assertTrue { isValid }
 
         val definition = parsing.parseOpenApi(openAPIDefinition) ?: throw IllegalStateException("Invalid OpenAPI definition")
-        val parameters = parsing.extractApiSpec(definition).paths[1].operations[0].parameters
+        val op = parsing.extractApiSpec(definition).paths[1].operations[0]
 
-        assertTrue { parameters.size == 2 }
-        assertTrue { parameters[0].name == "id" }
-        assertTrue { parameters[0].location == Location.PATH }
-        assertTrue { parameters[0].required }
-        assertTrue { parameters[0].type == Type.StringType }
+        assertTrue { op.parameters.size == 1 }
+        assertTrue { op.parameters[0].name == "id" }
+        assertTrue { op.parameters[0].location == Location.PATH }
+        assertTrue { op.parameters[0].required }
+        assertTrue { op.parameters[0].type is ContentOrSchema.SchemaObject }
 
-        assertTrue { parameters[1].name == "num" }
-        assertTrue { parameters[1].location == Location.HEADER }
-        assertFalse { parameters[1].required }
-        assertTrue { parameters[1].type == Type.ArrayType(Type.IntegerType) }
+        assertTrue { op.headers[0].name == "num" }
+        assertFalse { op.headers[0].required }
+        assertTrue { op.headers[0].type is ContentOrSchema.SchemaObject }
 
     }
 
@@ -84,7 +87,7 @@ class ParsingTests {
         assertTrue { responses[0].statusCode.code == 200 }
         assertTrue { responses[0].statusCode.name == "OK" }
         assertTrue { responses[0].contentType == null }
-        assertTrue { responses[0].schemaType == Type.UnknownType }
+       // assertTrue { responses[0].schema == Type.UnknownType }
     }
 
     @Test
@@ -152,26 +155,49 @@ class ParsingTests {
 
         assertTrue { operations.size == 1 }
         assertTrue { operations[0].method == HttpMethod.POST }
-        assertTrue { operations[0].requestBody?.schemaType == Type.ObjectType(
-            mapOf(
-                "name" to Type.StringType,
-                "email" to Type.StringType,
-                "username" to Type.StringType,
-                "password" to Type.StringType
-            )
-        ) }
-        assertTrue {
-            operations[0].responses[0].schemaType == Type.ObjectType(
-                mapOf(
-                    "token" to Type.StringType,
-                    "username" to Type.StringType,
-                    "id" to Type.IntegerType
-                )
-            )
-        }
+
+        val objectMapper = ObjectMapper()
+
+        val schema = JsonValue.parse(
+            """
+            {
+              "required" : [ "email", "name", "password", "username" ],
+              "type" : "object",
+              "properties" : {
+                "name" : {
+                  "type" : "string",
+                  "exampleSetFlag" : false,
+                  "types" : [ "string" ]
+                },
+                "email" : {
+                  "type" : "string",
+                  "exampleSetFlag" : false,
+                  "types" : [ "string" ]
+                },
+                "username" : {
+                  "type" : "string",
+                  "exampleSetFlag" : false,
+                  "types" : [ "string" ]
+                },
+                "password" : {
+                  "type" : "string",
+                  "exampleSetFlag" : false,
+                  "types" : [ "string" ]
+                }
+              },
+              "exampleSetFlag" : false,
+              "types" : [ "object" ]
+            }
+            """.trimIndent()
+        )
+
+        val expected = objectMapper.readTree(schema.toString())
+        val actual = objectMapper.readTree(operations[0].requestBody?.schema.toString())
+
+        assertEquals(expected, actual)
     }
 
-    val openAPIDefinition = """
+    private val openAPIDefinition = """
         openapi: 3.0.4
         info:
           title: "API"

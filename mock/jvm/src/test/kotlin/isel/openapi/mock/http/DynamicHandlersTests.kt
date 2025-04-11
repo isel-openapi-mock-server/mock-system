@@ -1,29 +1,47 @@
 package isel.openapi.mock.http
 
-import isel.openapi.mock.parsingServices.model.ApiHeader
-import isel.openapi.mock.parsingServices.model.ApiParameter
-import isel.openapi.mock.parsingServices.model.ApiRequestBody
-import isel.openapi.mock.parsingServices.model.Location
-import isel.openapi.mock.parsingServices.model.ParameterStyle
-import isel.openapi.mock.parsingServices.model.PathParts
-import isel.openapi.mock.parsingServices.model.Type
+import com.github.erosb.jsonsKema.*
+import isel.openapi.mock.parsingServices.model.*
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
 class DynamicHandlersTests {
 
+    private val response = listOf(Response(
+        statusCode = StatusCode.OK,
+        contentType = "application/json",
+        schema = JsonParser(
+            """
+            {
+                "type": "null"
+            }
+            """.trimIndent()
+        ).parse()
+    ))
+
     @Test
     fun objectVerificationTest() {
+
+        val schemaJson: JsonValue = JsonParser(
+            """
+        {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "age": {
+                    "type": "number",
+                }
+            }
+        }
+        
+        """.trimIndent()).parse()
 
         val expectedBody =
             ApiRequestBody(
                 contentType = "application/json",
-                schemaType = Type.ObjectType(
-                    fieldsTypes = mapOf(
-                        "name" to Type.StringType,
-                        "age" to Type.IntegerType
-                    )
-                ),
+                schema = schemaJson,
                 required = true
             )
 
@@ -44,7 +62,7 @@ class DynamicHandlersTests {
         """.trimIndent()
 
         val dynamicHandler = DynamicHandler(
-            response = "Response",
+            response = response,
             params = null,
             body = expectedBody,
             path = listOf((PathParts.Static("users"))),
@@ -56,20 +74,29 @@ class DynamicHandlersTests {
         val result3 = dynamicHandler.verifyBody(body3, expectedBody)
 
         assertTrue { result1.isEmpty() }
-        assertTrue { result2[0] == VerifyBodyError.InvalidBodyTypes("age", Type.IntegerType.toString(), Type.StringType.toString()) }
-        assertTrue { result3[0] == VerifyBodyError.InvalidBodyFormat(Type.ObjectType(mapOf("name" to Type.StringType, "age" to Type.IntegerType)).toString()) }
+        assertTrue { result2[0] == VerifyBodyError.InvalidBodyFormat(schemaJson.toString()) }
+        assertTrue { result3[0] == VerifyBodyError.InvalidBodyFormat(schemaJson.toString()) }
 
     }
 
     @Test
     fun arrayVerificationTest() {
 
+        val schemaJson: JsonValue = JsonParser(
+            """
+        {
+            "type": "array",
+            "items": {
+                "type": "integer"
+            }
+        }
+        
+        """.trimIndent()).parse()
+
         val expectedBody =
             ApiRequestBody(
                 contentType = "application/json",
-                schemaType = Type.ArrayType(
-                    elementsType = Type.IntegerType
-                ),
+                schema = schemaJson,
                 required = true
             )
 
@@ -81,7 +108,7 @@ class DynamicHandlersTests {
         """.trimIndent()
 
         val dynamicHandler = DynamicHandler(
-            response = "Response",
+            response = response,
             params = null,
             body = expectedBody,
             path = listOf((PathParts.Static("users"))),
@@ -92,24 +119,36 @@ class DynamicHandlersTests {
         val result2 = dynamicHandler.verifyBody(body2, expectedBody)
 
         assertTrue { result1.isEmpty() }
-        assertTrue { result2[0] == VerifyBodyError.InvalidArrayElement(Type.IntegerType.toString(), Type.StringType.toString()) }
+        assertTrue { result2[0] == VerifyBodyError.InvalidBodyFormat(schemaJson.toString()) }
 
     }
 
     @Test
     fun objectArrayVerificationTest() {
 
+        val schemaJson: JsonValue = JsonParser(
+            """
+        {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "age": {
+                        "type": "integer"
+                    }
+                }
+            }
+        }
+        
+        """.trimIndent()).parse()
+
         val expectedBody =
             ApiRequestBody(
                 contentType = "application/json",
-                schemaType = Type.ArrayType(
-                    elementsType = Type.ObjectType(
-                        fieldsTypes = mapOf(
-                            "name" to Type.StringType,
-                            "age" to Type.IntegerType
-                        )
-                    )
-                ),
+                schema = schemaJson,
                 required = true
             )
 
@@ -139,7 +178,7 @@ class DynamicHandlersTests {
         """.trimIndent()
 
         val dynamicHandler = DynamicHandler(
-            response = "Response",
+            response = response,
             params = null,
             body = expectedBody,
             path = listOf((PathParts.Static("users"))),
@@ -150,28 +189,32 @@ class DynamicHandlersTests {
         val result2 = dynamicHandler.verifyBody(body2, expectedBody)
 
         assertTrue { result1.isEmpty() }
-        assertTrue { result2[0] == VerifyBodyError.InvalidArrayElement(
-            Type.ObjectType(mapOf("name" to Type.StringType, "age" to Type.IntegerType)).toString(),
-            Type.ObjectType(mapOf("name" to Type.StringType, "age" to Type.StringType)).toString())
-        }
+        assertTrue { result2[0] == VerifyBodyError.InvalidBodyFormat(schemaJson.toString()) }
 
     }
 
     @Test
     fun nullBodyVerificationTest() {
 
+        val schemaJson: JsonValue = JsonParser(
+            """
+        {
+            "type": "null"
+        }
+        
+        """.trimIndent()).parse()
+
         val expectedBody =
             ApiRequestBody(
                 contentType = "application/json",
-                schemaType = Type.NullType,
+                schema = schemaJson,
                 required = true
             )
 
         val body = ""
-        val body2 = "null"
 
         val dynamicHandler = DynamicHandler(
-            response = "Response",
+            response = response,
             params = null,
             body = expectedBody,
             path = listOf((PathParts.Static("users"))),
@@ -179,20 +222,26 @@ class DynamicHandlersTests {
         )
 
         val result1 = dynamicHandler.verifyBody(body, expectedBody)
-        val result2 = dynamicHandler.verifyBody(body2, expectedBody)
 
-        assertTrue { result1.isEmpty() }
-        assertTrue { result2[0] == VerifyBodyError.InvalidBodyFormat(Type.NullType.toString()) }
+        assertTrue { result1[0] == VerifyBodyError.InvalidBodyFormat(schemaJson.toString()) }
 
     }
 
     @Test
     fun booleanBodyVerificationTest() {
 
+        val schemaJson: JsonValue = JsonParser(
+            """
+        {
+            "type": "boolean"
+        }
+        
+        """.trimIndent()).parse()
+
         val expectedBody =
             ApiRequestBody(
                 contentType = "application/json",
-                schemaType = Type.BooleanType,
+                schema = schemaJson,
                 required = true
             )
 
@@ -201,7 +250,7 @@ class DynamicHandlersTests {
         val body3 = "null"
 
         val dynamicHandler = DynamicHandler(
-            response = "Response",
+            response = response,
             params = null,
             body = expectedBody,
             path = listOf((PathParts.Static("users"))),
@@ -214,17 +263,25 @@ class DynamicHandlersTests {
 
         assertTrue { result1.isEmpty() }
         assertTrue { result2.isEmpty() }
-        assertTrue { result3[0] == VerifyBodyError.InvalidBodyFormat(Type.BooleanType.toString()) }
+        assertTrue { result3[0] == VerifyBodyError.InvalidBodyFormat(schemaJson.toString()) }
 
     }
 
     @Test
     fun numberBodyVerificationTest() {
 
+        val schemaJson: JsonValue = JsonParser(
+            """
+        {
+            "type": "number"
+        }
+        
+        """.trimIndent()).parse()
+
         val expectedBody =
             ApiRequestBody(
                 contentType = "application/json",
-                schemaType = Type.NumberType,
+                schema = schemaJson,
                 required = true
             )
 
@@ -233,7 +290,7 @@ class DynamicHandlersTests {
         val body3 = "null"
 
         val dynamicHandler = DynamicHandler(
-            response = "Response",
+            response = response,
             params = null,
             body = expectedBody,
             path = listOf((PathParts.Static("users"))),
@@ -246,26 +303,34 @@ class DynamicHandlersTests {
 
         assertTrue { result1.isEmpty() }
         assertTrue { result2.isEmpty() }
-        assertTrue { result3[0] == VerifyBodyError.InvalidBodyFormat(Type.NumberType.toString()) }
+        assertTrue { result3[0] == VerifyBodyError.InvalidBodyFormat(schemaJson.toString()) }
 
     }
 
     @Test
     fun stringBodyVerificationTest() {
 
+        val schemaJson: JsonValue = JsonParser(
+            """
+        {
+            "type": "string"
+        }
+        
+        """.trimIndent()).parse()
+
         val expectedBody =
             ApiRequestBody(
                 contentType = "application/json",
-                schemaType = Type.StringType,
+                schema = schemaJson,
                 required = true
             )
 
-        val body = "Hello"
+        val body = "\"hello\""
         val body2 = ""
-        val body3 = "null"
+        val body3 = "\"null\""
 
         val dynamicHandler = DynamicHandler(
-            response = "Response",
+            response = response,
             params = null,
             body = expectedBody,
             path = listOf((PathParts.Static("users"))),
@@ -277,7 +342,7 @@ class DynamicHandlersTests {
         val result3 = dynamicHandler.verifyBody(body3, expectedBody)
 
         assertTrue { result1.isEmpty() }
-        assertTrue { result2[0] == VerifyBodyError.InvalidBodyFormat(Type.StringType.toString()) }
+        assertTrue { result2[0] == VerifyBodyError.InvalidBodyFormat(schemaJson.toString()) }
         assertTrue { result3.isEmpty() }
 
     }
@@ -285,10 +350,18 @@ class DynamicHandlersTests {
     @Test
     fun integerBodyVerificationTest() {
 
+        val schemaJson: JsonValue = JsonParser(
+            """
+        {
+            "type": "integer"
+        }
+        
+        """.trimIndent()).parse()
+
         val expectedBody =
             ApiRequestBody(
                 contentType = "application/json",
-                schemaType = Type.IntegerType,
+                schema = schemaJson,
                 required = true
             )
 
@@ -297,7 +370,7 @@ class DynamicHandlersTests {
         val body3 = "null"
 
         val dynamicHandler = DynamicHandler(
-            response = "Response",
+            response = response,
             params = null,
             body = expectedBody,
             path = listOf((PathParts.Static("users"))),
@@ -309,8 +382,8 @@ class DynamicHandlersTests {
         val result3 = dynamicHandler.verifyBody(body3, expectedBody)
 
         assertTrue { result1.isEmpty() }
-        assertTrue { result2[0] == VerifyBodyError.InvalidBodyFormat(Type.IntegerType.toString()) }
-        assertTrue { result3[0] == VerifyBodyError.InvalidBodyFormat(Type.IntegerType.toString()) }
+        assertTrue { result2[0] == VerifyBodyError.InvalidBodyFormat(schemaJson.toString()) }
+        assertTrue { result3[0] == VerifyBodyError.InvalidBodyFormat(schemaJson.toString()) }
 
     }
 
@@ -320,7 +393,15 @@ class DynamicHandlersTests {
         val expectedHeaders = listOf(
             ApiHeader(
                 name = "Content-Type",
-                type = Type.StringType,
+                type = ContentOrSchema.SchemaObject(
+                    schema = JsonParser(
+                        """
+                        {
+                            "type": "string"
+                        }
+                        """.trimIndent()
+                    ).parse()
+                ),
                 required = true,
                 style = ParameterStyle.FORM,
                 explode = false,
@@ -328,7 +409,15 @@ class DynamicHandlersTests {
             ),
             ApiHeader(
                 name = "Authorization",
-                type = Type.StringType,
+                type = ContentOrSchema.SchemaObject(
+                    schema = JsonParser(
+                        """
+                        {
+                            "type": "string"
+                        }
+                        """.trimIndent()
+                    ).parse()
+                ),
                 required = false,
                 style = ParameterStyle.FORM,
                 explode = false,
@@ -358,7 +447,7 @@ class DynamicHandlersTests {
         )
 
         val dynamicHandler = DynamicHandler(
-            response = "Response",
+            response = response,
             params = null,
             body = null,
             path = listOf((PathParts.Static("users"))),

@@ -1,5 +1,10 @@
 package isel.openapi.mock.parsingServices
 
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.paramnames.ParameterNamesModule
+import com.github.erosb.jsonsKema.JsonParser
+import com.github.erosb.jsonsKema.JsonValue
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.PathItem
 import io.swagger.v3.oas.models.headers.Header
@@ -12,22 +17,8 @@ import io.swagger.v3.oas.models.responses.ApiResponse
 import io.swagger.v3.oas.models.responses.ApiResponses
 import io.swagger.v3.oas.models.servers.Server
 import io.swagger.v3.parser.OpenAPIV3Parser
-import isel.openapi.mock.parsingServices.model.ApiHeader
-import isel.openapi.mock.parsingServices.model.ApiParameter
-import isel.openapi.mock.parsingServices.model.ApiPath
-import isel.openapi.mock.parsingServices.model.ApiRequestBody
-import isel.openapi.mock.parsingServices.model.Response
-import isel.openapi.mock.parsingServices.model.ApiServer
-import isel.openapi.mock.parsingServices.model.ApiSpec
-import isel.openapi.mock.parsingServices.model.HttpMethod
-import isel.openapi.mock.parsingServices.model.Location
-import isel.openapi.mock.parsingServices.model.ParameterStyle
-import isel.openapi.mock.parsingServices.model.PathOperation
-import isel.openapi.mock.parsingServices.model.PathParts
-import isel.openapi.mock.parsingServices.model.ServerVariable
-import isel.openapi.mock.parsingServices.model.StatusCode
+import isel.openapi.mock.parsingServices.model.*
 import isel.openapi.mock.parsingServices.model.StatusCode.Companion.fromCode
-import isel.openapi.mock.parsingServices.model.Type
 import isel.openapi.mock.parsingServices.model.Type.ArrayType
 import isel.openapi.mock.parsingServices.model.Type.ObjectType
 import org.springframework.stereotype.Component
@@ -71,11 +62,11 @@ class Parsing {
                             method = toHttpMethod(method.name),
                             security = operation.security ?: emptyList(),
                             parameters = extractParameters(
-                                operation.parameters.filter { it.`in` != "header" },
+                                operation?.parameters?.filter { it.`in` != "header" } ?: emptyList(),
                                 allParameters,
                             ),
                             requestBody = extractRequestBody(
-                                operation.requestBody,
+                                operation?.requestBody ?: RequestBody(),
                                 allSchemas
                             ),
                             responses = extractResponses(
@@ -84,7 +75,7 @@ class Parsing {
                             ),
                             servers = operation.servers?.map { it.url } ?: emptyList(),
                             headers = extractHeaders(
-                                operation.parameters.filter { it.`in` == "header" },
+                                operation?.parameters?.filter { it.`in` == "header" } ?: emptyList(),
                                 allHeaders
                             ),
                         )
@@ -101,33 +92,53 @@ class Parsing {
 
         if(headers.isEmpty()) return emptyList()
         return headers.map { param ->
-            val schema = param.schema
-            if (schema?.`$ref` != null) {
-                val ref = schema.`$ref`
-                val headerName = ref.substringAfterLast("/")
-                val refSchema = allHeaders[ref.substringAfterLast("/")]
-                return@map extractHeaderInfo(refSchema, headerName)
+
+            val content = param.content
+
+            if(content != null) {
+                val map = mutableMapOf<String, ContentOrSchema.SchemaObject>()
+                content.forEach { (key, value) ->
+                    map[key] = ContentOrSchema.SchemaObject(schemaToJson(value.schema))
+                }
+                val p = extractParameterInfo(param, ContentOrSchema.ContentField(map)) //TODO
+                return@map ApiHeader(
+                    name = p.name,
+                    description = p.description,
+                    type = p.type,
+                    required = p.required,
+                    style = p.style,
+                    explode = p.explode
+                )
+            } else {
+                val schema = param.schema
+                if (schema?.`$ref` != null) {
+                    val ref = schema.`$ref`
+                    val headerName = ref.substringAfterLast("/")
+                    val refHeader = allHeaders[ref.substringAfterLast("/")]
+                    return@map extractHeaderInfo(refHeader, headerName, ContentOrSchema.SchemaObject(schemaToJson(refHeader?.schema!!)))
+                }
+                val p = extractParameterInfo(param, ContentOrSchema.SchemaObject(schemaToJson(schema))) //TODO
+                return@map ApiHeader(
+                    name = p.name,
+                    description = p.description,
+                    type = p.type,
+                    required = p.required,
+                    style = p.style,
+                    explode = p.explode
+                )
             }
-            val p = extractParameterInfo(param)
-            ApiHeader(
-                name = p.name,
-                description = p.description,
-                type = p.type,
-                required = p.required,
-                style = p.style,
-                explode = p.explode
-            )
         }
     }
 
     fun extractHeaderInfo(
         header: Header?,
         headerName: String,
+        type: ContentOrSchema
     ): ApiHeader {
         return ApiHeader(
             name = headerName,
             description = header?.description,
-            type = extractType(header?.schema),
+            type = type,
             required = header?.required == true,
             style = toParamStyle(header?.style?.name ?: ""),
             explode = header?.explode == true
@@ -142,13 +153,23 @@ class Parsing {
         if(parameters.isEmpty()) return emptyList()
 
         return parameters.map { param ->
-            val schema = param.schema
-            if (schema?.`$ref` != null) {
-                val ref = schema.`$ref`
-                val refParameter = allParameter[ref.substringAfterLast("/")]
-                return@map extractParameterInfo(refParameter ?: param)
+            val content = param.content
+            if(content != null) {
+                val map = mutableMapOf<String, ContentOrSchema.SchemaObject>()
+                content.forEach { (key, value) ->
+                    map[key] = ContentOrSchema.SchemaObject(schemaToJson(value.schema))
+                }
+                return@map extractParameterInfo(param, ContentOrSchema.ContentField(map))
             }
-            extractParameterInfo(param)
+            else {
+                val schema = param.schema
+                if (schema?.`$ref` != null) {
+                    val ref = schema.`$ref`
+                    val refParameter = allParameter[ref.substringAfterLast("/")]
+                    return@map extractParameterInfo(refParameter!!, ContentOrSchema.SchemaObject(schemaToJson(refParameter.schema)))
+                }
+                extractParameterInfo(param, ContentOrSchema.SchemaObject(schemaToJson(schema)))
+            }
         }
     }
 
@@ -156,25 +177,31 @@ class Parsing {
         requestBody: RequestBody,
         allSchemas: Map<String?, Schema<*>>
     ): ApiRequestBody {
+
         val mediaType = requestBody.content?.keys?.firstOrNull() ?: "unknown"
         val schema = requestBody.content?.get(mediaType)?.schema
+
         return if(schema?.`$ref` != null) {
             val ref = schema.`$ref`
-            val refSchema = allSchemas[ref.substringAfterLast("/")]
+            val refSchema = allSchemas[ref.substringAfterLast("/")] ?: Schema<Any>()
             ApiRequestBody(
                 contentType = mediaType,
-                schemaType = extractType(refSchema),
+                schema = schemaToJson(refSchema),
                 required = requestBody.required ?: false,
             )
-        } else ApiRequestBody(
-            contentType = mediaType,
-            schemaType = extractType(schema),
-            required = requestBody.required ?: false,
-        )
+        } else {
+            ApiRequestBody(
+                contentType = mediaType,
+                schema = schemaToJson(schema ?: Schema<Any>()),
+                required = requestBody.required ?: false,
+            )
+        }
     }
 
     fun extractResponses(responses: ApiResponses?, allResponse: Map<String?, ApiResponse?>): List<Response> {
+
         if (responses == null) return emptyList()
+
         return responses.map { (statusCode, response) ->
             val contentType = response.content?.keys?.firstOrNull()
             if(response.`$ref` != null) {
@@ -183,13 +210,13 @@ class Parsing {
                 Response(
                     statusCode = fromCode(statusCode) ?: StatusCode.UNKNOWN,
                     contentType = refResponse?.content?.keys?.toString(),
-                    schemaType = extractType(refResponse?.content?.get(contentType)?.schema)
+                    schema = schemaToJson(refResponse?.content?.get(contentType)?.schema ?: Schema<Any>()),
                 )
             } else {
                 Response(
                     statusCode = fromCode(statusCode) ?: StatusCode.UNKNOWN,
                     contentType = contentType,
-                    schemaType = extractType(response.content?.get(contentType)?.schema),
+                    schema = schemaToJson(response.content?.get(contentType)?.schema ?: Schema<Any>()),
                 )
             }
         }
@@ -243,10 +270,11 @@ class Parsing {
         }
     }
 
-    fun extractParameterInfo(param: Parameter): ApiParameter {
+    fun extractParameterInfo(param: Parameter, type: ContentOrSchema): ApiParameter {
+
         return ApiParameter(
             name = param.name ?: "unknown",
-            type = extractType(param.schema),
+            type = type,
             required = param.required ?: false,
             allowEmptyValue = param.allowEmptyValue ?: false,
             location = toParamLocation(param.`in`),
@@ -254,6 +282,14 @@ class Parsing {
             explode = param.explode ?: false,
             description = param.description
         )
+
+    }
+
+    private fun schemaToJson(schema: Schema<*>): JsonValue {
+        val objectMapper = ObjectMapper()
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL) //Ignora propriedades/entrada/atributos com valor nulo
+        val jsonSchemaString = objectMapper.writeValueAsString(schema)
+        return JsonParser(jsonSchemaString).parse()
     }
 
     private fun toParamLocation(location: String): Location {
