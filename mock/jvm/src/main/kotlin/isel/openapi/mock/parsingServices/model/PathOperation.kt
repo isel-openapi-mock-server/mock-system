@@ -4,7 +4,7 @@ import io.swagger.v3.oas.models.security.SecurityRequirement
 
 data class PathOperation(
     val method: HttpMethod,
-    val security: List<SecurityRequirement>,
+    val security: Boolean,
     val parameters: List<ApiParameter>,
     val requestBody: ApiRequestBody?,
     val responses: List<Response>,

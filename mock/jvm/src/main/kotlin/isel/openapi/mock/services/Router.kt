@@ -36,7 +36,8 @@ class Router(
                     operation.responses,
                     operation.parameters,
                     operation.requestBody,
-                    operation.headers
+                    operation.headers,
+                    operation.security
                 )
 
                 val parts = apiPath.fullPath.split("/").filter { it.isNotEmpty() }

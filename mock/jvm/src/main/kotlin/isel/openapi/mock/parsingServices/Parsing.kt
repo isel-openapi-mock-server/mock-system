@@ -46,12 +46,12 @@ class Parsing {
         val allResponse = openAPI.components?.responses ?: emptyMap()
         val allParameters = openAPI.components?.parameters ?: emptyMap()
         val allHeaders = openAPI.components?.headers ?: emptyMap()
+        val security = openAPI.security
 
         return ApiSpec(
             servers = openAPI.servers.map { toApiServer(it) },
             name = openAPI.info.title,
             description = openAPI.info.description,
-            security = openAPI.security ?: emptyList(),
             components = openAPI.components?.schemas ?: emptyMap(),
             paths = openAPI.paths.map { (path, pathItem) ->
                 ApiPath(
@@ -60,7 +60,7 @@ class Parsing {
                     operations = pathItem.readOperationsMap().map { (method, operation) ->
                         PathOperation(
                             method = toHttpMethod(method.name),
-                            security = operation.security ?: emptyList(),
+                            security = !(operation.security == null && security == null),
                             parameters = extractParameters(
                                 operation?.parameters?.filter { it.`in` != "header" } ?: emptyList(),
                                 allParameters,

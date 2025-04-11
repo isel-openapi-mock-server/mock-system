@@ -140,8 +140,7 @@ class ParsingTests {
 
         assertTrue { operations.size == 1 }
         assertTrue { operations[0].method == HttpMethod.GET }
-        assertTrue { operations[0].security.size == 1 }
-        assertTrue { operations[0].security[0].containsKey("BearerAuth") }
+        assertTrue { operations[0].security }
     }
 
     @Test

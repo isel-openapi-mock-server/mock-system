@@ -1,10 +1,6 @@
 package isel.openapi.mock.parsingServices.model
 
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.github.erosb.jsonsKema.JsonParser
 import com.github.erosb.jsonsKema.JsonValue
-import io.swagger.v3.oas.models.media.Schema
 
 data class ApiParameter(
     val name: String,
@@ -22,6 +18,7 @@ sealed interface ContentOrSchema {
 
     data class SchemaObject(val schema: JsonValue?) : ContentOrSchema
 
+    //Se for um parametro ou um header o map tem apenas uma chave
     data class ContentField(val content: Map<String, SchemaObject>) : ContentOrSchema
 
 }

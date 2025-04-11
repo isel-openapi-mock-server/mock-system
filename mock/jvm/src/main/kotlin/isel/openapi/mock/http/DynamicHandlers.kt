@@ -2,10 +2,10 @@ package isel.openapi.mock.http
 
 import jakarta.servlet.http.HttpServletRequest
 import com.github.erosb.jsonsKema.*
+import io.swagger.util.Json
 import isel.openapi.mock.parsingServices.model.*
 import jakarta.servlet.http.Cookie
 
-// TODO Fazer com que todas as sealed classes/intefaces implementem esta.
 interface VerificationError
 
 sealed class VerifyBodyError: VerificationError {
@@ -19,7 +19,6 @@ sealed class VerifyHeadersError: VerificationError {
     data class MissingHeaderContent(val headerKey: String): VerifyHeadersError()
 }
 
-// TODO separar nos tipos de params diferentes (query, path e cookies).
 sealed class VerifyParamsError : VerificationError {
     data class InvalidType(val location: Location, val expectedType: String, val receivedType: String) : VerifyParamsError()
     data class ParamCantBeEmpty(val location: Location, val paramName: String) : VerifyParamsError()
@@ -38,6 +37,7 @@ class DynamicHandler(
     private val params: List<ApiParameter>?,
     private val body: ApiRequestBody?,
     private val headers : List<ApiHeader>?,
+    private val security: Boolean = false,
 ) {
 
     fun handle(
@@ -58,7 +58,7 @@ class DynamicHandler(
             bodyResult.forEach { fails.add(it) }
         }
 
-        val headersResult = verifyHeaders(requestHeaders, headers ?: emptyList(), contentType)
+        val headersResult = verifyHeaders(requestHeaders, headers ?: emptyList(), contentType, security)
         headersResult.forEach { fails.add(it) }
 
         val queryParamsResult = verifyQueryParams(requestQueryParams, params?.filter { it.location == Location.QUERY } ?: emptyList())
@@ -132,48 +132,77 @@ class DynamicHandler(
 
         if(failList.isNotEmpty()) return failList
 
-        expectedQueryParams.forEach { param ->
-            val values = queryParams[param.name]
-            // O paramametro esperado não vem no pedido
-            if (values == null) {
-                // O parametro é necessário.
-                if (param.required) {
-                    failList.add(VerifyParamsError.MissingParam(Location.QUERY, param.name))
-                }
+        expectedQueryParams.forEach { expectedParam ->
+
+            if(expectedParam.required && !queryParams.containsKey(expectedParam.name)) {
+                failList.add(VerifyParamsError.MissingParam(expectedParam.location,  expectedParam.name))
+            }
+
+            val parameterValues = queryParams[expectedParam.name]
+            if (parameterValues == null && expectedParam.required) {
+                failList.add(VerifyParamsError.MissingParam(Location.QUERY, expectedParam.name))
                 return@forEach
             }
 
-            for (value in values) {
-                val valueType = convertToType(value)
-                // Verificar se nao tem valor(String vazia).
-                if (
-                    valueType == Type.StringType &&
-                    (value as String).isBlank()
-                ) {
-                    // O param não suporta valor a vazio.
-                    if (!param.allowEmptyValue) {
-                        failList.add(VerifyParamsError.ParamCantBeEmpty(Location.QUERY, param.name))
-                    }
-                    return@forEach
-                }
+            if (parameterValues != null) {
+                for (value in parameterValues) {
 
-                if (valueType != param.type) {
-                    failList.add(VerifyParamsError.InvalidType(Location.QUERY, param.type.toString(), valueType.toString()))
+                    val valueType = convertToType(value)
+
+                    if(valueType is Type.StringType && (value as String).isBlank() && !expectedParam.allowEmptyValue) {
+                        failList.add(VerifyParamsError.ParamCantBeEmpty(Location.QUERY, expectedParam.name))
+                        return@forEach
+                    }
+
+                    validateContentOrSchema(
+                        expectedParam.type,
+                        valueType,
+                        value,
+                        VerifyParamsError.InvalidType(expectedParam.location, expectedParam.type.toString(), convertToType(value).toString())
+                    )?.let { failList.add(it as VerifyParamsError) }
                 }
             }
         }
-
         return failList
+    }
 
+    private fun validateContentOrSchema(
+        contentOrSchema: ContentOrSchema,
+        valueType: Type,
+        value: Any,
+        error: VerificationError
+    ): VerificationError? {
+        when(contentOrSchema) {
+            is ContentOrSchema.SchemaObject -> {
+                val currentValue = if(valueType is Type.StringType) "\"$value\"" else value.toString()
+                val validationResult = jsonValidator(contentOrSchema.schema , currentValue )
+                if(validationResult != null) {
+                    return error
+                }
+            }
+            is ContentOrSchema.ContentField -> {
+                val contentField = contentOrSchema.content.entries.first().value.schema
+                val currentValue = if(valueType is Type.StringType) "\"$value\"" else value.toString()
+                if(contentField == null) {
+                    return error
+                }
+                val validationResult = jsonValidator(contentField, currentValue)
+                if(validationResult != null) {
+                    return error
+                }
+            }
+        }
+        return null
     }
 
     private fun verifyPathParams(
         pathParams: Map<String, Any>,
         expectedPathParams: List<ApiParameter>
     ): List<VerifyParamsError> {
+
         val failList = mutableListOf<VerifyParamsError>()
 
-        if (expectedPathParams.isNotEmpty() && pathParams.isEmpty()) {
+        if (expectedPathParams.isNotEmpty() && expectedPathParams.any { it.required }  && pathParams.isEmpty()) {
             val missingParams = expectedPathParams.filter { it.required }
             missingParams.forEach { param ->
                 failList.add(VerifyParamsError.MissingParam(Location.PATH, param.name))
@@ -188,34 +217,25 @@ class DynamicHandler(
 
         if (failList.isNotEmpty()) return failList
 
-
-        expectedPathParams.forEach { param ->
-            val value = pathParams[param.name]
-
-            // O paramametro esperado não vem no pedido
-            if (value == null) {
-                // O parametro é necessário.
-                if (param.required) {
-                    failList.add(VerifyParamsError.MissingParam(Location.PATH, param.name))
-                }
-                return@forEach
+        expectedPathParams.forEach { expectedParam ->
+            if(expectedParam.required && !pathParams.containsKey(expectedParam.name)) {
+                failList.add(VerifyParamsError.MissingParam(expectedParam.location,  expectedParam.name))
             }
-            val valueType = convertToType(value)
 
-            // Verificar se nao tem valor, String vazia.
-            if (
-                valueType == Type.StringType &&
-                (value as String).isBlank()
-            ) {
-                // O param não o suporta valor a vazio.
-                if (!param.allowEmptyValue) {
-                    failList.add(VerifyParamsError.ParamCantBeEmpty(Location.PATH, param.name))
-                }
-                return@forEach
+            val paramValue = pathParams[expectedParam.name]
+
+            if(paramValue == null && expectedParam.required) {
+                failList.add(VerifyParamsError.MissingParam(expectedParam.location,  expectedParam.name))
             }
-            if (valueType != param.type) {
-                failList.add(VerifyParamsError.InvalidType(Location.PATH, param.type.toString(), valueType.toString()))
-            }
+
+            val type = convertToType(paramValue)
+
+            validateContentOrSchema(
+                expectedParam.type,
+                type,
+                paramValue ?: "",
+                VerifyParamsError.InvalidType(expectedParam.location, expectedParam.type.toString(), convertToType(paramValue).toString())
+            )?.let { failList.add(it as VerifyParamsError) }
         }
         return failList
     }
@@ -225,20 +245,22 @@ class DynamicHandler(
         expectedCookies: List<ApiParameter>,
     ): List<VerifyParamsError> {
 
-        var failed = false
         val failList = mutableListOf<VerifyParamsError>()
 
-        if (expectedCookies.isNotEmpty() && cookies.isEmpty()) {
-            failed = true
-            // TODO adicionar erro à failList, para depois guardarmos os erros.
+        if (expectedCookies.isNotEmpty() && expectedCookies.any { it.required } && cookies.isEmpty()) {
+            val missingParams = expectedCookies.filter { it.required }
+            missingParams.forEach { cookie ->
+                failList.add(VerifyParamsError.MissingParam(Location.COOKIE, cookie.name))
+            }
         }
 
         if (expectedCookies.isEmpty() && cookies.isNotEmpty()) {
-            failed = true
-            // TODO ERRO, adcionar à lista
+            cookies.forEach { cookie ->
+                failList.add(VerifyParamsError.InvalidParam(Location.COOKIE, cookie.name))
+            }
         }
 
-        if (failed) return failList
+        if (failList.isNotEmpty()) return failList
 
         expectedCookies.forEach { expCookie ->
 
@@ -248,48 +270,35 @@ class DynamicHandler(
             if (cookie == null) {
                 // O parametro é necessário.
                 if (expCookie.required) {
-                    failed = true
-                    // TODO Erro, adicionar a lista
+                    failList.add(VerifyParamsError.MissingParam(Location.COOKIE, expCookie.name))
                 }
                 return@forEach
             }
 
-            val value = cookie.value
+            val type = expCookie.type
 
-            val valueType = convertToType(value) // TODO ?????
+            var schema: JsonValue? = null
 
-            // Verificar se nao tem valor, String vazia.
-            if (
-                valueType == Type.StringType &&
-                (value as String).isBlank()
-            ) {
-                // O cookie não o suporta valor a vazio.
-                if (!expCookie.allowEmptyValue) {
-                    failed = true
-                    // TODO erro, o valor do cookie é vazio mas o cookie nao pode vir vazio
-                }
-
-                // avança para o proximo ciclo do forEach.
-                return@forEach
-
+            if (type is ContentOrSchema.ContentField) {
+                schema = type.content.entries.first().value.schema //Apenas uma entrada no content para parametros.
+            } else if (type is ContentOrSchema.SchemaObject) {
+                schema = type.schema
             }
 
-            if (valueType != expCookie.type) {
-                failed = true
-                // TODO Erro, adicionar a lista
-            }
+            jsonValidator(schema, cookie.value)
 
         }
 
-        return if (failed) failList
-        else emptyList()
+        return failList
+
 
     }
 
     fun verifyHeaders(
         headers: Map<String, String>,
         expectedHeaders: List<ApiHeader>,
-        contentType: String?
+        contentType: String?,
+        security: Boolean
     ): List<VerifyHeadersError> {
 
         val failList = mutableListOf<VerifyHeadersError>()
@@ -327,6 +336,17 @@ class DynamicHandler(
         if(contentType != null && headers["Content-Type"] != null) {
             if(headers["Content-Type"] != contentType) {
                 failList.add(VerifyHeadersError.InvalidContentType(contentType, headers["Content-Type"] ?: ""))
+            }
+        }
+        if(security && headers["Authorization"] == null) {
+            failList.add(VerifyHeadersError.MissingHeader("Authorization"))
+        }
+        if(security && headers["Authorization"] != null) {
+            val authHeader = headers["Authorization"] ?: ""
+            if(!authHeader.startsWith("Bearer ")) {
+                failList.add(VerifyHeadersError.InvalidType("Authorization", "Bearer Token", authHeader))
+            } else if(authHeader.substringAfter("Bearer ").trim().length <= 30) {
+                failList.add(VerifyHeadersError.InvalidType("Authorization", "Bearer Token", authHeader))
             }
         }
         return failList

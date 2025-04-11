@@ -575,11 +575,100 @@ class DynamicHandlersTests {
             headers = expectedHeaders
         )
 
-        val result1 = dynamicHandler.verifyHeaders(headers, expectedHeaders, "application/json")
-        val result2 = dynamicHandler.verifyHeaders(headers1, expectedHeaders, "application/json")
-        val result3 = dynamicHandler.verifyHeaders(headers2, expectedHeaders, "application/json")
-        val result4 = dynamicHandler.verifyHeaders(headers3, expectedHeaders, "application/json")
-        val result5 = dynamicHandler.verifyHeaders(headers4, expectedHeaders, "application/json")
+        val result1 = dynamicHandler.verifyHeaders(headers, expectedHeaders, "application/json", false)
+        val result2 = dynamicHandler.verifyHeaders(headers1, expectedHeaders, "application/json", false)
+        val result3 = dynamicHandler.verifyHeaders(headers2, expectedHeaders, "application/json", false)
+        val result4 = dynamicHandler.verifyHeaders(headers3, expectedHeaders, "application/json", false)
+        val result5 = dynamicHandler.verifyHeaders(headers4, expectedHeaders, "application/json", false)
+
+        assertTrue { result1.isEmpty() }
+        assertTrue { result2.isEmpty() }
+
+        assertTrue { result3.size == 2 }
+        assertTrue { result3[0] == VerifyHeadersError.MissingHeader("Content-Type") }
+        assertTrue { result3[1] == VerifyHeadersError.MissingHeaderContent("Content-Type") }
+
+        assertTrue { result4.size == 1 }
+        assertTrue { result4[0] == VerifyHeadersError.InvalidContentType("application/json", "application/problem") }
+
+        assertTrue { result5.isEmpty() }
+
+    }
+
+    @Test
+    fun cookiesVerificationTest() {
+
+        val expectedHeaders = listOf(
+            ApiParameter(
+                name = "a",
+                location = Location.COOKIE,
+                type = ContentOrSchema.SchemaObject(
+                    schema = JsonParser(
+                        """
+                        {
+                            "type": "string"
+                        }
+                        """.trimIndent()
+                    ).parse()
+                ),
+                required = true,
+                style = ParameterStyle.FORM,
+                explode = false,
+                allowEmptyValue = false,
+                description = "Content type of the request"
+            ),
+            ApiHeader(
+                name = "Authorization",
+                type = ContentOrSchema.SchemaObject(
+                    schema = JsonParser(
+                        """
+                        {
+                            "type": "string"
+                        }
+                        """.trimIndent()
+                    ).parse()
+                ),
+                required = false,
+                style = ParameterStyle.FORM,
+                explode = false,
+                description = "Authorization token"
+            )
+        )
+
+        val headers = mapOf(
+            "Content-Type" to "application/json",
+            "Authorization" to "token123"
+        )
+
+        val headers1 = mapOf(
+            "Content-Type" to "application/json",
+        )
+        val headers2 = mapOf(
+            "Authorization" to "token123"
+        )
+        val headers3 = mapOf(
+            "Content-Type" to "application/problem",
+            "Authorization" to "token123"
+        )
+        val headers4 = mapOf(
+            "Content-Type" to "application/json",
+            "Authorization" to "token123",
+            "Extra" to "extra"
+        )
+
+        val dynamicHandler = DynamicHandler(
+            response = response,
+            params = null,
+            body = null,
+            path = listOf((PathParts.Static("users"))),
+            headers = expectedHeaders
+        )
+
+        val result1 = dynamicHandler.verifyHeaders(headers, expectedHeaders, "application/json", false)
+        val result2 = dynamicHandler.verifyHeaders(headers1, expectedHeaders, "application/json", false)
+        val result3 = dynamicHandler.verifyHeaders(headers2, expectedHeaders, "application/json", false)
+        val result4 = dynamicHandler.verifyHeaders(headers3, expectedHeaders, "application/json", false)
+        val result5 = dynamicHandler.verifyHeaders(headers4, expectedHeaders, "application/json", false)
 
         assertTrue { result1.isEmpty() }
         assertTrue { result2.isEmpty() }

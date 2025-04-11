@@ -7,6 +7,5 @@ data class ApiSpec(
     val description: String?,
     val servers: List<ApiServer>,
     val paths: List<ApiPath>,
-    val security: List<SecurityRequirement>,
     val components : Map<String, Any>,
 )
