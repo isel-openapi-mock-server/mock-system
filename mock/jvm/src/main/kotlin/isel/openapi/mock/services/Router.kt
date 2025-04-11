@@ -70,9 +70,11 @@ class Router(
         }
     }
 
-    fun match(host: String, method: HttpMethod, path: String): DynamicHandler? {
+    fun match(host: String, method: HttpMethod, path: String): Pair<DynamicHandler?, String>? {
 
         var current = repository.getOperations(host) ?: return null
+
+        var resourceUrl = path.split("?").first()
 
         val parts = path.split("/").filter { it.isNotEmpty() }
         val params = mutableMapOf<String, String>()
@@ -85,14 +87,16 @@ class Router(
                 if (wildcardChild != null) {
                     current = wildcardChild
                     params[wildcardChild.part.removePrefix("{").removeSuffix("}")] = part
+                    resourceUrl = resourceUrl.replace(part, current.part)
                 } else {
                     return null
                 }
             }
         }
-        return current.operations
+
+        return Pair(current.operations
             .firstOrNull { it.method == method }
-            ?.handler
+            ?.handler, resourceUrl)
     }
 }
 

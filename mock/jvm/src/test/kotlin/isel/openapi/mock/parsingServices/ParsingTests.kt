@@ -153,8 +153,8 @@ class ParsingTests {
         val definition = parsing.parseOpenApi(openAPIDefinition3) ?: throw IllegalStateException("Invalid OpenAPI definition")
         val operations = parsing.extractApiSpec(definition).paths[0].operations
 
-        assertTrue { operations.size == 1 }
-        assertTrue { operations[0].method == HttpMethod.POST }
+        assertEquals(1, operations.size)
+        assertEquals(HttpMethod.POST, operations[0].method)
 
         val objectMapper = ObjectMapper()
 
@@ -192,7 +192,7 @@ class ParsingTests {
         )
 
         val expected = objectMapper.readTree(schema.toString())
-        val actual = objectMapper.readTree(operations[0].requestBody?.schema.toString())
+        val actual = objectMapper.readTree(operations[0].requestBody?.content?.content?.get("application/json")?.schema?.toString() ?: "")
 
         assertEquals(expected, actual)
     }

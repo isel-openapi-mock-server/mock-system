@@ -3,6 +3,7 @@ package isel.openapi.mock.http
 import com.github.erosb.jsonsKema.*
 import isel.openapi.mock.parsingServices.model.*
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class DynamicHandlersTests {
@@ -38,10 +39,15 @@ class DynamicHandlersTests {
         
         """.trimIndent()).parse()
 
+        val contentType = "application/json"
+
         val expectedBody =
             ApiRequestBody(
-                contentType = "application/json",
-                schema = schemaJson,
+                content = ContentOrSchema.ContentField(mapOf(
+                    contentType to ContentOrSchema.SchemaObject(
+                        schema = schemaJson
+                    )
+                )),
                 required = true
             )
 
@@ -69,13 +75,29 @@ class DynamicHandlersTests {
             headers = null
         )
 
-        val result1 = dynamicHandler.verifyBody(body, expectedBody)
-        val result2 = dynamicHandler.verifyBody(body2, expectedBody)
-        val result3 = dynamicHandler.verifyBody(body3, expectedBody)
+        val result1 = dynamicHandler.verifyBody(contentType, body, expectedBody)
+        val result2 = dynamicHandler.verifyBody(contentType, body2, expectedBody)
+        val result3 = dynamicHandler.verifyBody(contentType, body3, expectedBody)
 
         assertTrue { result1.isEmpty() }
-        assertTrue { result2[0] == VerifyBodyError.InvalidBodyFormat(schemaJson.toString()) }
-        assertTrue { result3[0] == VerifyBodyError.InvalidBodyFormat(schemaJson.toString()) }
+        assertEquals(VerifyBodyError.InvalidBodyFormat(
+            ContentOrSchema.ContentField(
+                mapOf(
+                    contentType to ContentOrSchema.SchemaObject(
+                        schema = schemaJson
+                    )
+                )
+            ).toString(),
+        ), result2[0])
+        assertEquals(VerifyBodyError.InvalidBodyFormat(
+            ContentOrSchema.ContentField(
+                mapOf(
+                    contentType to ContentOrSchema.SchemaObject(
+                        schema = schemaJson
+                    )
+                )
+            ).toString(),
+        ), result3[0])
 
     }
 
@@ -93,10 +115,15 @@ class DynamicHandlersTests {
         
         """.trimIndent()).parse()
 
+        val contentType = "application/json"
+
         val expectedBody =
             ApiRequestBody(
-                contentType = "application/json",
-                schema = schemaJson,
+                content = ContentOrSchema.ContentField(mapOf(
+                    contentType to ContentOrSchema.SchemaObject(
+                        schema = schemaJson
+                    )
+                )),
                 required = true
             )
 
@@ -115,11 +142,19 @@ class DynamicHandlersTests {
             headers = null
         )
 
-        val result1 = dynamicHandler.verifyBody(body, expectedBody)
-        val result2 = dynamicHandler.verifyBody(body2, expectedBody)
+        val result1 = dynamicHandler.verifyBody(contentType, body, expectedBody)
+        val result2 = dynamicHandler.verifyBody(contentType, body2, expectedBody)
 
         assertTrue { result1.isEmpty() }
-        assertTrue { result2[0] == VerifyBodyError.InvalidBodyFormat(schemaJson.toString()) }
+        assertEquals(VerifyBodyError.InvalidBodyFormat(
+            ContentOrSchema.ContentField(
+                mapOf(
+                    contentType to ContentOrSchema.SchemaObject(
+                        schema = schemaJson
+                    )
+                )
+            ).toString(),
+        ), result2[0])
 
     }
 
@@ -145,10 +180,15 @@ class DynamicHandlersTests {
         
         """.trimIndent()).parse()
 
+        val contentType = "application/json"
+
         val expectedBody =
             ApiRequestBody(
-                contentType = "application/json",
-                schema = schemaJson,
+                content = ContentOrSchema.ContentField(mapOf(
+                    contentType to ContentOrSchema.SchemaObject(
+                        schema = schemaJson
+                    )
+                )),
                 required = true
             )
 
@@ -185,11 +225,19 @@ class DynamicHandlersTests {
             headers = null
         )
 
-        val result1 = dynamicHandler.verifyBody(body, expectedBody)
-        val result2 = dynamicHandler.verifyBody(body2, expectedBody)
+        val result1 = dynamicHandler.verifyBody(contentType, body, expectedBody)
+        val result2 = dynamicHandler.verifyBody(contentType, body2, expectedBody)
 
         assertTrue { result1.isEmpty() }
-        assertTrue { result2[0] == VerifyBodyError.InvalidBodyFormat(schemaJson.toString()) }
+        assertEquals(VerifyBodyError.InvalidBodyFormat(
+            ContentOrSchema.ContentField(
+                mapOf(
+                    contentType to ContentOrSchema.SchemaObject(
+                        schema = schemaJson
+                    )
+                )
+            ).toString(),
+        ), result2[0])
 
     }
 
@@ -204,10 +252,15 @@ class DynamicHandlersTests {
         
         """.trimIndent()).parse()
 
+        val contentType = "application/json"
+
         val expectedBody =
             ApiRequestBody(
-                contentType = "application/json",
-                schema = schemaJson,
+                content = ContentOrSchema.ContentField(mapOf(
+                    contentType to ContentOrSchema.SchemaObject(
+                        schema = schemaJson
+                    )
+                )),
                 required = true
             )
 
@@ -221,9 +274,17 @@ class DynamicHandlersTests {
             headers = null
         )
 
-        val result1 = dynamicHandler.verifyBody(body, expectedBody)
+        val result1 = dynamicHandler.verifyBody(contentType, body, expectedBody)
 
-        assertTrue { result1[0] == VerifyBodyError.InvalidBodyFormat(schemaJson.toString()) }
+        assertEquals(VerifyBodyError.InvalidBodyFormat(
+            ContentOrSchema.ContentField(
+                mapOf(
+                    contentType to ContentOrSchema.SchemaObject(
+                        schema = schemaJson
+                    )
+                )
+            ).toString(),
+        ), result1[0])
 
     }
 
@@ -238,10 +299,15 @@ class DynamicHandlersTests {
         
         """.trimIndent()).parse()
 
+        val contentType = "application/json"
+
         val expectedBody =
             ApiRequestBody(
-                contentType = "application/json",
-                schema = schemaJson,
+                content = ContentOrSchema.ContentField(mapOf(
+                    contentType to ContentOrSchema.SchemaObject(
+                        schema = schemaJson
+                    )
+                )),
                 required = true
             )
 
@@ -257,13 +323,21 @@ class DynamicHandlersTests {
             headers = null
         )
 
-        val result1 = dynamicHandler.verifyBody(body, expectedBody)
-        val result2 = dynamicHandler.verifyBody(body2, expectedBody)
-        val result3 = dynamicHandler.verifyBody(body3, expectedBody)
+        val result1 = dynamicHandler.verifyBody(contentType, body, expectedBody)
+        val result2 = dynamicHandler.verifyBody(contentType, body2, expectedBody)
+        val result3 = dynamicHandler.verifyBody(contentType, body3, expectedBody)
 
         assertTrue { result1.isEmpty() }
         assertTrue { result2.isEmpty() }
-        assertTrue { result3[0] == VerifyBodyError.InvalidBodyFormat(schemaJson.toString()) }
+        assertEquals(VerifyBodyError.InvalidBodyFormat(
+            ContentOrSchema.ContentField(
+                mapOf(
+                    contentType to ContentOrSchema.SchemaObject(
+                        schema = schemaJson
+                    )
+                )
+            ).toString(),
+        ), result3[0])
 
     }
 
@@ -278,10 +352,15 @@ class DynamicHandlersTests {
         
         """.trimIndent()).parse()
 
+        val contentType = "application/json"
+
         val expectedBody =
             ApiRequestBody(
-                contentType = "application/json",
-                schema = schemaJson,
+                content = ContentOrSchema.ContentField(mapOf(
+                    contentType to ContentOrSchema.SchemaObject(
+                        schema = schemaJson
+                    )
+                )),
                 required = true
             )
 
@@ -297,13 +376,21 @@ class DynamicHandlersTests {
             headers = null
         )
 
-        val result1 = dynamicHandler.verifyBody(body, expectedBody)
-        val result2 = dynamicHandler.verifyBody(body2, expectedBody)
-        val result3 = dynamicHandler.verifyBody(body3, expectedBody)
+        val result1 = dynamicHandler.verifyBody(contentType, body, expectedBody)
+        val result2 = dynamicHandler.verifyBody(contentType, body2, expectedBody)
+        val result3 = dynamicHandler.verifyBody(contentType, body3, expectedBody)
 
         assertTrue { result1.isEmpty() }
         assertTrue { result2.isEmpty() }
-        assertTrue { result3[0] == VerifyBodyError.InvalidBodyFormat(schemaJson.toString()) }
+        assertEquals(VerifyBodyError.InvalidBodyFormat(
+            ContentOrSchema.ContentField(
+                mapOf(
+                    contentType to ContentOrSchema.SchemaObject(
+                        schema = schemaJson
+                    )
+                )
+            ).toString(),
+        ), result3[0])
 
     }
 
@@ -318,10 +405,15 @@ class DynamicHandlersTests {
         
         """.trimIndent()).parse()
 
+        val contentType = "application/json"
+
         val expectedBody =
             ApiRequestBody(
-                contentType = "application/json",
-                schema = schemaJson,
+                content = ContentOrSchema.ContentField(mapOf(
+                    contentType to ContentOrSchema.SchemaObject(
+                        schema = schemaJson
+                    )
+                )),
                 required = true
             )
 
@@ -337,12 +429,20 @@ class DynamicHandlersTests {
             headers = null
         )
 
-        val result1 = dynamicHandler.verifyBody(body, expectedBody)
-        val result2 = dynamicHandler.verifyBody(body2, expectedBody)
-        val result3 = dynamicHandler.verifyBody(body3, expectedBody)
+        val result1 = dynamicHandler.verifyBody(contentType, body, expectedBody)
+        val result2 = dynamicHandler.verifyBody(contentType, body2, expectedBody)
+        val result3 = dynamicHandler.verifyBody(contentType, body3, expectedBody)
 
         assertTrue { result1.isEmpty() }
-        assertTrue { result2[0] == VerifyBodyError.InvalidBodyFormat(schemaJson.toString()) }
+        assertEquals(VerifyBodyError.InvalidBodyFormat(
+            ContentOrSchema.ContentField(
+                mapOf(
+                    contentType to ContentOrSchema.SchemaObject(
+                        schema = schemaJson
+                    )
+                )
+            ).toString(),
+        ), result2[0])
         assertTrue { result3.isEmpty() }
 
     }
@@ -358,10 +458,15 @@ class DynamicHandlersTests {
         
         """.trimIndent()).parse()
 
+        val contentType = "application/json"
+
         val expectedBody =
             ApiRequestBody(
-                contentType = "application/json",
-                schema = schemaJson,
+                content = ContentOrSchema.ContentField(mapOf(
+                    contentType to ContentOrSchema.SchemaObject(
+                        schema = schemaJson
+                    )
+                )),
                 required = true
             )
 
@@ -377,13 +482,29 @@ class DynamicHandlersTests {
             headers = null
         )
 
-        val result1 = dynamicHandler.verifyBody(body, expectedBody)
-        val result2 = dynamicHandler.verifyBody(body2, expectedBody)
-        val result3 = dynamicHandler.verifyBody(body3, expectedBody)
+        val result1 = dynamicHandler.verifyBody(contentType, body, expectedBody)
+        val result2 = dynamicHandler.verifyBody(contentType, body2, expectedBody)
+        val result3 = dynamicHandler.verifyBody(contentType, body3, expectedBody)
 
         assertTrue { result1.isEmpty() }
-        assertTrue { result2[0] == VerifyBodyError.InvalidBodyFormat(schemaJson.toString()) }
-        assertTrue { result3[0] == VerifyBodyError.InvalidBodyFormat(schemaJson.toString()) }
+        assertEquals(VerifyBodyError.InvalidBodyFormat(
+            ContentOrSchema.ContentField(
+                mapOf(
+                    contentType to ContentOrSchema.SchemaObject(
+                        schema = schemaJson
+                    )
+                )
+            ).toString(),
+        ), result2[0])
+        assertEquals(VerifyBodyError.InvalidBodyFormat(
+            ContentOrSchema.ContentField(
+                mapOf(
+                    contentType to ContentOrSchema.SchemaObject(
+                        schema = schemaJson
+                    )
+                )
+            ).toString(),
+            ), result3[0])
 
     }
 

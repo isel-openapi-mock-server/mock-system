@@ -178,24 +178,24 @@ class Parsing {
         allSchemas: Map<String?, Schema<*>>
     ): ApiRequestBody {
 
-        val mediaType = requestBody.content?.keys?.firstOrNull() ?: "unknown"
-        val schema = requestBody.content?.get(mediaType)?.schema
+        val map = mutableMapOf<String, ContentOrSchema.SchemaObject>()
 
-        return if(schema?.`$ref` != null) {
-            val ref = schema.`$ref`
-            val refSchema = allSchemas[ref.substringAfterLast("/")] ?: Schema<Any>()
-            ApiRequestBody(
-                contentType = mediaType,
-                schema = schemaToJson(refSchema),
-                required = requestBody.required ?: false,
-            )
-        } else {
-            ApiRequestBody(
-                contentType = mediaType,
-                schema = schemaToJson(schema ?: Schema<Any>()),
-                required = requestBody.required ?: false,
-            )
+        requestBody.content?.forEach { (key, value) ->
+            val schema = value.schema
+            if (schema?.`$ref` != null) {
+                val ref = schema.`$ref`
+                val refSchema = allSchemas[ref.substringAfterLast("/")]
+                map[key] = ContentOrSchema.SchemaObject(schemaToJson(refSchema!!))
+            }
+            else {
+                map[key] = ContentOrSchema.SchemaObject(schemaToJson(schema ?: Schema<Any>()))
+            }
         }
+
+        return ApiRequestBody(
+            content = ContentOrSchema.ContentField(map),
+            required = requestBody.required ?: false,
+        )
     }
 
     fun extractResponses(responses: ApiResponses?, allResponse: Map<String?, ApiResponse?>): List<Response> {

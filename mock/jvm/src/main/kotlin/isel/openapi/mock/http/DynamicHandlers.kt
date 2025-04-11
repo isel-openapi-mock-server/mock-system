@@ -289,7 +289,7 @@ class DynamicHandler(
     fun verifyHeaders(
         headers: Map<String, String>,
         expectedHeaders: List<ApiHeader>,
-        contentType: String
+        contentType: String?
     ): List<VerifyHeadersError> {
 
         val failList = mutableListOf<VerifyHeadersError>()
@@ -307,7 +307,7 @@ class DynamicHandler(
 
             when(val headerType = expectedHeader.type) {
                 is ContentOrSchema.SchemaObject -> {
-                    val validationResult = jsonValidator(headerType.schema , headerValue ?: "")
+                    val validationResult = jsonValidator(headerType.schema , "\"$headerValue\"" )
                     if(validationResult != null) {
                         failList.add(VerifyHeadersError.InvalidType(expectedHeader.name, expectedHeader.type.toString(), convertToType(headerValue).toString()))
                     }
@@ -317,14 +317,14 @@ class DynamicHandler(
                     if(contentField == null) {
                         failList.add(VerifyHeadersError.InvalidType(expectedHeader.name, expectedHeader.type.toString(), convertToType(headerValue).toString()))
                     }
-                    val validationResult = jsonValidator(contentField?.schema, headerValue ?: "")
+                    val validationResult = jsonValidator(contentField?.schema, "\"$headerValue\"")
                     if(validationResult != null) {
                         failList.add(VerifyHeadersError.InvalidType(expectedHeader.name, expectedHeader.type.toString(), convertToType(headerValue).toString()))
                     }
                 }
             }
         }
-        if(headers["Content-Type"] != null) {
+        if(contentType != null && headers["Content-Type"] != null) {
             if(headers["Content-Type"] != contentType) {
                 failList.add(VerifyHeadersError.InvalidContentType(contentType, headers["Content-Type"] ?: ""))
             }
@@ -342,12 +342,11 @@ class DynamicHandler(
         val schemaLoader = SchemaLoader(schema)
         val validator = Validator.create(schemaLoader.load(), ValidatorConfig(FormatValidationPolicy.ALWAYS))
 
-        val receivedBody = JsonParser("\"$receivedType\"").parse()
+        val receivedBody = JsonParser(receivedType).parse()
         val validationResult = validator.validate(receivedBody)
 
         return validationResult
     }
-
 
     fun verifyBody(
         contentType: String,
@@ -356,23 +355,16 @@ class DynamicHandler(
     ): List<VerifyBodyError> {
         val failList = mutableListOf<VerifyBodyError>()
         try {
-            //TODO
-            expectedBody.content.content.forEach { k, v ->
-                if (k == contentType) {
-                    val schema = SchemaLoader(v.schema).load()
-                    val validator = Validator.create(schema, ValidatorConfig(FormatValidationPolicy.ALWAYS))
-
-                    val receivedBody = JsonParser(body).parse()
-                    val validationResult = validator.validate(receivedBody)
-
+            expectedBody.content.content.forEach { (key, value) ->
+                if (key == contentType) {
+                    val validationResult = jsonValidator(value.schema, body)
                     if(validationResult != null) {
-                        failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.schema.toString()))
+                        failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.content.toString()))
                     }
                 }
             }
-
         } catch (e: Exception) {
-            failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.schema.toString()))
+            failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.content.toString()))
         }
         return failList
     }

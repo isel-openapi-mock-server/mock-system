@@ -20,14 +20,7 @@ data class ApiParameter(
 //TODO meter noutro sitio
 sealed interface ContentOrSchema {
 
-    data class SchemaObject(val schema: JsonValue?) : ContentOrSchema {
-        fun schemaToJson(schema: Schema<*>): JsonValue {
-            val objectMapper = ObjectMapper()
-            objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL) //Ignora propriedades/entrada/atributos com valor nulo
-            val jsonSchemaString = objectMapper.writeValueAsString(schema)
-            return JsonParser(jsonSchemaString).parse()
-        }
-    }
+    data class SchemaObject(val schema: JsonValue?) : ContentOrSchema
 
     data class ContentField(val content: Map<String, SchemaObject>) : ContentOrSchema
 
