@@ -5,7 +5,17 @@ enum class HttpMethod{
 }
 
 enum class Location{
-    QUERY, HEADER, PATH, COOKIE, UNKNOWN
+    QUERY, HEADER, PATH, COOKIE, UNKNOWN;
+
+    fun locationToString(): String {
+        return when (this) {
+            QUERY -> "query"
+            HEADER -> "header"
+            PATH -> "path"
+            COOKIE -> "cookie"
+            UNKNOWN -> "unknown"
+        }
+    }
 }
 
 enum class ParameterStyle{

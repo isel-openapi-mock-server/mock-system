@@ -48,12 +48,14 @@ class DynamicRouteController(
         val res = services.executeDynamicHandler(
             host = "mock",
             method = method,
-            uri = request.requestURI,
+            path = request.requestURI,
             request = request
         )
         return when (res) {
             is Success -> {
-                ResponseEntity.status(res.value.statusCode.code).build<Unit>()
+                ResponseEntity.status(res.value.first.statusCode.code)
+                    .header("Request-Key", res.value.second)
+                    .build<Unit>()
             }
             is Failure -> {
                 when (res.value) {

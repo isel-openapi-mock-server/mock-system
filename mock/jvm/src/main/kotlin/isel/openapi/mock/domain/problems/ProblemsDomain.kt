@@ -1,4 +1,4 @@
-package isel.openapi.mock.domain
+package isel.openapi.mock.domain.problems
 
 import org.springframework.stereotype.Component
 import java.lang.IllegalArgumentException

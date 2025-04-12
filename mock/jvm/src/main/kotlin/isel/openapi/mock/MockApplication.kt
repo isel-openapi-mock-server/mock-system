@@ -1,5 +1,6 @@
 package isel.openapi.mock
 
+import isel.openapi.mock.repository.jdbi.JdbiProblemsRepository
 import isel.openapi.mock.repository.jdbi.configureWithAppRequirements
 import org.jdbi.v3.core.Jdbi
 import org.postgresql.ds.PGSimpleDataSource

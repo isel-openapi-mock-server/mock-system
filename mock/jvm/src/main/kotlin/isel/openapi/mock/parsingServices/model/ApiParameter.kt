@@ -16,10 +16,18 @@ data class ApiParameter(
 //TODO meter noutro sitio
 sealed interface ContentOrSchema {
 
-    data class SchemaObject(val schema: JsonValue?) : ContentOrSchema
+    data class SchemaObject(val schema: JsonValue?) : ContentOrSchema {
+        override fun toString(): String {
+            return schema.toString()
+        }
+    }
 
     //Se for um parametro ou um header o map tem apenas uma chave
-    data class ContentField(val content: Map<String, SchemaObject>) : ContentOrSchema
+    data class ContentField(val content: Map<String, SchemaObject>) : ContentOrSchema {
+        override fun toString(): String {
+            return content.toString()
+        }
+    }
 
 }
 
