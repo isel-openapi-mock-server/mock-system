@@ -16,7 +16,6 @@ class VerifyParamsResult(
 )
 
 //TODO: meti aqui porque tava a precisar nos services (talvez voltar a meter onde tava ou separar em classes)
-
 @Component
 class DynamicDomain {
 
@@ -170,6 +169,7 @@ class DynamicDomain {
 
             val paramValue = pathParams[expectedParam.name]
 
+            // Desnecessário
             if(paramValue == null && expectedParam.required) {
                 failList.add(VerifyParamsError.MissingParam(expectedParam.location,  expectedParam.name))
             }
@@ -241,7 +241,23 @@ class DynamicDomain {
                 schema = type.schema
             }
 
-            jsonValidator(schema, cookie.value)
+            if (cookie.value.isBlank()) {
+                if (!expCookie.allowEmptyValue) {
+                    failList.add(VerifyParamsError.ParamCantBeEmpty(location = Location.COOKIE, cookie.name))
+                }
+            } else {
+                val validationResult = jsonValidator(schema, cookie.value) //TODO temos de fazer algo com isto, acrescentar uma falha para se vier algum erro daqui e adicionar à lista.
+                if (validationResult != null) {
+                    failList.add(VerifyParamsError.JsonValidationError(location = Location.COOKIE))
+                }
+            }
+
+        }
+
+        cookies.forEach { cookie ->
+            if (cookie.name !in expectedCookies.map { it.name }) {
+                failList.add(VerifyParamsError.InvalidParam(location = Location.COOKIE, paramName = cookie.name))
+            }
 
         }
 
@@ -339,7 +355,7 @@ class DynamicDomain {
         val schemaLoader = SchemaLoader(schema)
         val validator = Validator.create(schemaLoader.load(), ValidatorConfig(FormatValidationPolicy.ALWAYS))
 
-        val receivedBody = JsonParser(receivedType).parse()
+        val receivedBody = JsonParser(receivedType).parse() // TODO mudar o nome
         val validationResult = validator.validate(receivedBody)
 
         return validationResult

@@ -4,10 +4,9 @@ import jakarta.servlet.http.HttpServletRequest
 import com.github.erosb.jsonsKema.*
 import isel.openapi.mock.domain.dynamic.DynamicDomain
 import isel.openapi.mock.domain.dynamic.HandlerResult
+import isel.openapi.mock.domain.dynamic.ResponseInfo
 import isel.openapi.mock.domain.problems.ParameterInfo
 import isel.openapi.mock.parsingServices.model.*
-import isel.openapi.mock.services.ResponseInfo
-import jakarta.servlet.http.Cookie
 
 interface VerificationError
 
@@ -27,11 +26,12 @@ sealed class VerifyParamsError : VerificationError {
     data class ParamCantBeEmpty(val location: Location, val paramName: String) : VerifyParamsError()
     data class InvalidParam(val location: Location, val paramName: String) : VerifyParamsError()
     data class MissingParam(val location: Location, val paramName: String) : VerifyParamsError()
+    data class JsonValidationError(val location: Location) : VerifyParamsError()
 }
 
 class DynamicHandler(
     private val path: List<PathParts>,
-    private val response: List<Response>,
+    private val responses: List<Response>,
     private val params: List<ApiParameter>?,
     private val body: ApiRequestBody?,
     private val headers : List<ApiHeader>?,
@@ -73,7 +73,7 @@ class DynamicHandler(
         cookiesResult.forEach { fails.add(it) }
 
         val response = if(fails.isEmpty()) {
-            response.firstOrNull { it.statusCode == StatusCode.OK } ?: response.first()
+            responses.firstOrNull { it.statusCode == StatusCode.OK } ?: responses.first() // TODO Mudar isto
         } else {
             Response(
                 statusCode = StatusCode.BAD_REQUEST,
@@ -84,10 +84,17 @@ class DynamicHandler(
                         "type": "null"
                     }
                     """.trimIndent()
-                ).parse()
+                ).parse() // TODO Mudar isto
             )
         }
-        return HandlerResult(fails, response, requestBody, requestHeaders, cookies.toList(), pathParamsResult.params + queryParamsResult.params)
+        return HandlerResult(
+            fails = fails,
+            body = requestBody,
+            headers = requestHeaders,
+            cookies = cookies.toList(),
+            params = pathParamsResult.params + queryParamsResult.params,
+            responseInfo = ResponseInfo(response) //TODO Mudar
+        )
     }
 
     private fun String.toTypedValue(): Any {

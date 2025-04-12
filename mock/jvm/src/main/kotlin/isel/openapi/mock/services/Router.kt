@@ -1,5 +1,6 @@
 package isel.openapi.mock.services
 
+import isel.openapi.mock.domain.dynamic.DynamicDomain
 import isel.openapi.mock.http.DynamicHandler
 import isel.openapi.mock.parsingServices.model.ApiSpec
 import isel.openapi.mock.parsingServices.model.HttpMethod
@@ -19,7 +20,8 @@ class RouteNode(val part: String) {
 
 @Component
 class Router(
-    private val repository: DynamicRoutesRepository
+    private val repository: DynamicRoutesRepository,
+    private val dynamicDomain: DynamicDomain,
     //TODO: domain
 ) {
 
@@ -37,7 +39,8 @@ class Router(
                     operation.parameters,
                     operation.requestBody,
                     operation.headers,
-                    operation.security
+                    operation.security,
+                    dynamicDomain
                 )
 
                 val parts = apiPath.fullPath.split("/").filter { it.isNotEmpty() }

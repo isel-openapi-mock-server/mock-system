@@ -1,7 +1,9 @@
 package isel.openapi.mock.http
 
 import com.github.erosb.jsonsKema.*
+import isel.openapi.mock.domain.dynamic.DynamicDomain
 import isel.openapi.mock.parsingServices.model.*
+import jakarta.servlet.http.Cookie
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -68,35 +70,27 @@ class DynamicHandlersTests {
         """.trimIndent()
 
         val dynamicHandler = DynamicHandler(
-            response = response,
+            responses = response,
             params = null,
             body = expectedBody,
             path = listOf((PathParts.Static("users"))),
-            headers = null
+            headers = null,
+            security = false,
+            dynamicDomain = dynamicDomain,
         )
 
-        val result1 = dynamicHandler.verifyBody(contentType, body, expectedBody)
-        val result2 = dynamicHandler.verifyBody(contentType, body2, expectedBody)
-        val result3 = dynamicHandler.verifyBody(contentType, body3, expectedBody)
+        val result1 = dynamicDomain.verifyBody(contentType, body, expectedBody)
+        val result2 = dynamicDomain.verifyBody(contentType, body2, expectedBody)
+        val result3 = dynamicDomain.verifyBody(contentType, body3, expectedBody)
 
         assertTrue { result1.isEmpty() }
         assertEquals(VerifyBodyError.InvalidBodyFormat(
-            ContentOrSchema.ContentField(
-                mapOf(
-                    contentType to ContentOrSchema.SchemaObject(
-                        schema = schemaJson
-                    )
-                )
-            ).toString(),
+            schemaJson.toString(),
+            receivedBody = body2,
         ), result2[0])
         assertEquals(VerifyBodyError.InvalidBodyFormat(
-            ContentOrSchema.ContentField(
-                mapOf(
-                    contentType to ContentOrSchema.SchemaObject(
-                        schema = schemaJson
-                    )
-                )
-            ).toString(),
+            schemaJson.toString(),
+            receivedBody = body3,
         ), result3[0])
 
     }
@@ -135,25 +129,21 @@ class DynamicHandlersTests {
         """.trimIndent()
 
         val dynamicHandler = DynamicHandler(
-            response = response,
+            responses = response,
             params = null,
             body = expectedBody,
             path = listOf((PathParts.Static("users"))),
-            headers = null
+            headers = null,
+            dynamicDomain = dynamicDomain
         )
 
-        val result1 = dynamicHandler.verifyBody(contentType, body, expectedBody)
-        val result2 = dynamicHandler.verifyBody(contentType, body2, expectedBody)
+        val result1 = dynamicDomain.verifyBody(contentType, body, expectedBody)
+        val result2 = dynamicDomain.verifyBody(contentType, body2, expectedBody)
 
         assertTrue { result1.isEmpty() }
         assertEquals(VerifyBodyError.InvalidBodyFormat(
-            ContentOrSchema.ContentField(
-                mapOf(
-                    contentType to ContentOrSchema.SchemaObject(
-                        schema = schemaJson
-                    )
-                )
-            ).toString(),
+            schemaJson.toString(),
+            receivedBody = body2,
         ), result2[0])
 
     }
@@ -218,25 +208,21 @@ class DynamicHandlersTests {
         """.trimIndent()
 
         val dynamicHandler = DynamicHandler(
-            response = response,
+            responses = response,
             params = null,
             body = expectedBody,
             path = listOf((PathParts.Static("users"))),
-            headers = null
+            headers = null,
+            dynamicDomain = dynamicDomain
         )
 
-        val result1 = dynamicHandler.verifyBody(contentType, body, expectedBody)
-        val result2 = dynamicHandler.verifyBody(contentType, body2, expectedBody)
+        val result1 = dynamicDomain.verifyBody(contentType, body, expectedBody)
+        val result2 = dynamicDomain.verifyBody(contentType, body2, expectedBody)
 
         assertTrue { result1.isEmpty() }
         assertEquals(VerifyBodyError.InvalidBodyFormat(
-            ContentOrSchema.ContentField(
-                mapOf(
-                    contentType to ContentOrSchema.SchemaObject(
-                        schema = schemaJson
-                    )
-                )
-            ).toString(),
+            schemaJson.toString(),
+            receivedBody = body2,
         ), result2[0])
 
     }
@@ -267,23 +253,19 @@ class DynamicHandlersTests {
         val body = ""
 
         val dynamicHandler = DynamicHandler(
-            response = response,
+            responses = response,
             params = null,
             body = expectedBody,
             path = listOf((PathParts.Static("users"))),
-            headers = null
+            headers = null,
+            dynamicDomain = dynamicDomain
         )
 
-        val result1 = dynamicHandler.verifyBody(contentType, body, expectedBody)
+        val result1 = dynamicDomain.verifyBody(contentType, body, expectedBody)
 
         assertEquals(VerifyBodyError.InvalidBodyFormat(
-            ContentOrSchema.ContentField(
-                mapOf(
-                    contentType to ContentOrSchema.SchemaObject(
-                        schema = schemaJson
-                    )
-                )
-            ).toString(),
+            schemaJson.toString(),
+            receivedBody = body,
         ), result1[0])
 
     }
@@ -316,27 +298,23 @@ class DynamicHandlersTests {
         val body3 = "null"
 
         val dynamicHandler = DynamicHandler(
-            response = response,
+            responses = response,
             params = null,
             body = expectedBody,
             path = listOf((PathParts.Static("users"))),
-            headers = null
+            headers = null,
+            dynamicDomain = dynamicDomain
         )
 
-        val result1 = dynamicHandler.verifyBody(contentType, body, expectedBody)
-        val result2 = dynamicHandler.verifyBody(contentType, body2, expectedBody)
-        val result3 = dynamicHandler.verifyBody(contentType, body3, expectedBody)
+        val result1 = dynamicDomain.verifyBody(contentType, body, expectedBody)
+        val result2 = dynamicDomain.verifyBody(contentType, body2, expectedBody)
+        val result3 = dynamicDomain.verifyBody(contentType, body3, expectedBody)
 
         assertTrue { result1.isEmpty() }
         assertTrue { result2.isEmpty() }
         assertEquals(VerifyBodyError.InvalidBodyFormat(
-            ContentOrSchema.ContentField(
-                mapOf(
-                    contentType to ContentOrSchema.SchemaObject(
-                        schema = schemaJson
-                    )
-                )
-            ).toString(),
+            schemaJson.toString(),
+            receivedBody = body3,
         ), result3[0])
 
     }
@@ -369,27 +347,23 @@ class DynamicHandlersTests {
         val body3 = "null"
 
         val dynamicHandler = DynamicHandler(
-            response = response,
+            responses = response,
             params = null,
             body = expectedBody,
             path = listOf((PathParts.Static("users"))),
-            headers = null
+            headers = null,
+            dynamicDomain = dynamicDomain
         )
 
-        val result1 = dynamicHandler.verifyBody(contentType, body, expectedBody)
-        val result2 = dynamicHandler.verifyBody(contentType, body2, expectedBody)
-        val result3 = dynamicHandler.verifyBody(contentType, body3, expectedBody)
+        val result1 = dynamicDomain.verifyBody(contentType, body, expectedBody)
+        val result2 = dynamicDomain.verifyBody(contentType, body2, expectedBody)
+        val result3 = dynamicDomain.verifyBody(contentType, body3, expectedBody)
 
         assertTrue { result1.isEmpty() }
         assertTrue { result2.isEmpty() }
         assertEquals(VerifyBodyError.InvalidBodyFormat(
-            ContentOrSchema.ContentField(
-                mapOf(
-                    contentType to ContentOrSchema.SchemaObject(
-                        schema = schemaJson
-                    )
-                )
-            ).toString(),
+            schemaJson.toString(),
+            receivedBody = body3,
         ), result3[0])
 
     }
@@ -422,26 +396,22 @@ class DynamicHandlersTests {
         val body3 = "\"null\""
 
         val dynamicHandler = DynamicHandler(
-            response = response,
+            responses = response,
             params = null,
             body = expectedBody,
             path = listOf((PathParts.Static("users"))),
-            headers = null
+            headers = null,
+            dynamicDomain = dynamicDomain
         )
 
-        val result1 = dynamicHandler.verifyBody(contentType, body, expectedBody)
-        val result2 = dynamicHandler.verifyBody(contentType, body2, expectedBody)
-        val result3 = dynamicHandler.verifyBody(contentType, body3, expectedBody)
+        val result1 = dynamicDomain.verifyBody(contentType, body, expectedBody)
+        val result2 = dynamicDomain.verifyBody(contentType, body2, expectedBody)
+        val result3 = dynamicDomain.verifyBody(contentType, body3, expectedBody)
 
         assertTrue { result1.isEmpty() }
         assertEquals(VerifyBodyError.InvalidBodyFormat(
-            ContentOrSchema.ContentField(
-                mapOf(
-                    contentType to ContentOrSchema.SchemaObject(
-                        schema = schemaJson
-                    )
-                )
-            ).toString(),
+            schemaJson.toString(),
+            receivedBody = body2,
         ), result2[0])
         assertTrue { result3.isEmpty() }
 
@@ -475,36 +445,27 @@ class DynamicHandlersTests {
         val body3 = "null"
 
         val dynamicHandler = DynamicHandler(
-            response = response,
+            responses = response,
             params = null,
             body = expectedBody,
             path = listOf((PathParts.Static("users"))),
-            headers = null
+            headers = null,
+            dynamicDomain = dynamicDomain
         )
 
-        val result1 = dynamicHandler.verifyBody(contentType, body, expectedBody)
-        val result2 = dynamicHandler.verifyBody(contentType, body2, expectedBody)
-        val result3 = dynamicHandler.verifyBody(contentType, body3, expectedBody)
+        val result1 = dynamicDomain.verifyBody(contentType, body, expectedBody)
+        val result2 = dynamicDomain.verifyBody(contentType, body2, expectedBody)
+        val result3 = dynamicDomain.verifyBody(contentType, body3, expectedBody)
 
         assertTrue { result1.isEmpty() }
         assertEquals(VerifyBodyError.InvalidBodyFormat(
-            ContentOrSchema.ContentField(
-                mapOf(
-                    contentType to ContentOrSchema.SchemaObject(
-                        schema = schemaJson
-                    )
-                )
-            ).toString(),
+            schemaJson.toString(),
+            receivedBody = body2,
         ), result2[0])
         assertEquals(VerifyBodyError.InvalidBodyFormat(
-            ContentOrSchema.ContentField(
-                mapOf(
-                    contentType to ContentOrSchema.SchemaObject(
-                        schema = schemaJson
-                    )
-                )
-            ).toString(),
-            ), result3[0])
+            schemaJson.toString(),
+            receivedBody = body3,
+        ), result3[0])
 
     }
 
@@ -568,18 +529,19 @@ class DynamicHandlersTests {
         )
 
         val dynamicHandler = DynamicHandler(
-            response = response,
+            responses = response,
             params = null,
             body = null,
             path = listOf((PathParts.Static("users"))),
-            headers = expectedHeaders
+            headers = expectedHeaders,
+            dynamicDomain = dynamicDomain
         )
 
-        val result1 = dynamicHandler.verifyHeaders(headers, expectedHeaders, "application/json", false)
-        val result2 = dynamicHandler.verifyHeaders(headers1, expectedHeaders, "application/json", false)
-        val result3 = dynamicHandler.verifyHeaders(headers2, expectedHeaders, "application/json", false)
-        val result4 = dynamicHandler.verifyHeaders(headers3, expectedHeaders, "application/json", false)
-        val result5 = dynamicHandler.verifyHeaders(headers4, expectedHeaders, "application/json", false)
+        val result1 = dynamicDomain.verifyHeaders(headers, expectedHeaders, "application/json", false)
+        val result2 = dynamicDomain.verifyHeaders(headers1, expectedHeaders, "application/json", false)
+        val result3 = dynamicDomain.verifyHeaders(headers2, expectedHeaders, "application/json", false)
+        val result4 = dynamicDomain.verifyHeaders(headers3, expectedHeaders, "application/json", false)
+        val result5 = dynamicDomain.verifyHeaders(headers4, expectedHeaders, "application/json", false)
 
         assertTrue { result1.isEmpty() }
         assertTrue { result2.isEmpty() }
@@ -598,32 +560,28 @@ class DynamicHandlersTests {
     @Test
     fun cookiesVerificationTest() {
 
-        val expectedHeaders = listOf(
+        val expectedCookies = listOf(
             ApiParameter(
                 name = "a",
                 location = Location.COOKIE,
-                type = ContentOrSchema.SchemaObject(
-                    schema = JsonParser(
-                        """
-                        {
-                            "type": "string"
-                        }
-                        """.trimIndent()
-                    ).parse()
+                type = ContentOrSchema.ContentField(
+                    content = mapOf(
+                        Pair("text/plain", ContentOrSchema.SchemaObject(null))
+                    )
                 ),
                 required = true,
                 style = ParameterStyle.FORM,
                 explode = false,
                 allowEmptyValue = false,
-                description = "Content type of the request"
+                description = "Cookie"
             ),
-            ApiHeader(
-                name = "Authorization",
+            ApiParameter(
+                name = "b",
                 type = ContentOrSchema.SchemaObject(
                     schema = JsonParser(
                         """
                         {
-                            "type": "string"
+                            "type": "integer"
                         }
                         """.trimIndent()
                     ).parse()
@@ -631,57 +589,61 @@ class DynamicHandlersTests {
                 required = false,
                 style = ParameterStyle.FORM,
                 explode = false,
-                description = "Authorization token"
+                description = "Cookie",
+                location = Location.COOKIE,
+                allowEmptyValue = false
             )
         )
 
-        val headers = mapOf(
-            "Content-Type" to "application/json",
-            "Authorization" to "token123"
-        )
+        val cookie1 = arrayOf(Cookie("a", "Bom dia"))
 
-        val headers1 = mapOf(
-            "Content-Type" to "application/json",
-        )
-        val headers2 = mapOf(
-            "Authorization" to "token123"
-        )
-        val headers3 = mapOf(
-            "Content-Type" to "application/problem",
-            "Authorization" to "token123"
-        )
-        val headers4 = mapOf(
-            "Content-Type" to "application/json",
-            "Authorization" to "token123",
-            "Extra" to "extra"
-        )
+        val cookie2 = arrayOf(Cookie("a", "Bom dia"), Cookie("b", "123"))
 
-        val dynamicHandler = DynamicHandler(
-            response = response,
-            params = null,
-            body = null,
-            path = listOf((PathParts.Static("users"))),
-            headers = expectedHeaders
-        )
+        val cookie3 = arrayOf(Cookie("b", "123"))
 
-        val result1 = dynamicHandler.verifyHeaders(headers, expectedHeaders, "application/json", false)
-        val result2 = dynamicHandler.verifyHeaders(headers1, expectedHeaders, "application/json", false)
-        val result3 = dynamicHandler.verifyHeaders(headers2, expectedHeaders, "application/json", false)
-        val result4 = dynamicHandler.verifyHeaders(headers3, expectedHeaders, "application/json", false)
-        val result5 = dynamicHandler.verifyHeaders(headers4, expectedHeaders, "application/json", false)
+        val cookie4 = arrayOf(Cookie("a", ""))
+
+        val cookie5 = arrayOf(Cookie("a", "Bom dia"), Cookie("c", "123"))
+
+        val result1 = dynamicDomain.verifyCookies(cookie1, expectedCookies)
+        val result2 = dynamicDomain.verifyCookies(cookie2, expectedCookies)
+        val result3 = dynamicDomain.verifyCookies(cookie3, expectedCookies)
+        val result4 = dynamicDomain.verifyCookies(cookie4, expectedCookies)
+        val result5 = dynamicDomain.verifyCookies(cookie5, expectedCookies)
 
         assertTrue { result1.isEmpty() }
-        assertTrue { result2.isEmpty() }
+        assertEquals(emptyList(), result2)
 
-        assertTrue { result3.size == 2 }
-        assertTrue { result3[0] == VerifyHeadersError.MissingHeader("Content-Type") }
-        assertTrue { result3[1] == VerifyHeadersError.MissingHeaderContent("Content-Type") }
+        assertTrue { result3.size == 1 }
+        assertEquals(
+            VerifyParamsError.MissingParam(
+                location = Location.COOKIE,
+                paramName = "a"
+            ),
+            result3[0]
+        )
 
         assertTrue { result4.size == 1 }
-        assertTrue { result4[0] == VerifyHeadersError.InvalidContentType("application/json", "application/problem") }
+        assertEquals(
+            VerifyParamsError.ParamCantBeEmpty(
+                location = Location.COOKIE,
+                paramName = "a"
+            ),
+            result4[0]
+        )
 
-        assertTrue { result5.isEmpty() }
-
+        assertEquals(1, result5.size)
+        assertEquals(
+            VerifyParamsError.InvalidParam(
+                location = Location.COOKIE,
+                paramName = "c"
+            ),
+            result5[0]
+        )
     }
 
+
+    companion object {
+        val dynamicDomain = DynamicDomain()
+    }
 }
