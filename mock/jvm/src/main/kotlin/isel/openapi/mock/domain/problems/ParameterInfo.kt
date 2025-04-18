@@ -11,8 +11,8 @@ class ParameterInfo(
 ) {
     fun typeToString(): String {
         return when (type) {
-            is ContentOrSchema.ContentField -> type.content.values.first().schema.toString()
-            is ContentOrSchema.SchemaObject -> type.schema.toString()
+            is ContentOrSchema.ContentField -> type.content.toString()
+            is ContentOrSchema.SchemaObject -> type.toString()
         }
     }
 }

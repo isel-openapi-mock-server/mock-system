@@ -40,7 +40,7 @@ class JdbiProblemsRepository(
     override fun addRequestBody(uuid: String, body: ByteArray, contentType: String) {
         handle.createUpdate("INSERT INTO request_body (uuid, content, content_type) VALUES (:uuid, :content, :contentType)")
             .bind("uuid", uuid)
-            .bind("body", body.toString())
+            .bind("content", body)
             .bind("contentType", contentType)
             .execute()
     }
@@ -84,10 +84,11 @@ class JdbiProblemsRepository(
 
     override fun addRequestHeaders(uuid: String, headers: Map<String, String>) {
         headers.forEach { (key, value) ->
+            if(value == "") return@forEach
             handle.createUpdate("INSERT INTO request_headers (uuid, name, content) VALUES (:uuid, :name, :content)")
                 .bind("uuid", uuid)
                 .bind("name", key)
-                .bind("value", value)
+                .bind("content", value)
                 .execute()
         }
     }
