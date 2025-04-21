@@ -2,9 +2,6 @@ package isel.openapi.mock.parsingServices
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.paramnames.ParameterNamesModule
-import com.github.erosb.jsonsKema.JsonParser
-import com.github.erosb.jsonsKema.JsonValue
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.PathItem
 import io.swagger.v3.oas.models.headers.Header
@@ -47,6 +44,7 @@ class Parsing {
         val allParameters = openAPI.components?.parameters ?: emptyMap()
         val allHeaders = openAPI.components?.headers ?: emptyMap()
         val security = openAPI.security
+        //faltam cenas dos components
 
         return ApiSpec(
             servers = openAPI.servers.map { toApiServer(it) },
@@ -203,20 +201,27 @@ class Parsing {
         if (responses == null) return emptyList()
 
         return responses.map { (statusCode, response) ->
-            val contentType = response.content?.keys?.firstOrNull()
+            val contentTypes = response.content
             if(response.`$ref` != null) {
                 val ref = response.`$ref`
                 val refResponse = allResponse[ref.substringAfterLast("/")]
+                val refContentTypes = refResponse?.content
+                val content = mutableMapOf<String, ContentOrSchema.SchemaObject>()
+                refContentTypes?.forEach { contType, mediaType ->
+                    content[contType] = ContentOrSchema.SchemaObject(schemaToJson(mediaType.schema))
+                }
                 Response(
                     statusCode = fromCode(statusCode) ?: StatusCode.UNKNOWN,
-                    contentType = refResponse?.content?.keys?.toString(),
-                    schema = schemaToJson(refResponse?.content?.get(contentType)?.schema ?: Schema<Any>()),
+                    schema = if (content.isNotEmpty()) ContentOrSchema.ContentField(content = content) else null
                 )
             } else {
+                val content = mutableMapOf<String, ContentOrSchema.SchemaObject>()
+                contentTypes?.forEach { contType, mediaType ->
+                    content[contType] = ContentOrSchema.SchemaObject(schemaToJson(mediaType.schema))
+                }
                 Response(
                     statusCode = fromCode(statusCode) ?: StatusCode.UNKNOWN,
-                    contentType = contentType,
-                    schema = schemaToJson(response.content?.get(contentType)?.schema ?: Schema<Any>()),
+                    schema = if (content.isNotEmpty()) ContentOrSchema.ContentField(content = content) else null
                 )
             }
         }
@@ -285,11 +290,12 @@ class Parsing {
 
     }
 
-    private fun schemaToJson(schema: Schema<*>): JsonValue {
+    private fun schemaToJson(schema: Schema<*>): String {
         val objectMapper = ObjectMapper()
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL) //Ignora propriedades/entrada/atributos com valor nulo
-        val jsonSchemaString = objectMapper.writeValueAsString(schema)
-        return JsonParser(jsonSchemaString).parse()
+        return objectMapper.writeValueAsString(schema)
+        //val jsonSchemaString = objectMapper.writeValueAsString(schema)
+        //return JsonParser(jsonSchemaString).parse()
     }
 
     private fun toParamLocation(location: String): Location {

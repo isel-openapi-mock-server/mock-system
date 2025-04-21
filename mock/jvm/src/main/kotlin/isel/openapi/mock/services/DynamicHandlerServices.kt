@@ -78,7 +78,7 @@ class DynamicHandlerServices(
             }
 
             if(handlerResponse.responseInfo.body != null) {
-                problemsRepository.addResponseBody(responseId, handlerResponse.responseInfo.body.toByteArray(), handlerResponse.responseInfo.response.contentType.toString())
+                problemsRepository.addResponseBody(responseId, handlerResponse.responseInfo.body.toByteArray(), handlerResponse.responseInfo.response.schema.toString())
             }
         }
 

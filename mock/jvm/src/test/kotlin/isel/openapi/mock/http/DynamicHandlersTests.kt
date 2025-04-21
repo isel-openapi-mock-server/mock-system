@@ -12,20 +12,27 @@ class DynamicHandlersTests {
 
     private val response = listOf(Response(
         statusCode = StatusCode.OK,
-        contentType = "application/json",
-        schema = JsonParser(
-            """
-            {
-                "type": "null"
-            }
-            """.trimIndent()
-        ).parse()
-    ))
+        schema = ContentOrSchema.ContentField(
+            content = mapOf(
+                Pair(
+                    "application/json",
+                    ContentOrSchema.SchemaObject(
+                        """
+                        {
+                            "type": "null"
+                        }
+                        """.trimIndent()
+                    )
+                )
+            )
+        )
+    )
+    )
 
     @Test
     fun objectVerificationTest() {
 
-        val schemaJson: JsonValue = JsonParser(
+        val schemaJson =
             """
         {
             "type": "object",
@@ -39,7 +46,7 @@ class DynamicHandlersTests {
             }
         }
         
-        """.trimIndent()).parse()
+        """.trimIndent()
 
         val contentType = "application/json"
 
@@ -98,7 +105,7 @@ class DynamicHandlersTests {
     @Test
     fun arrayVerificationTest() {
 
-        val schemaJson: JsonValue = JsonParser(
+        val schemaJson =
             """
         {
             "type": "array",
@@ -107,7 +114,7 @@ class DynamicHandlersTests {
             }
         }
         
-        """.trimIndent()).parse()
+        """.trimIndent()
 
         val contentType = "application/json"
 
@@ -151,7 +158,7 @@ class DynamicHandlersTests {
     @Test
     fun objectArrayVerificationTest() {
 
-        val schemaJson: JsonValue = JsonParser(
+        val schemaJson =
             """
         {
             "type": "array",
@@ -168,7 +175,7 @@ class DynamicHandlersTests {
             }
         }
         
-        """.trimIndent()).parse()
+        """.trimIndent()
 
         val contentType = "application/json"
 
@@ -230,13 +237,13 @@ class DynamicHandlersTests {
     @Test
     fun nullBodyVerificationTest() {
 
-        val schemaJson: JsonValue = JsonParser(
+        val schemaJson =
             """
         {
             "type": "null"
         }
         
-        """.trimIndent()).parse()
+        """.trimIndent()
 
         val contentType = "application/json"
 
@@ -273,13 +280,13 @@ class DynamicHandlersTests {
     @Test
     fun booleanBodyVerificationTest() {
 
-        val schemaJson: JsonValue = JsonParser(
+        val schemaJson =
             """
         {
             "type": "boolean"
         }
         
-        """.trimIndent()).parse()
+        """.trimIndent()
 
         val contentType = "application/json"
 
@@ -322,13 +329,13 @@ class DynamicHandlersTests {
     @Test
     fun numberBodyVerificationTest() {
 
-        val schemaJson: JsonValue = JsonParser(
+        val schemaJson =
             """
         {
             "type": "number"
         }
         
-        """.trimIndent()).parse()
+        """.trimIndent()
 
         val contentType = "application/json"
 
@@ -371,13 +378,13 @@ class DynamicHandlersTests {
     @Test
     fun stringBodyVerificationTest() {
 
-        val schemaJson: JsonValue = JsonParser(
+        val schemaJson =
             """
         {
             "type": "string"
         }
         
-        """.trimIndent()).parse()
+        """.trimIndent()
 
         val contentType = "application/json"
 
@@ -420,13 +427,13 @@ class DynamicHandlersTests {
     @Test
     fun integerBodyVerificationTest() {
 
-        val schemaJson: JsonValue = JsonParser(
+        val schemaJson =
             """
         {
             "type": "integer"
         }
         
-        """.trimIndent()).parse()
+        """.trimIndent()
 
         val contentType = "application/json"
 
@@ -476,13 +483,12 @@ class DynamicHandlersTests {
             ApiHeader(
                 name = "Content-Type",
                 type = ContentOrSchema.SchemaObject(
-                    schema = JsonParser(
+                    schema =
                         """
                         {
                             "type": "string"
                         }
                         """.trimIndent()
-                    ).parse()
                 ),
                 required = true,
                 style = ParameterStyle.FORM,
@@ -492,13 +498,12 @@ class DynamicHandlersTests {
             ApiHeader(
                 name = "Authorization",
                 type = ContentOrSchema.SchemaObject(
-                    schema = JsonParser(
+                    schema =
                         """
                         {
                             "type": "string"
                         }
                         """.trimIndent()
-                    ).parse()
                 ),
                 required = false,
                 style = ParameterStyle.FORM,
@@ -578,13 +583,12 @@ class DynamicHandlersTests {
             ApiParameter(
                 name = "b",
                 type = ContentOrSchema.SchemaObject(
-                    schema = JsonParser(
+                    schema =
                         """
                         {
                             "type": "integer"
                         }
                         """.trimIndent()
-                    ).parse()
                 ),
                 required = false,
                 style = ParameterStyle.FORM,
@@ -599,7 +603,7 @@ class DynamicHandlersTests {
 
         val cookie2 = arrayOf(Cookie("a", "Bom dia"), Cookie("b", "123"))
 
-        val cookie3 = arrayOf(Cookie("b", "123"))
+        val cookie3 = arrayOf(Cookie("b", "asd"))
 
         val cookie4 = arrayOf(Cookie("a", ""))
 
@@ -622,6 +626,12 @@ class DynamicHandlersTests {
             ),
             result3[0]
         )
+        /*assertEquals(
+            VerifyParamsError.JsonValidationError(
+                location = Location.COOKIE,
+            ),
+            result3[0]
+        )*/
 
         assertTrue { result4.size == 1 }
         assertEquals(

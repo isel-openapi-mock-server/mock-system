@@ -16,7 +16,7 @@ data class ApiParameter(
 //TODO meter noutro sitio
 sealed interface ContentOrSchema {
 
-    data class SchemaObject(val schema: JsonValue?) : ContentOrSchema {
+    data class SchemaObject(val schema: String?) : ContentOrSchema {
         override fun toString(): String {
             return schema.toString()
         }

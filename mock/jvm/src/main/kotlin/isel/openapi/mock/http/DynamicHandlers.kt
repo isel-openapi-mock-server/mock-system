@@ -77,14 +77,21 @@ class DynamicHandler(
         } else {
             Response(
                 statusCode = StatusCode.BAD_REQUEST,
-                contentType = "application/json",
-                schema = JsonParser(
-                    """
-                    {
-                        "type": "null"
-                    }
-                    """.trimIndent()
-                ).parse() // TODO Mudar isto
+                schema = ContentOrSchema.ContentField(
+                    content = mapOf(
+                        Pair(
+                            "application/json",
+                            ContentOrSchema.SchemaObject(
+                                schema =
+                                """
+                                    {
+                                        "type": "null"
+                                    }
+                                """.trimIndent()
+                            )
+                        )
+                    )
+                )
             )
         }
         return HandlerResult(
