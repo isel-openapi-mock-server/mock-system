@@ -1,6 +1,5 @@
 package isel.openapi.mock.http
 
-import isel.openapi.mock.parsingServices.Parsing
 import isel.openapi.mock.parsingServices.model.HttpMethod
 import isel.openapi.mock.services.DynamicHandlerError
 import isel.openapi.mock.services.DynamicHandlerServices
@@ -14,23 +13,8 @@ import org.springframework.web.bind.annotation.*
 @RestController
 class DynamicRouteController(
     private val router: Router,
-    private val parsing: Parsing,
     private val services: DynamicHandlerServices
 ) {
-    @PostMapping("/openapi")
-    fun addOpenApiSpec(
-        @RequestBody openApiSpec: OpenApiSpec
-    ): ResponseEntity<*> {
-        if(!parsing.validateOpenApi(openApiSpec.spec)) {
-            return ResponseEntity.badRequest().body("Invalid OpenAPI Spec")
-        }
-        val openApi = parsing.parseOpenApi(openApiSpec.spec)
-            ?: return ResponseEntity.badRequest().body("Invalid OpenAPI Spec")
-        val apiSpec = parsing.extractApiSpec(openApi)
-        val res = router.register(apiSpec)
-        return ResponseEntity.ok(res)
-    }
-
     @RequestMapping(
         value = ["/**"],
         method = [RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE]
@@ -45,8 +29,10 @@ class DynamicRouteController(
             "DELETE" -> HttpMethod.DELETE
             else -> return ResponseEntity.badRequest().body("Unsupported method")
         }
+        val host = request.getHeader("Host") ?: return ResponseEntity.badRequest().body("Host header is missing")
+        println("Host: $host")
         val res = services.executeDynamicHandler(
-            host = "mock",
+            host = host,
             method = method,
             path = request.requestURI,
             request = request
@@ -61,6 +47,9 @@ class DynamicRouteController(
                 when (res.value) {
                     is DynamicHandlerError.NotFound -> {
                         ResponseEntity.notFound().build<Unit>()
+                    }
+                    is DynamicHandlerError.HostDoesNotExist -> {
+                        ResponseEntity.badRequest().body("Host does not exist")
                     }
                 }
             }

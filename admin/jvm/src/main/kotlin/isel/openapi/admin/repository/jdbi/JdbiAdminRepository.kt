@@ -7,6 +7,7 @@ import isel.openapi.admin.domain.RequestInfo
 import isel.openapi.admin.repository.AdminRepository
 import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.kotlin.mapTo
+import org.postgresql.util.PGobject
 
 class JdbiAdminRepository(
     private val handle: Handle,
@@ -150,7 +151,7 @@ class JdbiAdminRepository(
             """
         )
             .bind("path", path)
-            .bind("operations", operations)
+            .bind("operations", jsonb(operations))
             .bind("id", id)
             .execute()
     }
@@ -184,6 +185,13 @@ class JdbiAdminRepository(
         )
             .bind("id", id)
             .execute()
+    }
+
+    private fun jsonb(value: String): PGobject {
+        return PGobject().apply {
+            type = "jsonb"
+            setValue(value)
+        }
     }
 
 }

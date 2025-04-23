@@ -5,40 +5,21 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a709ed31-b4b1-4387-83b0-24e17b255a2d" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/../database/.idea/dataSources.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../database/.idea/sqldialects.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jvm/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/jvm/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/AdminApplication.kt" beforeDir="false" afterPath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/AdminApplication.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/http/Controller.kt" beforeDir="false" afterPath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/http/Controller.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/domain/AdminDomain.kt" beforeDir="false" afterPath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/domain/AdminDomain.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/parsingServices/Parsing.kt" beforeDir="false" afterPath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/parsingServices/Parsing.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/parsingServices/model/ApiParameter.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/parsingServices/model/ApiPath.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/parsingServices/model/ApiRequestBody.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/parsingServices/model/ApiResponse.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/parsingServices/model/ApiSecurity.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/parsingServices/model/ApiServer.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/parsingServices/model/ApiSpec.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/parsingServices/model/PathOperation.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/parsingServices/model/PathParts.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/parsingServices/model/ServerVariable.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/parsingServices/model/StatusCode.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/parsingServices/model/Style.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/parsingServices/model/Type.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/parsingServices/model/enums.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/repository/AdminRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/repository/AdminRepository.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/repository/jdbi/JdbiAdminRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/repository/jdbi/JdbiAdminRepository.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/services/AdminServices.kt" beforeDir="false" afterPath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/services/AdminServices.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jvm/src/test/kotlin/isel/openapi/admin/JvmApplicationTests.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/jvm/src/test/kotlin/isel/openapi/admin/parsingServices/ParsingTests.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../database/modeloER.dia" beforeDir="false" afterPath="$PROJECT_DIR$/../database/modeloER.dia" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../database/sql/create-schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/../database/sql/create-schema.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/domain/dynamic/DynamicDomain.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/domain/dynamic/DynamicDomain.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/http/Controller.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/http/Controller.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/parsingServices/Parsing.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/parsingServices/Parsing.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/parsingServices/model/ApiSpec.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/parsingServices/model/ApiSpec.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/parsingServices/model/PathParts.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/parsingServices/model/PathParts.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mock/jvm/src/test/kotlin/isel/openapi/mock/parsingServices/ParsingTests.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../mock/jvm/src/test/kotlin/isel/openapi/mock/parsingServices/ParsingTests.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/parsingServices/model/ApiPath.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/parsingServices/model/ApiPath.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/repository/Transaction.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/repository/Transaction.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/repository/jdbi/JdbiProblemsRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/repository/jdbi/JdbiProblemsRepository.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/repository/jdbi/JdbiTransaction.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/repository/jdbi/JdbiTransaction.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/services/DynamicHandlerServices.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/services/DynamicHandlerServices.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/services/Router.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/services/Router.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -111,7 +92,7 @@
     "Spring Boot.AdminApplicationKt.executor": "Run",
     "git-widget-placeholder": "main",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/diogo/ISEL/Projeto/private-spring/admin/jvm/src/test/kotlin/isel/openapi",
+    "last_opened_file_path": "D:/Diogo/ISEL/Projeto/private-spring/mock",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -148,7 +129,7 @@
       </set>
     </option>
   </component>
-  <component name="RunManager" selected="Gradle.ParsingTests">
+  <component name="RunManager" selected="Spring Boot.AdminApplication">
     <configuration name="ParsingTests" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -235,8 +216,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9823dce3aa75-fdfe4dae3a2d-intellij.indexing.shared.core-IU-243.22562.218" />
-        <option value="bundled-js-predefined-d6986cc7102b-deb605915726-JavaScript-IU-243.22562.218" />
+        <option value="bundled-jdk-9823dce3aa75-28b599e66164-intellij.indexing.shared.core-IU-242.24807.4" />
+        <option value="bundled-js-predefined-d6986cc7102b-5c90d61e3bab-JavaScript-IU-242.24807.4" />
       </set>
     </attachedChunks>
   </component>
@@ -256,6 +237,7 @@
       <workItem from="1745348672138" duration="1364000" />
       <workItem from="1745350338500" duration="1303000" />
       <workItem from="1745401047291" duration="8079000" />
+      <workItem from="1745442084838" duration="7682000" />
     </task>
     <servers />
   </component>

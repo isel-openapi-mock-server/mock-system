@@ -198,29 +198,20 @@ class Parsing {
         if (responses == null) return emptyList()
 
         return responses.map { (statusCode, response) ->
-            val contentTypes = response.content
+            var contentTypes = response.content
             if(response.`$ref` != null) {
                 val ref = response.`$ref`
                 val refResponse = allResponse[ref.substringAfterLast("/")]
-                val refContentTypes = refResponse?.content
-                val content = mutableMapOf<String, ContentOrSchema.SchemaObject>()
-                refContentTypes?.forEach { contType, mediaType ->
-                    content[contType] = ContentOrSchema.SchemaObject(schemaToJson(mediaType.schema))
-                }
-                Response(
-                    statusCode = fromCode(statusCode) ?: StatusCode.UNKNOWN,
-                    schema = if (content.isNotEmpty()) ContentOrSchema.ContentField(content = content) else null
-                )
-            } else {
-                val content = mutableMapOf<String, ContentOrSchema.SchemaObject>()
-                contentTypes?.forEach { contType, mediaType ->
-                    content[contType] = ContentOrSchema.SchemaObject(schemaToJson(mediaType.schema))
-                }
-                Response(
-                    statusCode = fromCode(statusCode) ?: StatusCode.UNKNOWN,
-                    schema = if (content.isNotEmpty()) ContentOrSchema.ContentField(content = content) else null
-                )
+                contentTypes = refResponse?.content
             }
+            val content = mutableMapOf<String, ContentOrSchema.SchemaObject>()
+            contentTypes?.forEach { contType, mediaType ->
+                content[contType] = ContentOrSchema.SchemaObject(schemaToJson(mediaType.schema))
+            }
+            Response(
+                statusCode = fromCode(statusCode) ?: StatusCode.UNKNOWN,
+                schema = if (content.isNotEmpty()) ContentOrSchema.ContentField(content = content) else null
+            )
         }
     }
 
@@ -233,20 +224,6 @@ class Parsing {
                 PathParts(part, false)
             }
         }
-    }
-
-    fun toApiServer(server: Server): ApiServer {
-        return ApiServer(
-            url = server.url,
-            description = server.description,
-            variables = server.variables?.map { (name, variable) ->
-                ServerVariable(
-                    name = name,
-                    defaultValue = variable.default,
-                    enum = variable.enum ?: emptyList()
-                )
-            } ?: emptyList()
-        )
     }
 
     fun extractType(schema: Schema<*>?): Type {
@@ -271,7 +248,6 @@ class Parsing {
     }
 
     fun extractParameterInfo(param: Parameter, type: ContentOrSchema): ApiParameter {
-
         return ApiParameter(
             name = param.name ?: "unknown",
             type = type,
@@ -282,15 +258,12 @@ class Parsing {
             explode = param.explode ?: false,
             description = param.description
         )
-
     }
 
     private fun schemaToJson(schema: Schema<*>): String {
         val objectMapper = ObjectMapper()
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL) //Ignora propriedades/entrada/atributos com valor nulo
         return objectMapper.writeValueAsString(schema)
-        //val jsonSchemaString = objectMapper.writeValueAsString(schema)
-        //return JsonParser(jsonSchemaString).parse()
     }
 
     private fun toParamLocation(location: String): Location {

@@ -25,9 +25,8 @@ class Router(
     //TODO: domain
 ) {
 
-    fun register(apiSpec: ApiSpec) {
+    fun register(apiSpec: ApiSpec, host: String) {
 
-        val host = "mock" //TODO: get host
         val root = RouteNode("")
 
         apiSpec.paths.forEach { apiPath ->

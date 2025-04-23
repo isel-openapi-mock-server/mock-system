@@ -51,7 +51,7 @@ class Parsing {
             paths = openAPI.paths.map { (path, pathItem) ->
                 ApiPath(
                     fullPath = path,
-                    path = splitPath(path, pathItem, allParameters), // /user/{id}
+                    path = splitPath(path), // /user/{id}
                     operations = pathItem.readOperationsMap().map { (method, operation) ->
                         PathOperation(
                             method = toHttpMethod(method.name),
@@ -226,8 +226,6 @@ class Parsing {
 
     fun splitPath(
         path: String,
-        pathItem: PathItem,
-        allParameter: Map<String?, Parameter?>
     ): List<PathParts> {
         return path.split("/").filter { it.isNotBlank() }.map { part ->
             if (part.startsWith("{") && part.endsWith("}")) {

@@ -6,7 +6,6 @@ import org.postgresql.ds.PGSimpleDataSource
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
-import kotlinx.datetime.Clock
 
 @SpringBootApplication
 class AdminApplication {
@@ -18,9 +17,6 @@ class AdminApplication {
 				setURL(Environment.getDbUrl())
 			},
 		).configureWithAppRequirements()
-
-	@Bean
-	fun clock() = Clock.System
 
 }
 

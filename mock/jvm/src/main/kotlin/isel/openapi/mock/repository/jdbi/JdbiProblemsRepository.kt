@@ -15,13 +15,35 @@ class JdbiProblemsRepository(
 ) : ProblemsRepository {
 
     override fun addRequest(uuid: String, url: String, method: String, path: String, externalKey: String, host: String) {
-        handle.createUpdate("INSERT INTO requests (uuid, url, method, path, external_key, host) VALUES (:uuid, :url, :method, :path, :externalKey, :host)")
+
+        val specId = handle.createQuery(
+            """
+            SELECT id FROM specs WHERE host = :host
+            """
+        )
+            .bind("host", host)
+            .mapTo<Int>()
+            .firstOrNull()
+
+        val pathId = handle.createQuery(
+            """
+            SELECT id FROM paths WHERE full_path = :path AND spec_id = :specId
+            """
+        )
+            .bind("path", path)
+            .bind("specId", specId)
+            .mapTo<Int>()
+            .firstOrNull()
+
+        handle.createUpdate("INSERT INTO requests (uuid, url, method, path, external_key, host, spec_id, path_id) VALUES (:uuid, :url, :method, :path, :externalKey, :host, :specId, :pathId)")
             .bind("uuid", uuid)
             .bind("url", url)
             .bind("method", method)
             .bind("path", path)
             .bind("externalKey", externalKey)
             .bind("host", host)
+            .bind("specId", specId)
+            .bind("pathId", pathId)
             .execute()
     }
 

@@ -5,14 +5,12 @@ import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import isel.openapi.admin.domain.AdminDomain
 import isel.openapi.admin.domain.RequestInfo
 import isel.openapi.admin.parsingServices.Parsing
-import isel.openapi.admin.parsingServices.model.ApiSpec
 import isel.openapi.admin.repository.TransactionManager
 import isel.openapi.admin.utils.Either
 import isel.openapi.admin.utils.failure
 import isel.openapi.admin.utils.success
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
-import java.time.Clock
+import kotlinx.datetime.Clock
 
 sealed interface RequestInfoError {
     data object RequestNotFound : RequestInfoError
@@ -33,7 +31,6 @@ class AdminServices(
     private val parsing: Parsing,
     private val transactionManager: TransactionManager,
     private val adminDomain: AdminDomain,
-    private val clock: Clock,
 ) {
 
     fun getRequestInfo(
@@ -69,7 +66,7 @@ class AdminServices(
             ?: return failure(CreateSpecError.InvalidOpenApiSpec)
 
         val apiSpec = parsing.extractApiSpec(openApi)
-        val currentHost = host?: adminDomain.generateHost()
+        var currentHost = host?: adminDomain.generateHost()
 
         val mapper = jacksonObjectMapper()
             .registerKotlinModule()
@@ -77,6 +74,9 @@ class AdminServices(
         transactionManager.run {
             val adminRepository = it.adminRepository
             if(host == null) {
+                while(adminRepository.getSpecId(currentHost) != null) {
+                    currentHost = adminDomain.generateHost()
+                }
                 val specId = adminRepository.addAPISpec(apiSpec.name, apiSpec.description, currentHost)
                 for (path in apiSpec.paths) {
                     val operationsJson = mapper.writeValueAsString(path.operations)
@@ -92,9 +92,7 @@ class AdminServices(
                 }
             }
         }
-
         return success(currentHost)
-
     }
 
 }
