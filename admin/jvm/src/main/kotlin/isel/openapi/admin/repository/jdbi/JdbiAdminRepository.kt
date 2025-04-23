@@ -17,7 +17,7 @@ class JdbiAdminRepository(
     ): RequestInfo? {
         val temp = handle.createQuery(
             """
-            SELECT external_key, url, method, host, uuid FROM request_info WHERE uuid = :uuid
+            SELECT external_key, url, method, host, uuid FROM requests WHERE uuid = :uuid
             """
         )
             .bind("uuid", uuid)
@@ -52,7 +52,7 @@ class JdbiAdminRepository(
 
         val requestTemp = handle.createQuery(
             """
-            SELECT external_key, url, method, host, uuid FROM request_info WHERE external_key = :externalKey
+            SELECT external_key, url, method, host, uuid FROM requests WHERE external_key = :externalKey
             """
         )
             .bind("externalKey", externalKey)
@@ -110,7 +110,7 @@ class JdbiAdminRepository(
         )
             .bind("uuid", requestUUID)
             .mapTo<HeadersInfo>()
-            .list()
+            .toList()
 
     }
 
@@ -124,7 +124,7 @@ class JdbiAdminRepository(
             """
         )
             .bind("uuid", requestUUID)
-            .mapTo<ByteArray>()
+            .mapTo<ByteArray>() //Base64
             .firstOrNull()
 
     }

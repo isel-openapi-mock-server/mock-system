@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 class DynamicRouteController(
-    private val router: Router, //TODO: tirar
+    private val router: Router,
     private val parsing: Parsing,
     private val services: DynamicHandlerServices
 ) {

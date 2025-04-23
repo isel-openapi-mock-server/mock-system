@@ -56,7 +56,7 @@ class DynamicHandlerServices(
             )
 
             if(handlerResponse.body != null) {
-                problemsRepository.addRequestBody(requestUuid, handlerResponse.body.toByteArray(), handlerResponse.headers["Content-Type"] ?: "")
+                problemsRepository.addRequestBody(requestUuid, handlerResponse.body.toByteArray(), handlerResponse.headers["content-type"] ?: "")
             }
 
             if(handlerResponse.headers.isNotEmpty()) {
