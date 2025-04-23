@@ -26,7 +26,7 @@ class DynamicDomain {
         val parts = uri.split("/").filter{ it.isNotBlank() }.ifEmpty { return emptyMap() }
         val pathParams = mutableMapOf<String, Any>()
         path.forEachIndexed{ idx, part ->
-            if (part is PathParts.Param) {
+            if (part.isParam) {
                 pathParams[part.name] = parts[idx].toTypedValue()
             }
         }

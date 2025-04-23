@@ -54,7 +54,7 @@ class Parsing {
             paths = openAPI.paths.map { (path, pathItem) ->
                 ApiPath(
                     fullPath = path,
-                    path = splitPath(path, pathItem), // /user/{id}
+                    path = splitPath(path, pathItem, allParameters), // /user/{id}
                     operations = pathItem.readOperationsMap().map { (method, operation) ->
                         PathOperation(
                             method = toHttpMethod(method.name),
@@ -157,7 +157,7 @@ class Parsing {
                 content.forEach { (key, value) ->
                     map[key] = ContentOrSchema.SchemaObject(schemaToJson(value.schema))
                 }
-                return@map extractParameterInfo(param, ContentOrSchema.ContentField(map))
+                /*return@map*/ extractParameterInfo(param, ContentOrSchema.ContentField(map))
             }
             else {
                 val schema = param.schema
@@ -227,15 +227,17 @@ class Parsing {
         }
     }
 
-    fun splitPath(path: String, pathItem: PathItem): List<PathParts> {
+    fun splitPath(
+        path: String,
+        pathItem: PathItem,
+        allParameter: Map<String?, Parameter?>
+    ): List<PathParts> {
         return path.split("/").filter { it.isNotBlank() }.map { part ->
             if (part.startsWith("{") && part.endsWith("}")) {
                 val paramName = part.substring(1, part.length - 1)
-                val param = pathItem.parameters?.find { it.name == paramName }
-                val type = extractType(param?.schema)
-                PathParts.Param(paramName, type)
+                PathParts(paramName, true)
             } else {
-                PathParts.Static(part)
+                PathParts(part, false)
             }
         }
     }
