@@ -80,7 +80,7 @@ class DynamicHandlersTests {
             responses = response,
             params = null,
             body = expectedBody,
-            path = listOf((PathParts.Static("users"))),
+            path = listOf((PathParts("users", false))),
             headers = null,
             security = false,
             dynamicDomain = dynamicDomain,
@@ -139,7 +139,7 @@ class DynamicHandlersTests {
             responses = response,
             params = null,
             body = expectedBody,
-            path = listOf((PathParts.Static("users"))),
+            path = listOf((PathParts("users", false))),
             headers = null,
             dynamicDomain = dynamicDomain
         )
@@ -218,7 +218,7 @@ class DynamicHandlersTests {
             responses = response,
             params = null,
             body = expectedBody,
-            path = listOf((PathParts.Static("users"))),
+            path = listOf((PathParts("users", false))),
             headers = null,
             dynamicDomain = dynamicDomain
         )
@@ -263,7 +263,7 @@ class DynamicHandlersTests {
             responses = response,
             params = null,
             body = expectedBody,
-            path = listOf((PathParts.Static("users"))),
+            path = listOf((PathParts("users", false))),
             headers = null,
             dynamicDomain = dynamicDomain
         )
@@ -308,7 +308,7 @@ class DynamicHandlersTests {
             responses = response,
             params = null,
             body = expectedBody,
-            path = listOf((PathParts.Static("users"))),
+            path = listOf((PathParts("users", false))),
             headers = null,
             dynamicDomain = dynamicDomain
         )
@@ -357,7 +357,7 @@ class DynamicHandlersTests {
             responses = response,
             params = null,
             body = expectedBody,
-            path = listOf((PathParts.Static("users"))),
+            path = listOf((PathParts("users", false))),
             headers = null,
             dynamicDomain = dynamicDomain
         )
@@ -406,7 +406,7 @@ class DynamicHandlersTests {
             responses = response,
             params = null,
             body = expectedBody,
-            path = listOf((PathParts.Static("users"))),
+            path = listOf((PathParts("users", false))),
             headers = null,
             dynamicDomain = dynamicDomain
         )
@@ -417,7 +417,7 @@ class DynamicHandlersTests {
 
         assertTrue { result1.isEmpty() }
         assertEquals(VerifyBodyError.InvalidBodyFormat(
-            schemaJson.toString(),
+            schemaJson,
             receivedBody = body2,
         ), result2[0])
         assertTrue { result3.isEmpty() }
@@ -455,7 +455,7 @@ class DynamicHandlersTests {
             responses = response,
             params = null,
             body = expectedBody,
-            path = listOf((PathParts.Static("users"))),
+            path = listOf((PathParts("users", false))),
             headers = null,
             dynamicDomain = dynamicDomain
         )
@@ -537,7 +537,7 @@ class DynamicHandlersTests {
             responses = response,
             params = null,
             body = null,
-            path = listOf((PathParts.Static("users"))),
+            path = listOf((PathParts("users", false))),
             headers = expectedHeaders,
             dynamicDomain = dynamicDomain
         )
