@@ -4,15 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a709ed31-b4b1-4387-83b0-24e17b255a2d" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mock/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../mock/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mock/jvm/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/../mock/jvm/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/MockApplication.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/MockApplication.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/http/Controller.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/http/Controller.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/http/DynamicHandlers.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/http/DynamicHandlers.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/services/Router.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/services/Router.kt" afterDir="false" />
-    </list>
+    <list default="true" id="a709ed31-b4b1-4387-83b0-24e17b255a2d" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -68,7 +60,7 @@
     "Spring Boot.AdminApplication.executor": "Run",
     "git-widget-placeholder": "main",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/diogo/ISEL/Projeto/private-spring/admin",
+    "last_opened_file_path": "C:/Users/diogo/ISEL/Projeto/private-spring/mock",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -149,6 +141,7 @@
       <workItem from="1743638996998" duration="121000" />
       <workItem from="1743672254152" duration="113000" />
       <workItem from="1744216097023" duration="830000" />
+      <workItem from="1744277760119" duration="94000" />
     </task>
     <servers />
   </component>
