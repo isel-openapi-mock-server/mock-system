@@ -10,29 +10,17 @@ import io.swagger.v3.oas.models.media.ObjectSchema
 import io.swagger.v3.oas.models.media.Schema
 import io.swagger.v3.oas.models.parameters.Parameter
 import io.swagger.v3.oas.models.parameters.RequestBody
+import io.swagger.v3.oas.models.responses.ApiResponse
 import io.swagger.v3.oas.models.responses.ApiResponses
+import io.swagger.v3.oas.models.servers.Server
 import io.swagger.v3.parser.OpenAPIV3Parser
-import isel.openapi.admin.parsingServices.model.ApiHeader
-import isel.openapi.admin.parsingServices.model.ApiParameter
-import isel.openapi.admin.parsingServices.model.ApiPath
-import isel.openapi.admin.parsingServices.model.ApiRequestBody
-import isel.openapi.admin.parsingServices.model.ApiSpec
-import isel.openapi.admin.parsingServices.model.ContentOrSchema
-import isel.openapi.admin.parsingServices.model.HttpMethod
-import isel.openapi.admin.parsingServices.model.Location
-import isel.openapi.admin.parsingServices.model.ParameterStyle
-import isel.openapi.admin.parsingServices.model.PathOperation
-import isel.openapi.admin.parsingServices.model.PathParts
-import isel.openapi.admin.parsingServices.model.Response
-import isel.openapi.admin.parsingServices.model.StatusCode
+import isel.openapi.admin.parsingServices.model.*
 import isel.openapi.admin.parsingServices.model.StatusCode.Companion.fromCode
-import isel.openapi.admin.parsingServices.model.Type
 import isel.openapi.admin.parsingServices.model.Type.ArrayType
 import isel.openapi.admin.parsingServices.model.Type.ObjectType
 import org.springframework.stereotype.Component
 import kotlin.collections.component1
 import kotlin.collections.component2
-import kotlin.collections.map
 
 @Component
 class Parsing {
@@ -166,7 +154,7 @@ class Parsing {
                 content.forEach { (key, value) ->
                     map[key] = ContentOrSchema.SchemaObject(schemaToJson(value.schema))
                 }
-                return@map extractParameterInfo(param, ContentOrSchema.ContentField(map))
+                /*return@map*/ extractParameterInfo(param, ContentOrSchema.ContentField(map))
             }
             else {
                 val schema = param.schema
@@ -205,25 +193,34 @@ class Parsing {
         )
     }
 
-    fun extractResponses(responses: ApiResponses?, allResponse: Map<String?, io.swagger.v3.oas.models.responses.ApiResponse?>): List<Response> {
+    fun extractResponses(responses: ApiResponses?, allResponse: Map<String?, ApiResponse?>): List<Response> {
 
         if (responses == null) return emptyList()
 
         return responses.map { (statusCode, response) ->
-            var contentTypes = response.content
+            val contentTypes = response.content
             if(response.`$ref` != null) {
                 val ref = response.`$ref`
                 val refResponse = allResponse[ref.substringAfterLast("/")]
-                contentTypes = refResponse?.content
+                val refContentTypes = refResponse?.content
+                val content = mutableMapOf<String, ContentOrSchema.SchemaObject>()
+                refContentTypes?.forEach { contType, mediaType ->
+                    content[contType] = ContentOrSchema.SchemaObject(schemaToJson(mediaType.schema))
+                }
+                Response(
+                    statusCode = fromCode(statusCode) ?: StatusCode.UNKNOWN,
+                    schema = if (content.isNotEmpty()) ContentOrSchema.ContentField(content = content) else null
+                )
+            } else {
+                val content = mutableMapOf<String, ContentOrSchema.SchemaObject>()
+                contentTypes?.forEach { contType, mediaType ->
+                    content[contType] = ContentOrSchema.SchemaObject(schemaToJson(mediaType.schema))
+                }
+                Response(
+                    statusCode = fromCode(statusCode) ?: StatusCode.UNKNOWN,
+                    schema = if (content.isNotEmpty()) ContentOrSchema.ContentField(content = content) else null
+                )
             }
-            val content = mutableMapOf<String, ContentOrSchema.SchemaObject>()
-            contentTypes?.forEach { contType, mediaType ->
-                content[contType] = ContentOrSchema.SchemaObject(schemaToJson(mediaType.schema))
-            }
-            Response(
-                statusCode = fromCode(statusCode) ?: StatusCode.UNKNOWN,
-                schema = if (content.isNotEmpty()) ContentOrSchema.ContentField(content = content) else null
-            )
         }
     }
 
@@ -231,13 +228,25 @@ class Parsing {
         return path.split("/").filter { it.isNotBlank() }.map { part ->
             if (part.startsWith("{") && part.endsWith("}")) {
                 val paramName = part.substring(1, part.length - 1)
-                val param = pathItem.parameters?.find { it.name == paramName }
-                val type = extractType(param?.schema)
-                PathParts.Param(paramName, type)
+                PathParts(paramName, true)
             } else {
-                PathParts.Static(part)
+                PathParts(part, false)
             }
         }
+    }
+
+    fun toApiServer(server: Server): ApiServer {
+        return ApiServer(
+            url = server.url,
+            description = server.description,
+            variables = server.variables?.map { (name, variable) ->
+                ServerVariable(
+                    name = name,
+                    defaultValue = variable.default,
+                    enum = variable.enum ?: emptyList()
+                )
+            } ?: emptyList()
+        )
     }
 
     fun extractType(schema: Schema<*>?): Type {
@@ -280,6 +289,8 @@ class Parsing {
         val objectMapper = ObjectMapper()
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL) //Ignora propriedades/entrada/atributos com valor nulo
         return objectMapper.writeValueAsString(schema)
+        //val jsonSchemaString = objectMapper.writeValueAsString(schema)
+        //return JsonParser(jsonSchemaString).parse()
     }
 
     private fun toParamLocation(location: String): Location {
@@ -318,4 +329,5 @@ class Parsing {
             else -> throw IllegalArgumentException("Unsupported method: $method")
         }
     }
+
 }

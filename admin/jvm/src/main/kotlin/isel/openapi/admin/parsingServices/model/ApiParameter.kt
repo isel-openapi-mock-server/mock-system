@@ -40,6 +40,3 @@ sealed interface ContentOrSchema {
     }
 
 }
-
-//Para possivelmente adicionarmos o enconding
-//data class MediaTypeObject(val schema: JsonValue?)
