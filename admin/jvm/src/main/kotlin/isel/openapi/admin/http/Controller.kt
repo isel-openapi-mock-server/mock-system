@@ -36,7 +36,8 @@ class AdminController(
             is Failure -> {
                 when (res.value) {
                     is RequestInfoError.RequestNotFound -> {
-                        ResponseEntity.notFound().build<Unit>()
+                        ResponseEntity.status(404)
+                            .body("Request not found")
                     }
                     is RequestInfoError.RequestCredentialNotFound -> {
                         ResponseEntity.badRequest().body("Invalid request")

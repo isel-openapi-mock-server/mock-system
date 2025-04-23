@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS PROBLEMS(
 CREATE TABLE IF NOT EXISTS REQUEST_BODY(
     id SERIAL unique,
     content_type VARCHAR(1024),
-    content VARCHAR(256) NOT NULL CHECK(LENGTH(content) <= 256),
+    content BYTEA NOT NULL,
     uuid VARCHAR(256) NOT NULL,
     FOREIGN KEY (uuid) REFERENCES REQUESTS(uuid) ON DELETE CASCADE,
     PRIMARY KEY (id, uuid)
@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS RESPONSES(
 CREATE TABLE IF NOT EXISTS RESPONSE_BODY(
     id SERIAL unique,
     content_type VARCHAR(256) NOT NULL CHECK(LENGTH(content_type) >= 1 and LENGTH(content_type) <= 256),
-    content VARCHAR(256) NOT NULL CHECK(LENGTH(content) <= 256),
+    content BYTEA NOT NULL,
     response_id integer NOT NULL,
     FOREIGN KEY (response_id) REFERENCES RESPONSES(id) ON DELETE CASCADE,
     PRIMARY KEY (id, response_id)
