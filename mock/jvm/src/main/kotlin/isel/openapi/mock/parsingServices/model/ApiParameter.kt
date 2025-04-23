@@ -1,5 +1,7 @@
 package isel.openapi.mock.parsingServices.model
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.github.erosb.jsonsKema.JsonValue
 
 data class ApiParameter(
@@ -14,9 +16,18 @@ data class ApiParameter(
 )
 
 //TODO meter noutro sitio
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.PROPERTY,
+    property = "@type"
+)
+@JsonSubTypes(
+    JsonSubTypes.Type(value = ContentOrSchema.SchemaObject::class, name = "SchemaObject"),
+    JsonSubTypes.Type(value = ContentOrSchema.ContentField::class, name = "ContentField")
+)
 sealed interface ContentOrSchema {
 
-    data class SchemaObject(val schema: JsonValue?) : ContentOrSchema {
+    data class SchemaObject(val schema: String?) : ContentOrSchema {
         override fun toString(): String {
             return schema.toString()
         }

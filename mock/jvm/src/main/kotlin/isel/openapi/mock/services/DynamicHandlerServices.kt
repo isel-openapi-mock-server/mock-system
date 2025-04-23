@@ -56,7 +56,7 @@ class DynamicHandlerServices(
             )
 
             if(handlerResponse.body != null) {
-                problemsRepository.addRequestBody(requestUuid, handlerResponse.body.toByteArray(), handlerResponse.headers["Content-Type"] ?: "")
+                problemsRepository.addRequestBody(requestUuid, handlerResponse.body.toByteArray(), handlerResponse.headers["content-type"] ?: "")
             }
 
             if(handlerResponse.headers.isNotEmpty()) {
@@ -78,7 +78,7 @@ class DynamicHandlerServices(
             }
 
             if(handlerResponse.responseInfo.body != null) {
-                problemsRepository.addResponseBody(responseId, handlerResponse.responseInfo.body.toByteArray(), handlerResponse.responseInfo.response.contentType.toString())
+                problemsRepository.addResponseBody(responseId, handlerResponse.responseInfo.body.toByteArray(), handlerResponse.responseInfo.response.schema.toString())
             }
         }
 

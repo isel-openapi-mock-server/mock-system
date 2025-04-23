@@ -233,7 +233,7 @@ class DynamicDomain {
 
             val type = expCookie.type
 
-            var schema: JsonValue? = null
+            var schema: String? = null
 
             if (type is ContentOrSchema.ContentField) {
                 schema = type.content.entries.first().value.schema //Apenas uma entrada no content para parametros.
@@ -346,19 +346,29 @@ class DynamicDomain {
     }
 
     private fun jsonValidator(
-        schema: JsonValue?,
+        schema: String?,
         receivedType: String,
     ): ValidationFailure? {
 
         if(schema == null) { return null }
 
-        val schemaLoader = SchemaLoader(schema)
+        val jsonVal = JsonParser(schema).parse()
+
+        val schemaLoader = SchemaLoader(jsonVal)
         val validator = Validator.create(schemaLoader.load(), ValidatorConfig(FormatValidationPolicy.ALWAYS))
-
-        val receivedBody = JsonParser(receivedType).parse() // TODO mudar o nome
-        val validationResult = validator.validate(receivedBody)
-
-        return validationResult
+        try {
+            val receivedJsonType = JsonParser(receivedType).parse()
+            val validationResult = validator.validate(receivedJsonType)
+            return validationResult
+        } catch (e: JsonParseException) {
+            println(e.location)
+            println(e.message)
+            println(e.localizedMessage)
+            println(e.cause)
+            println(e.suppressed)
+            println(e.stackTrace)
+            return null // TODO mudar
+        }
     }
 
     private fun convertToType(value: Any?): Type {

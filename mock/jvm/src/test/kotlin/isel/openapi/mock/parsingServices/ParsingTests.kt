@@ -86,7 +86,7 @@ class ParsingTests {
         assertTrue { responses.size == 1 }
         assertTrue { responses[0].statusCode.code == 200 }
         assertTrue { responses[0].statusCode.name == "OK" }
-        assertTrue { responses[0].contentType == null }
+        assertTrue { responses[0].schema == null }
        // assertTrue { responses[0].schema == Type.UnknownType }
     }
 
