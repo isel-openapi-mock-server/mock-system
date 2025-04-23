@@ -44,13 +44,10 @@ class Parsing {
         val allParameters = openAPI.components?.parameters ?: emptyMap()
         val allHeaders = openAPI.components?.headers ?: emptyMap()
         val security = openAPI.security
-        //faltam cenas dos components
 
         return ApiSpec(
-            servers = openAPI.servers.map { toApiServer(it) },
             name = openAPI.info.title,
             description = openAPI.info.description,
-            components = openAPI.components?.schemas ?: emptyMap(),
             paths = openAPI.paths.map { (path, pathItem) ->
                 ApiPath(
                     fullPath = path,

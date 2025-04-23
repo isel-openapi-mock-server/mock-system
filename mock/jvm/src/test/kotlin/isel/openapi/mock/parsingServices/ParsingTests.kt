@@ -31,8 +31,6 @@ class ParsingTests {
 
         assertTrue { info.name == "API" }
         assertTrue { info.description == null }
-        assertTrue { info.servers.size == 1 }
-        assertTrue { info.servers[0].url == "https://api.exemplo.com/" }
     }
 
     @Test

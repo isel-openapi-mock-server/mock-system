@@ -128,4 +128,62 @@ class JdbiAdminRepository(
             .firstOrNull()
 
     }
+
+    override fun addAPISpec(name: String, description: String?, host: String): Int {
+        return handle.createUpdate(
+            """
+            INSERT INTO specs (name, description, host) VALUES (:name, :description, :host)
+            """
+        )
+            .bind("name", name)
+            .bind("description", description)
+            .bind("host", host)
+            .executeAndReturnGeneratedKeys()
+            .mapTo<Int>()
+            .one()
+    }
+
+    override fun addPath(id: Int, path: String, operations: String) {
+        handle.createUpdate(
+            """
+            INSERT INTO paths (full_path, operations, spec_id) VALUES (:path, :operations, :id)
+            """
+        )
+            .bind("path", path)
+            .bind("operations", operations)
+            .bind("id", id)
+            .execute()
+    }
+
+    override fun getSpecId(host: String): Int? {
+        return handle.createQuery(
+            """
+            SELECT id FROM specs WHERE host = :host
+            """
+        )
+            .bind("host", host)
+            .mapTo<Int>()
+            .firstOrNull()
+    }
+
+    override fun updateAPISpec(id: Int, name: String, description: String?) {
+        handle.createUpdate(
+            """
+            UPDATE specs SET name = :name, description = :description WHERE id = :id
+            """
+        )
+            .bind("name", name)
+            .bind("description", description)
+            .bind("id", id)
+            .execute()
+
+        handle.createUpdate(
+            """
+            DELETE FROM paths WHERE spec_id = :id
+            """
+        )
+            .bind("id", id)
+            .execute()
+    }
+
 }

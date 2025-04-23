@@ -12,7 +12,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
     JsonSubTypes.Type(value = PathParts.Static::class, name = "Static"),
     JsonSubTypes.Type(value = PathParts.Param::class, name = "Param")
 )
+
 sealed interface PathParts{
     data class Static(val name: String): PathParts
     data class Param(val name: String, val type: Type): PathParts
 }
+

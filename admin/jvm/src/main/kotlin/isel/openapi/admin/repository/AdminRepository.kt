@@ -26,4 +26,26 @@ interface AdminRepository {
         requestUUID: String
     ) : List<HeadersInfo>
 
+    fun addAPISpec(
+        name: String,
+        description: String?,
+        host: String,
+    ): Int
+
+    fun addPath(
+        id: Int,
+        path: String,
+        operations: String,
+    )
+
+    fun getSpecId(
+        host: String
+    ): Int?
+
+    fun updateAPISpec(
+        id: Int,
+        name: String,
+        description: String?
+    )
+
 }

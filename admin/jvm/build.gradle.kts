@@ -25,7 +25,7 @@ dependencies {
 	implementation("commons-io:commons-io:2.15.0")
 	implementation("com.google.guava:guava:32.1.2-jre")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-
+	implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
 	implementation("com.github.erosb:json-sKema:0.20.0")
 
 	// for JDBI

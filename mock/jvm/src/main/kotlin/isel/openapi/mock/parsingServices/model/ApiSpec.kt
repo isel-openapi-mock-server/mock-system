@@ -5,7 +5,7 @@ import io.swagger.v3.oas.models.security.SecurityRequirement
 data class ApiSpec(
     val name: String,
     val description: String?,
-    val servers: List<ApiServer>,
+    //val servers: List<ApiServer>,
     val paths: List<ApiPath>,
-    val components : Map<String, Any>,
+    //val components : Map<String, Any>,
 )

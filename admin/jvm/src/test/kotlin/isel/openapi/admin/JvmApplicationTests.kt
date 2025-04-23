@@ -1,4 +1,4 @@
-package isel.openapi.admin
+package isel.openapi.mock
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest

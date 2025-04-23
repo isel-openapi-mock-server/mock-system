@@ -305,16 +305,16 @@ class DynamicDomain {
                 }
             }
         }
-        if(contentType != null && headers["Content-Type"] != null) {
-            if(headers["Content-Type"] != contentType) {
-                failList.add(VerifyHeadersError.InvalidContentType(contentType, headers["Content-Type"] ?: ""))
+        if(contentType != null && headers["content-type"] != null) {
+            if(headers["content-type"] != contentType) {
+                failList.add(VerifyHeadersError.InvalidContentType(contentType, headers["content-type"] ?: ""))
             }
         }
-        if(security && headers["Authorization"] == null) {
+        if(security && headers["authorization"] == null) {
             failList.add(VerifyHeadersError.MissingHeader("Authorization"))
         }
-        if(security && headers["Authorization"] != null) {
-            val authHeader = headers["Authorization"] ?: ""
+        if(security && headers["authorization"] != null) {
+            val authHeader = headers["authorization"] ?: ""
             if(!authHeader.startsWith("Bearer ")) {
                 failList.add(VerifyHeadersError.InvalidType("Authorization", "Bearer Token", authHeader))
             } else if(authHeader.substringAfter("Bearer ").trim().length <= 30) {

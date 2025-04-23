@@ -1,7 +1,10 @@
 package isel.openapi.admin.http
 
+import isel.openapi.admin.http.model.CreateSpecInputModel
+import isel.openapi.admin.http.model.CreateSpecOutputModel
 import isel.openapi.admin.parsingServices.Parsing
 import isel.openapi.admin.services.AdminServices
+import isel.openapi.admin.services.CreateSpecError
 import isel.openapi.admin.services.RequestInfoError
 import isel.openapi.admin.utils.Failure
 import isel.openapi.admin.utils.Success
@@ -10,13 +13,30 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 class AdminController(
-    private val parsing: Parsing,
     private val adminServices: AdminServices,
 ) {
-    @PostMapping("/openapi")
+    @PutMapping("/openapi")
     fun addOpenApiSpec(
+        @RequestBody openApiSpec: CreateSpecInputModel,
+        @RequestParam host: String?,
     ): ResponseEntity<*> {
-        return ResponseEntity.ok("Admin application started")
+        val res = adminServices.saveSpec(openApiSpec.spec, host)
+        return when(res) {
+            is Success -> {
+                ResponseEntity.status(201)
+                    .body(CreateSpecOutputModel(res.value))
+            }
+            is Failure -> {
+                when(res.value) {
+                    is CreateSpecError.InvalidOpenApiSpec ->
+                        ResponseEntity.badRequest()
+                            .body("Invalid OpenAPI Spec")
+                    is CreateSpecError.HostDoesNotExist ->
+                        ResponseEntity.badRequest()
+                            .body("Host does not exist")
+                }
+            }
+        }
     }
 
     @GetMapping("/requests")
