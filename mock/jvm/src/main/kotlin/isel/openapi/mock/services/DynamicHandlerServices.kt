@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import isel.openapi.mock.domain.dynamic.HandlerResult
+import isel.openapi.mock.domain.openAPI.*
 import isel.openapi.mock.domain.problems.ProblemsDomain
-import isel.openapi.mock.parsingServices.model.*
 import isel.openapi.mock.repository.TransactionManager
 import isel.openapi.mock.utils.Either
 import isel.openapi.mock.utils.failure
@@ -31,18 +31,19 @@ class DynamicHandlerServices(
         host: String,
         method: HttpMethod,
         path: String,
-        request: HttpServletRequest
+        request: HttpServletRequest,
+        externalKey: String? = null,
     ) : DynamicHandlerResult {
 
         var dynamicHandler = router.match(host, method, path)
 
-        if(dynamicHandler == null) {
+        if(dynamicHandler == null || !dynamicHandler.isRootUpToDate) {
             val spec = uploadOpenAPI(host) ?: return failure(DynamicHandlerError.HostDoesNotExist)
             router.register(spec, host)
             dynamicHandler = router.match(host, method, path)
         }
 
-        val handlerResponse : HandlerResult = dynamicHandler!!.first?.handle(request) ?: return failure(
+        val handlerResponse : HandlerResult = dynamicHandler?.dynamicHandler?.handle(request) ?: return failure(
             DynamicHandlerError.NotFound
         )
 
@@ -54,10 +55,10 @@ class DynamicHandlerServices(
 
             problemsRepository.addRequest(
                 requestUuid,
-                dynamicHandler.second,
+                dynamicHandler.resourceUrl,
                 method.name,
                 path,
-                "todo-external-key", //TODO: add external key
+                externalKey,
                 host
             )
 
@@ -119,11 +120,13 @@ class DynamicHandlerServices(
 
             val operations : List<PathOperation> = mapper.readValue(apiPath.operations, object : TypeReference<List<PathOperation>>() {})
 
-            paths.add(ApiPath(
+            paths.add(
+                ApiPath(
                 fullPath = apiPath.path,
                 operations = operations,
                 path = splitPath(apiPath.path)
-            ))
+            )
+            )
 
         }
 

@@ -1,7 +1,7 @@
 package isel.openapi.mock.domain.problems
 
-import isel.openapi.mock.parsingServices.model.ContentOrSchema
-import isel.openapi.mock.parsingServices.model.Location
+import isel.openapi.mock.domain.openAPI.ContentOrSchema
+import isel.openapi.mock.domain.openAPI.Location
 
 class ParameterInfo(
     val name: String,

@@ -1,12 +1,12 @@
 package isel.openapi.mock.domain.dynamic
 
 import com.github.erosb.jsonsKema.*
+import isel.openapi.mock.domain.openAPI.*
 import isel.openapi.mock.domain.problems.ParameterInfo
 import isel.openapi.mock.http.VerificationError
 import isel.openapi.mock.http.VerifyBodyError
 import isel.openapi.mock.http.VerifyHeadersError
 import isel.openapi.mock.http.VerifyParamsError
-import isel.openapi.mock.parsingServices.model.*
 import jakarta.servlet.http.Cookie
 import org.springframework.stereotype.Component
 

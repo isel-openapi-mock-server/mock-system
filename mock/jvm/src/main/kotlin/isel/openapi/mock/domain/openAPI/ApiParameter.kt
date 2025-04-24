@@ -1,8 +1,7 @@
-package isel.openapi.mock.parsingServices.model
+package isel.openapi.mock.domain.openAPI
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.github.erosb.jsonsKema.JsonValue
 
 data class ApiParameter(
     val name: String,

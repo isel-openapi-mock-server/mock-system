@@ -1,7 +1,5 @@
-package isel.openapi.mock.parsingServices.model
+package isel.openapi.mock.domain.openAPI
 
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonTypeInfo
 /*
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,

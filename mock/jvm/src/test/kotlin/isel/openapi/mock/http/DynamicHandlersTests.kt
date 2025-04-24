@@ -1,8 +1,7 @@
 package isel.openapi.mock.http
 
-import com.github.erosb.jsonsKema.*
 import isel.openapi.mock.domain.dynamic.DynamicDomain
-import isel.openapi.mock.parsingServices.model.*
+import isel.openapi.mock.domain.openAPI.*
 import jakarta.servlet.http.Cookie
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -10,7 +9,8 @@ import kotlin.test.assertTrue
 
 class DynamicHandlersTests {
 
-    private val response = listOf(Response(
+    private val response = listOf(
+        Response(
         statusCode = StatusCode.OK,
         schema = ContentOrSchema.ContentField(
             content = mapOf(

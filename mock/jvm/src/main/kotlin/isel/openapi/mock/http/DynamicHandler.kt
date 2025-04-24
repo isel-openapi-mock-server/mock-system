@@ -1,12 +1,11 @@
 package isel.openapi.mock.http
 
 import jakarta.servlet.http.HttpServletRequest
-import com.github.erosb.jsonsKema.*
 import isel.openapi.mock.domain.dynamic.DynamicDomain
 import isel.openapi.mock.domain.dynamic.HandlerResult
 import isel.openapi.mock.domain.dynamic.ResponseInfo
+import isel.openapi.mock.domain.openAPI.*
 import isel.openapi.mock.domain.problems.ParameterInfo
-import isel.openapi.mock.parsingServices.model.*
 
 interface VerificationError
 

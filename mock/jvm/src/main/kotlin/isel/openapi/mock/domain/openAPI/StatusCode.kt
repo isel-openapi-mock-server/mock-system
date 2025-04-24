@@ -1,4 +1,4 @@
-package isel.openapi.mock.parsingServices.model
+package isel.openapi.mock.domain.openAPI
 
 enum class StatusCode(val code: Int){
     CONTINUE(100),

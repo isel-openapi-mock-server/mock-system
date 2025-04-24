@@ -1,6 +1,4 @@
-package isel.openapi.mock.parsingServices.model
-
-import io.swagger.v3.oas.models.security.SecurityRequirement
+package isel.openapi.mock.domain.openAPI
 
 data class PathOperation(
     val method: HttpMethod,

@@ -1,28 +1,19 @@
 package isel.openapi.mock.services
 
 import isel.openapi.mock.domain.dynamic.DynamicDomain
+import isel.openapi.mock.domain.dynamic.HandlerAndUUID
+import isel.openapi.mock.domain.dynamic.RouteNode
+import isel.openapi.mock.domain.dynamic.RouteOperation
 import isel.openapi.mock.http.DynamicHandler
-import isel.openapi.mock.parsingServices.model.ApiSpec
-import isel.openapi.mock.parsingServices.model.HttpMethod
+import isel.openapi.mock.domain.openAPI.ApiSpec
+import isel.openapi.mock.domain.openAPI.HttpMethod
 import isel.openapi.mock.repository.DynamicRoutesRepository
 import org.springframework.stereotype.Component
-
-class RouteOperation(
-    val method: HttpMethod,
-    val handler: DynamicHandler
-)
-
-class RouteNode(val part: String) {
-    val children = mutableMapOf<String, RouteNode>()
-    val isParameter = part.startsWith("{")
-    var operations = mutableSetOf<RouteOperation>()
-}
 
 @Component
 class Router(
     private val repository: DynamicRoutesRepository,
     private val dynamicDomain: DynamicDomain,
-    //TODO: domain
 ) {
 
     fun register(apiSpec: ApiSpec, host: String) {
@@ -73,9 +64,11 @@ class Router(
         }
     }
 
-    fun match(host: String, method: HttpMethod, path: String): Pair<DynamicHandler?, String>? {
+    fun match(host: String, method: HttpMethod, path: String): HandlerAndUUID? {
 
-        var current = repository.getOperations(host) ?: return null
+        val op = repository.getOperations(host) ?: return null
+
+        var current = op.root
 
         var resourceUrl = path.split("?").first()
 
@@ -97,9 +90,11 @@ class Router(
             }
         }
 
-        return Pair(current.operations
-            .firstOrNull { it.method == method }
-            ?.handler, resourceUrl)
+        return HandlerAndUUID(
+            dynamicHandler = current.operations.find { it.method == method }?.handler,
+            resourceUrl = resourceUrl,
+            isRootUpToDate = op.isRootUpToDate
+        )
     }
 }
 

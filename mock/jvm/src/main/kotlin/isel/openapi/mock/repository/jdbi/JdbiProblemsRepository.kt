@@ -14,7 +14,7 @@ class JdbiProblemsRepository(
     private val handle: Handle,
 ) : ProblemsRepository {
 
-    override fun addRequest(uuid: String, url: String, method: String, path: String, externalKey: String, host: String) {
+    override fun addRequest(uuid: String, url: String, method: String, path: String, externalKey: String?, host: String) {
 
         val specId = handle.createQuery(
             """
@@ -23,17 +23,17 @@ class JdbiProblemsRepository(
         )
             .bind("host", host)
             .mapTo<Int>()
-            .firstOrNull()
+            .first()
 
         val pathId = handle.createQuery(
             """
             SELECT id FROM paths WHERE full_path = :path AND spec_id = :specId
             """
         )
-            .bind("path", path)
+            .bind("path", url)
             .bind("specId", specId)
             .mapTo<Int>()
-            .firstOrNull()
+            .first()
 
         handle.createUpdate("INSERT INTO requests (uuid, url, method, path, external_key, host, spec_id, path_id) VALUES (:uuid, :url, :method, :path, :externalKey, :host, :specId, :pathId)")
             .bind("uuid", uuid)

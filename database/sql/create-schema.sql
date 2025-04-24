@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS PATHS(
 
 CREATE TABLE IF NOT EXISTS REQUESTS(
        uuid VARCHAR(256) PRIMARY KEY,
-       external_key VARCHAR(256) NOT NULL CHECK(LENGTH(external_key) >= 5 and LENGTH(external_key) <= 256),
+       external_key VARCHAR(256) CHECK(LENGTH(external_key) >= 5 and LENGTH(external_key) <= 256),
        url VARCHAR(256) NOT NULL,
        method VARCHAR(256) NOT NULL,
        path VARCHAR(256) NOT NULL,

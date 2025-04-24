@@ -1,6 +1,6 @@
 package isel.openapi.mock.domain.dynamic
 
-import isel.openapi.mock.parsingServices.model.Response
+import isel.openapi.mock.domain.openAPI.Response
 
 class ResponseInfo(
     val response: Response,

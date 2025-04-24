@@ -1,6 +1,4 @@
-package isel.openapi.mock.parsingServices.model
-
-import com.github.erosb.jsonsKema.JsonValue
+package isel.openapi.mock.domain.openAPI
 
 data class Response(
     val statusCode: StatusCode,

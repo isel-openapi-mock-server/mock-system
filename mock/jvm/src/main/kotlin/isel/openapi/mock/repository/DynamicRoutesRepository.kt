@@ -1,22 +1,19 @@
 package isel.openapi.mock.repository
 
-import isel.openapi.mock.services.RouteNode
-import isel.openapi.mock.services.Router
-import isel.openapi.mock.parsingServices.model.ApiSpec
+import isel.openapi.mock.domain.dynamic.HostInfo
+import isel.openapi.mock.domain.dynamic.RouteNode
 import org.springframework.stereotype.Component
 
 @Component
 class DynamicRoutesRepository{
 
-    private val mappings = mutableMapOf<String, RouteNode>()
+    private val mappings = mutableMapOf<String, HostInfo>()
 
     fun register(host:String, root: RouteNode) {
-        if(!mappings.containsKey(host)) {
-            mappings[host] = root
-        }
+        mappings[host] = HostInfo(root, true)
     }
 
-    fun getOperations(host: String): RouteNode? {
+    fun getOperations(host: String): HostInfo? {
         return mappings[host]
     }
 
