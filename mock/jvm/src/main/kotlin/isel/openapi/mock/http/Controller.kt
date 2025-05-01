@@ -29,6 +29,7 @@ class DynamicRouteController(
         }
         val host = request.getHeader("Host") ?: return ResponseEntity.badRequest().body("Host header is missing")
         val externalKey = request.getHeader("External-Key")
+        // TODO adicionar header Scenario com o nome do cenario e passar ao executeDynamicHandler
         val res = services.executeDynamicHandler(
             host = host,
             method = method,

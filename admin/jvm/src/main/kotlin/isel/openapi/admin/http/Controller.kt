@@ -2,6 +2,7 @@ package isel.openapi.admin.http
 
 import isel.openapi.admin.http.model.CreateSpecInputModel
 import isel.openapi.admin.http.model.CreateSpecOutputModel
+import isel.openapi.admin.http.model.Scenario
 import isel.openapi.admin.parsingServices.Parsing
 import isel.openapi.admin.services.AdminServices
 import isel.openapi.admin.services.CreateSpecError
@@ -65,5 +66,12 @@ class AdminController(
                 }
             }
         }
+    }
+
+    @PutMapping("/response")
+    fun addResponseConfig(
+        @RequestBody scenario: Scenario
+    ): ResponseEntity<*> {
+        TODO()
     }
 }
