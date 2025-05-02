@@ -29,13 +29,15 @@ class DynamicRouteController(
         }
         val host = request.getHeader("Host") ?: return ResponseEntity.badRequest().body("Host header is missing")
         val externalKey = request.getHeader("External-Key")
+        val scenarioName: String = request.getHeader("Scenario") ?: ""
         // TODO adicionar header Scenario com o nome do cenario e passar ao executeDynamicHandler
         val res = services.executeDynamicHandler(
             host = host,
             method = method,
             path = request.requestURI,
             request = request,
-            externalKey = externalKey
+            externalKey = externalKey,
+            scenarioName = scenarioName
         )
         return when (res) {
             is Success -> {
@@ -45,11 +47,17 @@ class DynamicRouteController(
             }
             is Failure -> {
                 when (res.value) {
-                    is DynamicHandlerError.NotFound -> {
+                    DynamicHandlerError.NotFound -> {
                         ResponseEntity.notFound().build<Unit>()
                     }
-                    is DynamicHandlerError.HostDoesNotExist -> {
+                    DynamicHandlerError.HostDoesNotExist -> {
                         ResponseEntity.badRequest().body("Host does not exist")
+                    }
+                    DynamicHandlerError.ScenarioNotFound -> {
+                        ResponseEntity.badRequest().body("Scenario does not exist")
+                    }
+                    DynamicHandlerError.NoResponseForThisRequestInScenario -> {
+                        ResponseEntity.badRequest().body("There is no response for this request")
                     }
                 }
             }

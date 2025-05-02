@@ -9,12 +9,13 @@ import isel.openapi.mock.http.VerifyParamsError
 import org.jdbi.v3.core.kotlin.mapTo
 import isel.openapi.mock.repository.ProblemsRepository
 import org.jdbi.v3.core.Handle
+import org.postgresql.util.PGobject
 
 class JdbiProblemsRepository(
     private val handle: Handle,
 ) : ProblemsRepository {
 
-    override fun addRequest(uuid: String, url: String, method: String, path: String, externalKey: String?, host: String) {
+    override fun addRequest(uuid: String, url: String, method: String, path: String, externalKey: String?, host: String, headers: String?) {
 
         val specId = handle.createQuery(
             """
@@ -35,7 +36,7 @@ class JdbiProblemsRepository(
             .mapTo<Int>()
             .first()
 
-        handle.createUpdate("INSERT INTO requests (uuid, url, method, path, external_key, host, spec_id, path_id) VALUES (:uuid, :url, :method, :path, :externalKey, :host, :specId, :pathId)")
+        handle.createUpdate("INSERT INTO requests (uuid, url, method, path, external_key, host, spec_id, path_id, headers) VALUES (:uuid, :url, :method, :path, :externalKey, :host, :specId, :pathId, :headers)")
             .bind("uuid", uuid)
             .bind("url", url)
             .bind("method", method)
@@ -44,6 +45,7 @@ class JdbiProblemsRepository(
             .bind("host", host)
             .bind("specId", specId)
             .bind("pathId", pathId)
+            .bind("headers", jsonb(headers))
             .execute()
     }
 
@@ -77,23 +79,14 @@ class JdbiProblemsRepository(
         }
     }
 
-    override fun addResponse(uuid: String, statusCode: Int): Int {
-        return handle.createUpdate("INSERT INTO responses (uuid, status_code) VALUES (:uuid, :statusCode)")
+    override fun addResponse(uuid: String, statusCode: Int, headers: String?): Int {
+        return handle.createUpdate("INSERT INTO responses (uuid, status_code, headers) VALUES (:uuid, :statusCode, :headers)")
             .bind("uuid", uuid)
             .bind("statusCode", statusCode)
+            .bind("headers", jsonb(headers))
             .executeAndReturnGeneratedKeys()
             .mapTo<Int>()
             .one()
-    }
-
-    override fun addResponseHeaders(id:Int, headers: Map<String, String>) {
-        headers.forEach { (key, value) ->
-            handle.createUpdate("INSERT INTO response_headers (response_id, name, content) VALUES (:uuid, :name, :content)")
-                .bind("response_id", id)
-                .bind("name", key)
-                .bind("value", value)
-                .execute()
-        }
     }
 
     override fun addResponseBody(id: Int, body: ByteArray, contentType: String) {
@@ -102,17 +95,6 @@ class JdbiProblemsRepository(
             .bind("content", body.toString())
             .bind("contentType", contentType)
             .execute()
-    }
-
-    override fun addRequestHeaders(uuid: String, headers: Map<String, String>) {
-        headers.forEach { (key, value) ->
-            if(value == "") return@forEach
-            handle.createUpdate("INSERT INTO request_headers (uuid, name, content) VALUES (:uuid, :name, :content)")
-                .bind("uuid", uuid)
-                .bind("name", key)
-                .bind("content", value)
-                .execute()
-        }
     }
 
     private fun problemsToString(problem: VerificationError): String {
@@ -130,5 +112,14 @@ class JdbiProblemsRepository(
         }
     }
 
+    private fun jsonb(value: String?): PGobject? {
+        if(value == null) {
+            return null
+        }
+        return PGobject().apply {
+            type = "jsonb"
+            setValue(value)
+        }
+    }
 
 }

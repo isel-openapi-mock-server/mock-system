@@ -25,12 +25,13 @@ class Router(
 
                 val handler = DynamicHandler(
                     apiPath.path,
-                    operation.responses,
+                    operation.method,
                     operation.parameters,
                     operation.requestBody,
                     operation.headers,
                     operation.security,
-                    dynamicDomain
+                    dynamicDomain,
+                    emptyList()
                 )
 
                 val parts = apiPath.fullPath.split("/").filter { it.isNotEmpty() }
@@ -90,12 +91,21 @@ class Router(
             }
         }
 
+        val dynamicHandler = current.operations.find { it.method == method }?.handler
+
         return HandlerAndUUID(
-            dynamicHandler = current.operations.find { it.method == method }?.handler,
+            dynamicHandler = dynamicHandler,
             resourceUrl = resourceUrl,
-            isRootUpToDate = op.isRootUpToDate
+            scenarios = dynamicHandler?.scenarios ?: emptyList() //op.scenarios.filter { it.responseForPathMethod(path, method) }
+            //isRootUpToDate = op.isRootUpToDate
         )
     }
+
+
+    fun doesHostExist(host: String): Boolean = repository.getOperations(host) != null
+
+    fun doesScenarioExist(host: String, scenarioName: String): Boolean =
+        repository.getOperations(host)?.scenarios?.any { it.name == scenarioName } ?: false
 }
 
 

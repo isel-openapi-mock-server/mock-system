@@ -3,9 +3,9 @@ package isel.openapi.mock.http
 import jakarta.servlet.http.HttpServletRequest
 import isel.openapi.mock.domain.dynamic.DynamicDomain
 import isel.openapi.mock.domain.dynamic.HandlerResult
-import isel.openapi.mock.domain.dynamic.ResponseInfo
 import isel.openapi.mock.domain.openAPI.*
 import isel.openapi.mock.domain.problems.ParameterInfo
+import isel.openapi.mock.services.Scenario
 
 interface VerificationError
 
@@ -30,16 +30,19 @@ sealed class VerifyParamsError : VerificationError {
 
 class DynamicHandler(
     private val path: List<PathParts>,
-    private val responses: List<Response>,
+    private val method: HttpMethod,
+    //private val responses: List<Response>,
     private val params: List<ApiParameter>?,
     private val body: ApiRequestBody?,
     private val headers : List<ApiHeader>?,
     private val security: Boolean = false,
     private val dynamicDomain: DynamicDomain,
+    val scenarios: List<Scenario>
 ) {
 
     fun handle(
         request: HttpServletRequest,
+        scenarioName: String
     ): HandlerResult {
 
         val requestBody = request.reader.readText().ifBlank { null }
@@ -71,10 +74,19 @@ class DynamicHandler(
         val cookiesResult = dynamicDomain.verifyCookies(cookies, params?.filter { it.location == Location.COOKIE } ?: emptyList())
         cookiesResult.forEach { fails.add(it) }
 
+
         val response = if(fails.isEmpty()) {
-            responses.firstOrNull { it.statusCode == StatusCode.OK } ?: responses.first() // TODO Mudar isto
+            //responses.firstOrNull { it.statusCode == StatusCode.OK } ?: responses.first() // TODO Mudar isto
+            val scenario = scenarios.find { it.name == scenarioName} ?: return TODO() // resposta quando não há resposta definida
+            val fullPath = StringBuilder()
+            path.forEach { part ->
+                fullPath.append(part.name)
+            }
+            scenario.getResponse(path = fullPath.toString(), method = method) ?: return TODO() // resposta quando não há resposta definida
+
         } else {
-            Response(
+            TODO() // resposta quando há falhas de validaçao
+            /*Response(
                 statusCode = StatusCode.BAD_REQUEST,
                 schema = ContentOrSchema.ContentField(
                     content = mapOf(
@@ -91,15 +103,16 @@ class DynamicHandler(
                         )
                     )
                 )
-            )
+            )*/
         }
+
         return HandlerResult(
             fails = fails,
             body = requestBody,
             headers = requestHeaders,
             cookies = cookies.toList(),
             params = pathParamsResult.params + queryParamsResult.params,
-            responseInfo = ResponseInfo(response) //TODO Mudar
+            response = response //TODO Mudar
         )
     }
 

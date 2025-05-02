@@ -70,7 +70,8 @@ class AdminController(
 
     @PutMapping("/response")
     fun addResponseConfig(
-        @RequestBody scenario: Scenario
+        @RequestBody scenario: Scenario,
+        @RequestParam host: String,
     ): ResponseEntity<*> {
         TODO()
     }

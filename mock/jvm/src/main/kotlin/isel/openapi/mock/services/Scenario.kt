@@ -32,6 +32,12 @@ class Scenario(
 
         return null // Meter um erro como deve de ser para depois guardar.
     }
+
+    // Ver se existe alguma resposta para uma rota-metodo neste scenario.
+    fun responseForPathMethod(path: String, method: HttpMethod): Boolean = responses.any { it.path == path && it.method == method }
+
+
+
     /*Acho que isto não é necessário, lidar com concorrencia, a nao ser que sejam feitos varios pedidos iguais para o mesmo scenario ao mesmo tempo e o state seja
     incrementado varias vezes, ou se 2 pedidos, o 1º do 1º estado e o 2º do 2º estado, o 2º pode obter o valor de state para ir buscar a resposta antes do 1º ter incrementado
     o state, assim deveria dar mas nao dá porque o state está desatualizado. TODO perguntar ao prof

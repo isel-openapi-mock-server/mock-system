@@ -5,7 +5,7 @@ import isel.openapi.mock.http.VerificationError
 
 interface ProblemsRepository {
 
-    fun addRequest(uuid: String, url: String, method: String, path: String, externalKey: String?, host: String)
+    fun addRequest(uuid: String, url: String, method: String, path: String, externalKey: String?, host: String, headers: String?)
 
     fun addRequestParams(uuid: String, params: List<ParameterInfo>)
 
@@ -13,12 +13,8 @@ interface ProblemsRepository {
 
     fun addProblems(uuid: String, problems: List<VerificationError>)
 
-    fun addResponse(uuid: String, statusCode: Int): Int
-
-    fun addResponseHeaders(id: Int, headers: Map<String, String>)
+    fun addResponse(uuid: String, statusCode: Int, headers: String?): Int
 
     fun addResponseBody(id: Int, body: ByteArray, contentType: String)
-
-    fun addRequestHeaders(uuid: String, headers: Map<String, String>)
 
 }

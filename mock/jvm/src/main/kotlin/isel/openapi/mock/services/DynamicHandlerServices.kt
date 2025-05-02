@@ -16,9 +16,11 @@ import org.springframework.stereotype.Component
 sealed interface DynamicHandlerError {
     data object NotFound: DynamicHandlerError
     data object HostDoesNotExist: DynamicHandlerError
+    data object ScenarioNotFound: DynamicHandlerError
+    data object NoResponseForThisRequestInScenario : DynamicHandlerError // Para quando nao as resposta do scenario nao forem para aquele pedido
 }
 
-typealias DynamicHandlerResult = Either<DynamicHandlerError, Pair<Response, String>>
+typealias DynamicHandlerResult = Either<DynamicHandlerError, Pair<ResponseConfig, String>>
 
 @Component
 class DynamicHandlerServices(
@@ -33,25 +35,33 @@ class DynamicHandlerServices(
         path: String,
         request: HttpServletRequest,
         externalKey: String? = null,
+        scenarioName: String,
     ) : DynamicHandlerResult {
 
-        var dynamicHandler = router.match(host, method, path)
+        if (!router.doesHostExist(host)) return failure(DynamicHandlerError.HostDoesNotExist)
 
-        if(dynamicHandler == null || !dynamicHandler.isRootUpToDate) {
-            val spec = uploadOpenAPI(host) ?: return failure(DynamicHandlerError.HostDoesNotExist)
-            router.register(spec, host)
-            dynamicHandler = router.match(host, method, path)
-        }
+        if (!router.doesScenarioExist(host, scenarioName)) return failure(DynamicHandlerError.ScenarioNotFound)
 
-        val handlerResponse : HandlerResult = dynamicHandler?.dynamicHandler?.handle(request) ?: return failure(
+        val dynamicHandler = router.match(host, method, path) ?: return failure(DynamicHandlerError.NotFound)
+
+        dynamicHandler.scenarios.find { it.name == scenarioName } ?: return failure(DynamicHandlerError.NoResponseForThisRequestInScenario)
+
+        val handlerResponse : HandlerResult = dynamicHandler.dynamicHandler?.handle(request, scenarioName) ?: return failure(
             DynamicHandlerError.NotFound
         )
 
         val requestUuid = problemsDomain.generateUuidValue()
         val fails = handlerResponse.fails
 
+        val mapper = jacksonObjectMapper()
+            .registerKotlinModule()
+
         transactionManager.run{
             val problemsRepository = it.problemsRepository
+
+            val jsonRequestHeaders =
+                if(handlerResponse.headers.isNotEmpty()) mapper.writeValueAsString(handlerResponse.headers)
+                else null
 
             problemsRepository.addRequest(
                 requestUuid,
@@ -59,15 +69,12 @@ class DynamicHandlerServices(
                 method.name,
                 path,
                 externalKey,
-                host
+                host,
+                jsonRequestHeaders,
             )
 
             if(handlerResponse.body != null) {
                 problemsRepository.addRequestBody(requestUuid, handlerResponse.body.toByteArray(), handlerResponse.headers["content-type"] ?: "")
-            }
-
-            if(handlerResponse.headers.isNotEmpty()) {
-                problemsRepository.addRequestHeaders(requestUuid, handlerResponse.headers)
             }
 
             if(handlerResponse.params.isNotEmpty()) {
@@ -78,20 +85,20 @@ class DynamicHandlerServices(
                 problemsRepository.addProblems(requestUuid, fails)
             }
 
-            val responseId = problemsRepository.addResponse(requestUuid, handlerResponse.responseInfo.response.statusCode.code)
+            val jsonResponseHeaders =
+                if(handlerResponse.headers.isNotEmpty()) mapper.writeValueAsString(handlerResponse.headers)
+                else null
 
-            if(handlerResponse.responseInfo.headers.isNotEmpty()) {
-                problemsRepository.addResponseHeaders(responseId, handlerResponse.responseInfo.headers)
-            }
+            val responseId = problemsRepository.addResponse(requestUuid, handlerResponse.response.statusCode.code, jsonResponseHeaders)
 
-            if(handlerResponse.responseInfo.body != null) {
-                problemsRepository.addResponseBody(responseId, handlerResponse.responseInfo.body.toByteArray(), handlerResponse.responseInfo.response.schema.toString())
+            if(handlerResponse.response.body != null) {
+                problemsRepository.addResponseBody(responseId, handlerResponse.response.body, handlerResponse.headers["content-type"] ?: "")
             }
         }
 
         return success(
             Pair(
-                handlerResponse.responseInfo.response,
+                handlerResponse.response,
                 requestUuid
             )
         )
