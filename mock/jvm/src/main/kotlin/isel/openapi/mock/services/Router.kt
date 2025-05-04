@@ -71,20 +71,20 @@ class Router(
 
         var current = op.root
 
-        var resourceUrl = path.split("?").first()
+        val resourceUrl = path.split("?").first().split("/").toMutableList()
 
         val parts = path.split("/").filter { it.isNotEmpty() }
         val params = mutableMapOf<String, String>()
 
-        for (part in parts) {
-            if (current.children.containsKey(part)) {
-                current = current.children[part]!!
+        for (i in parts.indices) {
+            if (current.children.containsKey(parts[i])) {
+                current = current.children[parts[i]]!!
             } else {
                 val wildcardChild = current.children.values.find { it.isParameter }
                 if (wildcardChild != null) {
                     current = wildcardChild
-                    params[wildcardChild.part.removePrefix("{").removeSuffix("}")] = part
-                    resourceUrl = resourceUrl.replace(part, current.part)
+                    params[wildcardChild.part.removePrefix("{").removeSuffix("}")] = parts[i]
+                    resourceUrl[i+1] = current.part
                 } else {
                     return null
                 }
@@ -95,7 +95,7 @@ class Router(
 
         return HandlerAndUUID(
             dynamicHandler = dynamicHandler,
-            resourceUrl = resourceUrl,
+            resourceUrl = resourceUrl.joinToString("/"),
             scenarios = dynamicHandler?.scenarios ?: emptyList() //op.scenarios.filter { it.responseForPathMethod(path, method) }
             //isRootUpToDate = op.isRootUpToDate
         )
