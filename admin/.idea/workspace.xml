@@ -12,6 +12,7 @@
       <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/parsingServices/model/Response.kt" beforeDir="false" afterPath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/parsingServices/model/Response.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/services/AdminServices.kt" beforeDir="false" afterPath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/services/AdminServices.kt" afterDir="false" />
     </list>
+    <list default="true" id="a709ed31-b4b1-4387-83b0-24e17b255a2d" name="Changes" comment="" />
     <list id="b6d85d1e-3246-435a-b75f-9484f1e070f6" name="Changes by tomassalvador" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -93,6 +94,31 @@
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
     &quot;run.configurations.included.in.services&quot;: &quot;true&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Gradle.Build jvm.executor": "Run",
+    "Gradle.Download Sources.executor": "Run",
+    "Gradle.ParsingTests.executor": "Run",
+    "Gradle.ParsingTests.t.executor": "Run",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "Spring Boot.AdminApplication.executor": "Run",
+    "Spring Boot.AdminApplicationKt.executor": "Run",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "D:/Diogo/ISEL/private-spring-p/mock",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "run.configurations.included.in.services": "true",
+    "vue.rearranger.settings.migration": "true"
   },
   &quot;keyToStringList&quot;: {
     &quot;DatabaseDriversLRU&quot;: [
@@ -227,6 +253,7 @@
       <workItem from="1745442084838" duration="7682000" />
       <workItem from="1745455842649" duration="1242000" />
       <workItem from="1746197477258" duration="5006000" />
+      <workItem from="1746377266971" duration="17000" />
     </task>
     <servers />
   </component>
