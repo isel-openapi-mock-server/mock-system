@@ -198,6 +198,7 @@ class Parsing {
         if (responses == null) return emptyList()
 
         return responses.map { (statusCode, response) ->
+            //TODO() faltam os headers, response.headers
             var contentTypes = response.content
             if(response.`$ref` != null) {
                 val ref = response.`$ref`

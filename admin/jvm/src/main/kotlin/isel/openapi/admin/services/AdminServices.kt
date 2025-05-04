@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import isel.openapi.admin.domain.AdminDomain
 import isel.openapi.admin.domain.RequestInfo
+import isel.openapi.admin.http.model.Scenario
 import isel.openapi.admin.parsingServices.Parsing
 import isel.openapi.admin.repository.TransactionManager
 import isel.openapi.admin.utils.Either
@@ -31,6 +32,7 @@ class AdminServices(
     private val parsing: Parsing,
     private val transactionManager: TransactionManager,
     private val adminDomain: AdminDomain,
+    private val router: NotRouter,
 ) {
 
     fun getRequestInfo(
@@ -66,7 +68,7 @@ class AdminServices(
             ?: return failure(CreateSpecError.InvalidOpenApiSpec)
 
         val apiSpec = parsing.extractApiSpec(openApi)
-        var currentHost = host?: adminDomain.generateHost()
+        var currentHost = host ?: adminDomain.generateHost()
 
         val mapper = jacksonObjectMapper()
             .registerKotlinModule()
@@ -92,7 +94,19 @@ class AdminServices(
                 }
             }
         }
+
+        router.register(apiSpec, currentHost)
+
         return success(currentHost)
     }
+
+    fun saveResponseConfig(host: String, accessToken: String, scenario: Scenario) {
+        scenario.responses.forEach { response ->
+            val responseValidator = router.match(host, response.method, response.path) ?: return TODO() //erro que nao existe aquele path/method
+            responseValidator.validateResponse(response)
+        }
+        TODO("Not yet implemented")
+    }
+
 
 }
