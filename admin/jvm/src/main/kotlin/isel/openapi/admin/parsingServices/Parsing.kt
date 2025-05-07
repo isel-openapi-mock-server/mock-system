@@ -199,19 +199,26 @@ class Parsing {
 
         return responses.map { (statusCode, response) ->
             //TODO() faltam os headers, response.headers
+            var responseHeaders = response?.headers ?: emptyMap()
             var contentTypes = response.content
             if(response.`$ref` != null) {
                 val ref = response.`$ref`
                 val refResponse = allResponse[ref.substringAfterLast("/")]
                 contentTypes = refResponse?.content
+                responseHeaders = refResponse?.headers ?: emptyMap()
             }
             val content = mutableMapOf<String, ContentOrSchema.SchemaObject>()
             contentTypes?.forEach { contType, mediaType ->
                 content[contType] = ContentOrSchema.SchemaObject(schemaToJson(mediaType.schema))
             }
+            val headers = mutableListOf<ApiHeader>()
+            responseHeaders.forEach { (headerName, header) ->
+                headers.add(extractHeaderInfo(header, headerName, ContentOrSchema.SchemaObject(schemaToJson(header.schema))))
+            }
             Response(
                 statusCode = fromCode(statusCode) ?: StatusCode.UNKNOWN,
-                schema = if (content.isNotEmpty()) ContentOrSchema.ContentField(content = content) else null
+                schema = if (content.isNotEmpty()) ContentOrSchema.ContentField(content = content) else null,
+                headers = headers,
             )
         }
     }

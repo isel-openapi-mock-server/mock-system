@@ -2,7 +2,6 @@ package isel.openapi.admin.domain
 
 import isel.openapi.admin.http.model.ResponseConfig
 import isel.openapi.admin.parsingServices.model.Response
-import isel.openapi.admin.parsingServices.model.StatusCode
 
 class ResponseValidator(
     private val responses: List<Response>,

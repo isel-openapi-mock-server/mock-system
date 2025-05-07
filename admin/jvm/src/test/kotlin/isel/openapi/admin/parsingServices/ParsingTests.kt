@@ -6,10 +6,7 @@ import io.swagger.v3.oas.models.media.ArraySchema
 import io.swagger.v3.oas.models.media.IntegerSchema
 import io.swagger.v3.oas.models.media.ObjectSchema
 import io.swagger.v3.oas.models.media.StringSchema
-import isel.openapi.admin.parsingServices.model.ContentOrSchema
-import isel.openapi.admin.parsingServices.model.HttpMethod
-import isel.openapi.admin.parsingServices.model.Location
-import isel.openapi.admin.parsingServices.model.Type
+import isel.openapi.admin.parsingServices.model.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import kotlin.test.assertFalse
@@ -194,6 +191,28 @@ class ParsingTests {
         assertEquals(expected, actual)
     }
 
+    @Test
+    fun extractResponse(){
+        val isValid = parsing.validateOpenApi(openAPIDefinition1)
+
+        assertTrue { isValid }
+
+        val definition = parsing.parseOpenApi(openAPIDefinition1) ?: throw IllegalStateException("Invalid OpenAPI definition")
+        val responses = parsing.extractApiSpec(definition).paths[0].operations[0].responses
+
+        assertEquals(2, responses.size)
+
+        val response = responses[0]
+
+        assertEquals(StatusCode.OK, response.statusCode)
+
+        val responseHeaders = response.headers
+        assertEquals(1, responseHeaders.size)
+
+        assertEquals("A", responseHeaders[0].name)
+        assertEquals(false, responseHeaders[0].required)
+    }
+
     private val openAPIDefinition = """
         openapi: 3.0.4
         info:
@@ -305,6 +324,11 @@ class ParsingTests {
                             username:
                               type: string
                               example: bob123
+                  headers:
+                    A:
+                      description: bom dia
+                      schema:
+                        type: string
                 '500':
                   description: Internal server error
         components:
