@@ -8,9 +8,9 @@ class ResponseValidator(
     private val adminDomain: AdminDomain,
 ) {
 
-    fun validateResponse(responseConfig: ResponseConfig) {
+    fun validateResponse(responseConfig: ResponseConfig): Boolean =
         responses.any { response ->
-            adminDomain.verifyResponse(response, responseConfig.statusCode, responseConfig.headers, responseConfig.body) !is VerifyResponseError
+            adminDomain.verifyResponse(response, responseConfig.statusCode, responseConfig.contentType, responseConfig.headers, responseConfig.body).isEmpty()
         }
-    }
+
 }

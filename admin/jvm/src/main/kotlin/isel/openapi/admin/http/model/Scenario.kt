@@ -12,6 +12,7 @@ data class ResponseConfig(
     val method: HttpMethod,
     val path: String,
     val statusCode: StatusCode,
+    val contentType: String?,
     val headers: Map<String, String>?,
     val body: ByteArray?,
 )
