@@ -112,7 +112,7 @@ class DynamicHandler(
             headers = requestHeaders,
             cookies = cookies.toList(),
             params = pathParamsResult.params + queryParamsResult.params,
-            response = response //TODO Mudar
+            response = response //TODO Ver se dá assim, com o ResponseConfig
         )
     }
 

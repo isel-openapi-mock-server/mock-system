@@ -1,5 +1,7 @@
 package isel.openapi.admin.domain
 
+import isel.openapi.admin.parsingServices.model.ApiHeader
+import isel.openapi.admin.parsingServices.model.ContentOrSchema
 import isel.openapi.admin.parsingServices.model.Response
 import isel.openapi.admin.parsingServices.model.StatusCode
 import isel.openapi.admin.utils.Either
@@ -29,14 +31,17 @@ class AdminDomain {
         if (responseSpec.statusCode != statusCode) {
             failure(VerifyResponseError.WrongStatusCode)
         }
+        verifyHeaders(responseSpec.headers, headers)
+
+        verifyBody(responseSpec.schema, body)
         TODO()
     }
 
-    private fun verifyHeaders() {
+    private fun verifyHeaders(headersSpec: List<ApiHeader>, headers: Map<String, String>?) {
         TODO()
     }
 
-    private fun verifyBody() {
+    private fun verifyBody(bodySpec: ContentOrSchema?, body: ByteArray?) {
         TODO()
     }
 

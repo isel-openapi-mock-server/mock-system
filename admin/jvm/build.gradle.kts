@@ -21,7 +21,7 @@ repositories {
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
-	implementation("io.swagger.parser.v3:swagger-parser:2.1.16")
+	implementation("io.swagger.parser.v3:swagger-parser:2.1.22")
 	implementation("commons-io:commons-io:2.15.0")
 	implementation("com.google.guava:guava:32.1.2-jre")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
