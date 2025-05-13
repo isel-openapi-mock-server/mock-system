@@ -3,6 +3,13 @@ package isel.openapi.admin.domain
 import isel.openapi.admin.http.model.ResponseConfig
 import isel.openapi.admin.parsingServices.model.Response
 import isel.openapi.admin.parsingServices.model.StatusCode
+import isel.openapi.admin.utils.Either
+
+sealed interface VerifyResponseError {
+    data object WrongStatusCode : VerifyResponseError
+}
+
+typealias VerifyResponseResult = Either<VerifyResponseError, Boolean>
 
 class ResponseValidator(
     private val responses: List<Response>,
@@ -10,8 +17,9 @@ class ResponseValidator(
 ) {
 
     fun validateResponse(responseConfig: ResponseConfig) {
-        responses.any { response ->
-            adminDomain.verifyResponse(response, responseConfig.statusCode, responseConfig.headers, responseConfig.body) !is VerifyResponseError
-        }
+        val response = responses.find { response ->
+            response.statusCode == responseConfig.statusCode
+        } ?: return
+
     }
 }

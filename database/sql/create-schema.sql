@@ -113,4 +113,22 @@ CREATE TABLE IF NOT EXISTS SCENARIO_RESPONSES(
     client_token VARCHAR(256) NOT NULL CHECK(LENGTH(client_token) >= 1 and LENGTH(client_token) <= 256),
     FOREIGN KEY (scenario_name, client_token) REFERENCES SCENARIOS(name, client_token) ON DELETE CASCADE,
     PRIMARY KEY (index, scenario_name, client_token)
-)
+);
+
+create or replace function notify_specs_update()
+returns trigger as $$
+    begin
+        PERFORM pg_notify('update_spec', 'specs was updated');
+        return new;
+    end;
+    $$ language plpgsql;
+
+create or replace trigger notify_spec_insert
+after insert on SPECS
+for each row
+execute procedure notify_specs_update();
+
+create or replace trigger notify_spec_delete
+after delete on SPECS
+for each row
+execute procedure notify_specs_update();

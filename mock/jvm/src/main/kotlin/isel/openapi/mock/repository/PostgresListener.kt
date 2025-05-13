@@ -16,18 +16,19 @@ class PostgresListener(
         val conn = dataSource.connection
         val pgConn = conn.unwrap(PGConnection::class.java)
         conn.createStatement().use {
-            it.execute("LISTEN canal_exemplo")
+            it.execute("LISTEN new_spec")
         }
-        var count = 0
         thread {
             while (true) {
-                // Aguardar novas notificações
                 val notifications = pgConn.notifications
                 if (notifications != null) {
                     for (notification in notifications) {
-                        println("Notificação recebida: canal=${notification.name}, payload=${notification.parameter}")
-                        count++
-                        // Aqui você pode emitir eventos, chamar serviços, etc.
+                        if(notification.name == "new_spec") {
+                            // Aqui você pode processar a notificação recebida
+                            // Por exemplo, você pode chamar um método para lidar com a notificação
+                            // ou simplesmente imprimir uma mensagem no console
+                            println("Notificação recebida: ${notification.parameter}")
+                        }
                     }
                 }
                 Thread.sleep(500) // polling básico
