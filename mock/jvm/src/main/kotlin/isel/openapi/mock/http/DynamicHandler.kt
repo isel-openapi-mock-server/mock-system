@@ -37,12 +37,13 @@ class DynamicHandler(
     private val headers : List<ApiHeader>?,
     private val security: Boolean = false,
     private val dynamicDomain: DynamicDomain,
-    val scenarios: List<Scenario>
+    //val scenarios: List<Scenario>
+    private val scenario: Scenario?
 ) {
 
     fun handle(
         request: HttpServletRequest,
-        scenarioName: String
+        //scenarioName: String
     ): HandlerResult {
 
         val requestBody = request.reader.readText().ifBlank { null }
@@ -75,15 +76,16 @@ class DynamicHandler(
         cookiesResult.forEach { fails.add(it) }
 
 
-        val response = if(fails.isEmpty()) {
+        val response = if(fails.isEmpty() && scenario != null) {
             //responses.firstOrNull { it.statusCode == StatusCode.OK } ?: responses.first() // TODO Mudar isto
-            val scenario = scenarios.find { it.name == scenarioName} ?: return TODO() // resposta quando não há resposta definida
+            /*val scenario = scenarios.find { it.name == scenarioName} ?: return TODO() // resposta quando não há resposta definida
             val fullPath = StringBuilder()
             path.forEach { part ->
                 fullPath.append(part.name)
             }
             scenario.getResponse(path = fullPath.toString(), method = method) ?: return TODO() // resposta quando não há resposta definida
-
+            */
+            scenario.getResponse()
         } else {
             TODO() // resposta quando há falhas de validaçao
             /*Response(
@@ -124,4 +126,6 @@ class DynamicHandler(
             else -> this // String
         }
     }
+
+    fun hasResponse(): Boolean = scenario != null
 }

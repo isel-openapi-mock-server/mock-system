@@ -6,10 +6,16 @@
   <component name="ChangeListManager">
     <list default="true" id="b8a301cb-e294-46d0-bfbe-19554c9c6bcc" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/domain/AdminDomain.kt" beforeDir="false" afterPath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/domain/AdminDomain.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/domain/ResponseValidator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/domain/ResponseValidator.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/http/Controller.kt" beforeDir="false" afterPath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/http/Controller.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/http/model/Scenario.kt" beforeDir="false" afterPath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/http/model/Scenario.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/parsingServices/model/Response.kt" beforeDir="false" afterPath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/parsingServices/model/Response.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/services/AdminServices.kt" beforeDir="false" afterPath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/services/AdminServices.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/domain/dynamic/MatchResult.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/domain/dynamic/MatchResult.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/http/Controller.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/http/Controller.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/http/DynamicHandler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/http/DynamicHandler.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/services/DynamicHandlerServices.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/services/DynamicHandlerServices.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/services/Router.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/services/Router.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/services/Scenario.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/services/Scenario.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

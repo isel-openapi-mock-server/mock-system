@@ -20,8 +20,9 @@ class AdminController(
     fun addOpenApiSpec(
         @RequestBody openApiSpec: CreateSpecInputModel,
         @RequestParam host: String?,
+        @RequestHeader transactionToken: String?
     ): ResponseEntity<*> {
-        val res = adminServices.saveSpec(openApiSpec.spec, host)
+        val res = adminServices.saveSpec(openApiSpec.spec, host, transactionToken)
         return when(res) {
             is Success -> {
                 ResponseEntity.status(201)
@@ -72,9 +73,10 @@ class AdminController(
     fun addResponseConfig(
         @RequestBody scenario: Scenario,
         @RequestHeader host: String,
-        @RequestHeader accessToken: String,
+        //@RequestHeader accessToken: String,
+        @RequestHeader transactionToken: String?
     ): ResponseEntity<*> {
-        adminServices.saveResponseConfig(host, accessToken, scenario)
+        adminServices.saveResponseConfig(host, scenario, transactionToken)
         TODO()
     }
 }
