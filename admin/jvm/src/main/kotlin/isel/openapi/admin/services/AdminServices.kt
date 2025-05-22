@@ -87,7 +87,11 @@ class AdminServices(
             .registerKotlinModule()
 
         //val transToken = transactionToken ?: TODO() //funçao para criar o novo token
-
+        /*
+        if (host == null) gerar novo host
+        if (transactionToken == null) gerar novo token
+        adicionar a spec à DB.
+        */
         transactionManager.run {
             val adminRepository = it.adminRepository
             if(host == null) {
@@ -121,11 +125,20 @@ class AdminServices(
     fun saveResponseConfig(host: String, scenario: Scenario, transactionToken: String?): SaveScenarioResult {
         val responseValidator = router.match(host, scenario.method, scenario.path) ?: return failure(SaveScenarioError.PathOperationDoesNotExist) //erro que nao existe aquele path/method
         scenario.responses.forEach { response ->
+            val respValRes = responseValidator.validateResponse(response)
             // TODO nao seria assim, ter a lista de erros de validaçao, para depois guarda-los na DB
-            if (!responseValidator.validateResponse(response)) return failure(SaveScenarioError.InvalidResponseContent)
+            if (respValRes.isNotEmpty()) {
+                // Guardar as falhas na DB ou retornar as falhas?
+                return failure(SaveScenarioError.InvalidResponseContent)
+            }
         }
         TODO("Not yet implemented") // se ainda nao teve erros, guardar, se teve, guardar os erros de validaçao, ver o transactionToken
     }
 
+    fun endTransaction(transactionToken: String) {
+        /*
+
+        */
+    }
 
 }

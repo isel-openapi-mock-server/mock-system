@@ -79,4 +79,12 @@ class AdminController(
         adminServices.saveResponseConfig(host, scenario, transactionToken)
         TODO()
     }
+
+    @PostMapping("/transaction")
+    fun endTransaction(
+        @RequestHeader transactionToken: String?
+    ): ResponseEntity<*> {
+
+        TODO()
+    }
 }
