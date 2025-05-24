@@ -27,6 +27,13 @@ sealed interface CreateSpecError {
 
 typealias CreateSpecResult = Either<CreateSpecError, String>
 
+sealed interface CommitError {
+    data object InvalidTransaction : CommitError
+    data object HostDoesNotExist : CommitError
+}
+
+typealias CommitResult = Either<CommitError, Boolean>
+
 @Component
 class AdminServices(
     private val parsing: Parsing,
@@ -106,6 +113,33 @@ class AdminServices(
             responseValidator.validateResponse(response)
         }
         TODO("Not yet implemented")
+    }
+
+    fun commitChanges(
+        host: String?,
+        transaction: String,
+    ) : CommitResult {
+        transactionManager.run {
+            val transactionsRepository = it.transactionsRepository
+
+            if(!transactionsRepository.isTransactionActive(transaction)) {
+                return@run failure(CommitError.InvalidTransaction)
+            }
+
+            if(host != null && !transactionsRepository.isHostExists(host)) {
+                return@run failure(CommitError.HostDoesNotExist)
+            }
+
+            val newHost = adminDomain.generateHost()
+
+            transactionsRepository.commitTransaction(
+                transaction,
+                newHost,
+            )
+        }
+
+        return success(true)
+
     }
 
 

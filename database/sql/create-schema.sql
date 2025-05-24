@@ -20,11 +20,20 @@ drop table if exists REQUESTS;
 drop table if exists PATHS;
 drop table if exists SPECS;
 
+CREATE TABLE IF NOT EXISTS TRANSACTIONS(
+    uuid VARCHAR(256) PRIMARY KEY,
+    host varchar(256) not null CHECK(LENGTH(host) >= 1 and LENGTH(host) <= 256)
+);
+
+CREATE TABLE IF NOT EXISTS OPEN_TRANSACTIONS(
+    uuid VARCHAR(256) PRIMARY KEY
+);
+
 CREATE TABLE IF NOT EXISTS SPECS(
     id serial primary key,
     name varchar(256) not null CHECK(LENGTH(name) >= 1 and LENGTH(name) <= 256),
     description varchar(256) CHECK(LENGTH(description) >= 1 and LENGTH(description) <= 256),
-    host varchar(256) unique not null CHECK(LENGTH(host) >= 1 and LENGTH(host) <= 256)
+    transaction_id varchar(256) not null
 );
 
 CREATE TABLE IF NOT EXISTS PATHS(
@@ -100,6 +109,7 @@ CREATE TABLE IF NOT EXISTS SCENARIOS(
     name VARCHAR(256) NOT NULL CHECK(LENGTH(name) >= 1 and LENGTH(name) <= 256),
     client_token VARCHAR(256) NOT NULL CHECK(LENGTH(client_token) >= 1 and LENGTH(client_token) <= 256),
     spec_id integer not null,
+    transaction_id varchar(256) not null,
     FOREIGN KEY (spec_id) REFERENCES SPECS(id) ON DELETE CASCADE,
     PRIMARY KEY (name, client_token)
 );

@@ -7,10 +7,10 @@ import org.springframework.stereotype.Component
 @Component
 class DynamicRoutesRepository{
 
-    private val mappings = mutableMapOf<String, HostInfo>()
+    private var mappings: Map<String, HostInfo> = emptyMap()
 
-    fun register(host:String, root: RouteNode) {
-        mappings[host] = HostInfo(root, emptyList())
+    fun register(map: Map<String, RouteNode>) {
+        mappings =
     }
 
     fun getOperations(host: String): HostInfo? {

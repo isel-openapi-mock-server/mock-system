@@ -4,8 +4,6 @@ import isel.openapi.mock.domain.openAPI.SpecInfo
 
 interface OpenAPIRepository {
 
-    fun uploadOpenAPI(
-        host: String,
-    ): SpecInfo?
+    fun uploadOpenAPI(): List<Pair<String, SpecInfo>>
 
 }

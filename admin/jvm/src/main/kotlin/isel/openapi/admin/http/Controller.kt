@@ -77,4 +77,12 @@ class AdminController(
         adminServices.saveResponseConfig(host, accessToken, scenario)
         TODO()
     }
+
+    @PostMapping("/commit")
+    fun commitChanges(
+        @RequestHeader host: String?,
+        @RequestParam transaction: String,
+    ): ResponseEntity<*> {
+        adminServices.commitChanges(host, transaction)
+    }
 }

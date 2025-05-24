@@ -4,5 +4,7 @@ interface Transaction {
 
     val adminRepository: AdminRepository
 
+    val transactionsRepository: TransactionsRepository
+
     fun rollback()
 }

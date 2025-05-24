@@ -1,5 +1,6 @@
 package isel.openapi.mock.repository
 
+import isel.openapi.mock.services.DynamicHandlerServices
 import jakarta.annotation.PostConstruct
 import org.postgresql.PGConnection
 import org.springframework.stereotype.Component
@@ -9,6 +10,7 @@ import kotlin.concurrent.thread
 @Component
 class PostgresListener(
     private val dataSource: DataSource,
+    private val dynamicHandlerServices: DynamicHandlerServices
 ) {
 
     @PostConstruct
@@ -16,22 +18,19 @@ class PostgresListener(
         val conn = dataSource.connection
         val pgConn = conn.unwrap(PGConnection::class.java)
         conn.createStatement().use {
-            it.execute("LISTEN new_spec")
+            it.execute("LISTEN update_spec")
         }
-        thread {
+        Thread.startVirtualThread {
             while (true) {
                 val notifications = pgConn.notifications
                 if (notifications != null) {
                     for (notification in notifications) {
-                        if(notification.name == "new_spec") {
-                            // Aqui você pode processar a notificação recebida
-                            // Por exemplo, você pode chamar um método para lidar com a notificação
-                            // ou simplesmente imprimir uma mensagem no console
-                            println("Notificação recebida: ${notification.parameter}")
+                        if(notification.name == "update_spec") {
+                            dynamicHandlerServices.updateDynamicRoutes()
                         }
                     }
                 }
-                Thread.sleep(500) // polling básico
+                Thread.sleep(500)
             }
         }
     }

@@ -16,7 +16,7 @@ class Router(
     private val dynamicDomain: DynamicDomain,
 ) {
 
-    fun register(apiSpec: ApiSpec, host: String) {
+    fun createRouterNode(apiSpec: ApiSpec, host: String) : RouteNode {
 
         val root = RouteNode("")
 
@@ -61,8 +61,12 @@ class Router(
                     }
                 }
             }
-            repository.register(host, root)
         }
+        return root
+    }
+
+    fun register(map: Map<String, RouteNode>) {
+        repository.register(map)
     }
 
     fun match(host: String, method: HttpMethod, path: String): HandlerAndUUID? {
@@ -97,7 +101,6 @@ class Router(
             dynamicHandler = dynamicHandler,
             resourceUrl = resourceUrl.joinToString("/"),
             scenarios = dynamicHandler?.scenarios ?: emptyList() //op.scenarios.filter { it.responseForPathMethod(path, method) }
-            //isRootUpToDate = op.isRootUpToDate
         )
     }
 
@@ -105,7 +108,7 @@ class Router(
     fun doesHostExist(host: String): Boolean = repository.getOperations(host) != null
 
     fun doesScenarioExist(host: String, scenarioName: String): Boolean =
-        repository.getOperations(host)?.scenarios?.any { it.name == scenarioName } ?: false
+        repository.getOperations(host)?.scenarios?.any { it.name == scenarioName } == true
 }
 
 
