@@ -34,6 +34,13 @@ sealed interface CommitError {
 
 typealias CommitResult = Either<CommitError, Boolean>
 
+sealed interface SaveScenarioError {
+    data object PathOperationDoesNotExist : SaveScenarioError
+    data object InvalidResponseContent : SaveScenarioError
+}
+
+typealias SaveScenarioResult = Either<SaveScenarioError, String>
+
 @Component
 class AdminServices(
     private val parsing: Parsing,
@@ -63,9 +70,14 @@ class AdminServices(
         }
     }
 
+
+    /**
+     * Retorna o token da transaçao, se o transactionToken == null cria um novo, se não retorna o mesmo. Só retorna token se não tiver erros.
+     */
     fun saveSpec(
         openApiSpec: String,
-        host: String? = null
+        host: String? = null,
+        transactionToken: String?,
     ) : CreateSpecResult {
 
         if(!parsing.validateOpenApi(openApiSpec)) {
@@ -80,6 +92,12 @@ class AdminServices(
         val mapper = jacksonObjectMapper()
             .registerKotlinModule()
 
+        //val transToken = transactionToken ?: TODO() //funçao para criar o novo token
+        /*
+        if (host == null) gerar novo host
+        if (transactionToken == null) gerar novo token
+        adicionar a spec à DB.
+        */
         transactionManager.run {
             val adminRepository = it.adminRepository
             if(host == null) {
@@ -102,17 +120,25 @@ class AdminServices(
             }
         }
 
-        router.register(apiSpec, currentHost)
+        router.register(apiSpec, currentHost) // TODO acho que aqui nao muda nada com o transactionToken
 
         return success(currentHost)
     }
 
-    fun saveResponseConfig(host: String, accessToken: String, scenario: Scenario) {
+    /**
+     * Retorna o token da transaçao, se o transactionToken == null cria um novo, se não retorna o mesmo. Só retorna token se não tiver erros.
+     */
+    fun saveResponseConfig(host: String, scenario: Scenario, transactionToken: String?): SaveScenarioResult {
+        val responseValidator = router.match(host, scenario.method, scenario.path) ?: return failure(SaveScenarioError.PathOperationDoesNotExist) //erro que nao existe aquele path/method
         scenario.responses.forEach { response ->
-            val responseValidator = router.match(host, response.method, response.path) ?: return TODO() //erro que nao existe aquele path/method
-            responseValidator.validateResponse(response)
+            val respValRes = responseValidator.validateResponse(response)
+            // TODO nao seria assim, ter a lista de erros de validaçao, para depois guarda-los na DB
+            if (respValRes.isNotEmpty()) {
+                // Guardar as falhas na DB ou retornar as falhas?
+                return failure(SaveScenarioError.InvalidResponseContent)
+            }
         }
-        TODO("Not yet implemented")
+        TODO("Not yet implemented") // se ainda nao teve erros, guardar, se teve, guardar os erros de validaçao, ver o transactionToken
     }
 
     fun commitChanges(
@@ -141,6 +167,5 @@ class AdminServices(
         return success(true)
 
     }
-
 
 }

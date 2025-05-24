@@ -6,6 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="b8a301cb-e294-46d0-bfbe-19554c9c6bcc" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+<<<<<<< HEAD
       <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/http/Controller.kt" beforeDir="false" afterPath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/http/Controller.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/repository/Transaction.kt" beforeDir="false" afterPath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/repository/Transaction.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/repository/jdbi/JdbiTransaction.kt" beforeDir="false" afterPath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/repository/jdbi/JdbiTransaction.kt" afterDir="false" />
@@ -20,6 +21,11 @@
       <change beforePath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/repository/jdbi/JdbiOpenAPIRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/repository/jdbi/JdbiOpenAPIRepository.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/services/DynamicHandlerServices.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/services/DynamicHandlerServices.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/services/Router.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../mock/jvm/src/main/kotlin/isel/openapi/mock/services/Router.kt" afterDir="false" />
+=======
+      <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/domain/ResponseValidator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/domain/ResponseValidator.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/http/Controller.kt" beforeDir="false" afterPath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/http/Controller.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/services/AdminServices.kt" beforeDir="false" afterPath="$PROJECT_DIR$/jvm/src/main/kotlin/isel/openapi/admin/services/AdminServices.kt" afterDir="false" />
+>>>>>>> ebcfb97bff204d67362fe26b20b5c21f9ed7eb21
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,7 +40,11 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
+<<<<<<< HEAD
         <option value="Kotlin Interface" />
+=======
+        <option value="Kotlin Class" />
+>>>>>>> ebcfb97bff204d67362fe26b20b5c21f9ed7eb21
       </list>
     </option>
   </component>
@@ -42,13 +52,20 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
   <component name="ProjectColorInfo">{
+<<<<<<< HEAD
   &quot;associatedIndex&quot;: 1
 }</component>
   <component name="ProjectId" id="2x2rzyK0FaWcI1eJgsVg5uiO99W" />
+=======
+  &quot;associatedIndex&quot;: 2
+}</component>
+  <component name="ProjectId" id="2wotCzqfQCZ5eY8CNb4hJiGljft" />
+>>>>>>> ebcfb97bff204d67362fe26b20b5c21f9ed7eb21
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
+<<<<<<< HEAD
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
     &quot;Gradle.Build jvm.executor&quot;: &quot;Run&quot;,
@@ -91,10 +108,21 @@
       </set>
     </attachedChunks>
   </component>
+=======
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "/home/tomassalvador/ISEL/6Semestre/PS/private-spring/admin"
+  }
+}]]></component>
+>>>>>>> ebcfb97bff204d67362fe26b20b5c21f9ed7eb21
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="b8a301cb-e294-46d0-bfbe-19554c9c6bcc" name="Changes" comment="" />
+<<<<<<< HEAD
       <created>1747147275470</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
@@ -102,6 +130,12 @@
       <workItem from="1747147276848" duration="1909000" />
       <workItem from="1748031288096" duration="747000" />
       <workItem from="1748109909803" duration="1556000" />
+=======
+      <created>1746719631890</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1746719631890</updated>
+>>>>>>> ebcfb97bff204d67362fe26b20b5c21f9ed7eb21
     </task>
     <servers />
   </component>

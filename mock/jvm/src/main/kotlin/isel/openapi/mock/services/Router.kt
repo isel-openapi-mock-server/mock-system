@@ -31,7 +31,7 @@ class Router(
                     operation.headers,
                     operation.security,
                     dynamicDomain,
-                    emptyList()
+                    null
                 )
 
                 val parts = apiPath.fullPath.split("/").filter { it.isNotEmpty() }
@@ -95,12 +95,13 @@ class Router(
             }
         }
 
-        val dynamicHandler = current.operations.find { it.method == method }?.handler
+        val dynamicHandler = current.operations.find { it.method == method }?.handler ?: return null
 
         return HandlerAndUUID(
             dynamicHandler = dynamicHandler,
             resourceUrl = resourceUrl.joinToString("/"),
-            scenarios = dynamicHandler?.scenarios ?: emptyList() //op.scenarios.filter { it.responseForPathMethod(path, method) }
+            //scenarios = dynamicHandler?.scenarios ?: emptyList() //op.scenarios.filter { it.responseForPathMethod(path, method) }
+            //isRootUpToDate = op.isRootUpToDate
         )
     }
 

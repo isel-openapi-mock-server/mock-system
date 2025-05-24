@@ -8,9 +8,21 @@ class ResponseValidator(
     private val adminDomain: AdminDomain,
 ) {
 
-    fun validateResponse(responseConfig: ResponseConfig) {
-        responses.any { response ->
-            adminDomain.verifyResponse(response, responseConfig.statusCode, responseConfig.headers, responseConfig.body) !is VerifyResponseError
+    // TODO() retornar a lista de erros, mas cada resposta vai ter a sua, lista de listas?
+    fun validateResponse(responseConfig: ResponseConfig): List<VerifyResponseError> {
+        val failList = mutableListOf<VerifyResponseError>()
+        responses.forEach { response ->
+            failList.addAll(
+                adminDomain.verifyResponse(
+                    response,
+                    responseConfig.statusCode,
+                    responseConfig.contentType,
+                    responseConfig.headers,
+                    responseConfig.body
+                )
+            )
         }
+        return failList
     }
+
 }

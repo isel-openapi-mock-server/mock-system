@@ -18,7 +18,8 @@ sealed interface DynamicHandlerError {
     data object NotFound: DynamicHandlerError
     data object HostDoesNotExist: DynamicHandlerError
     data object ScenarioNotFound: DynamicHandlerError
-    data object NoResponseForThisRequestInScenario : DynamicHandlerError // Para quando nao as resposta do scenario nao forem para aquele pedido
+    data class NoResponseForThisRequestInScenario(val scenarioName: String) : DynamicHandlerError // Para quando nao as resposta do scenario nao forem para aquele pedido
+    data object NoResponseForThisRequest : DynamicHandlerError
 }
 
 typealias DynamicHandlerResult = Either<DynamicHandlerError, Pair<ResponseConfig, String>>
@@ -36,20 +37,20 @@ class DynamicHandlerServices(
         path: String,
         request: HttpServletRequest,
         externalKey: String? = null,
-        scenarioName: String,
+        //scenarioName: String,
     ) : DynamicHandlerResult {
 
         if (!router.doesHostExist(host)) return failure(DynamicHandlerError.HostDoesNotExist)
 
-        if (!router.doesScenarioExist(host, scenarioName)) return failure(DynamicHandlerError.ScenarioNotFound)
+        //if (!router.doesScenarioExist(host, scenarioName)) return failure(DynamicHandlerError.ScenarioNotFound)
 
         val dynamicHandler = router.match(host, method, path) ?: return failure(DynamicHandlerError.NotFound)
 
-        dynamicHandler.scenarios.find { it.name == scenarioName } ?: return failure(DynamicHandlerError.NoResponseForThisRequestInScenario)
+        //dynamicHandler.scenarios.find { it.name == scenarioName } ?: return failure(DynamicHandlerError.NoResponseForThisRequestInScenario)
 
-        val handlerResponse : HandlerResult = dynamicHandler.dynamicHandler?.handle(request, scenarioName) ?: return failure(
-            DynamicHandlerError.NotFound
-        )
+        if (!dynamicHandler.dynamicHandler.hasResponse())  return failure(DynamicHandlerError.NoResponseForThisRequest)
+
+        val handlerResponse : HandlerResult = dynamicHandler.dynamicHandler.handle(request)
 
         val requestUuid = problemsDomain.generateUuidValue()
         val fails = handlerResponse.fails
