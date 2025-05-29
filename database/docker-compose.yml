@@ -6,7 +6,7 @@ services:
       dockerfile: ./Dockerfile-db
     environment:
       - POSTGRES_USER=mock
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=db
+      - POSTGRES_PASSWORD=mock
+      - POSTGRES_DB=mock
     ports:
       - 5432:5432

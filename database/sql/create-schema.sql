@@ -1,39 +1,19 @@
-delete from SCENARIO_RESPONSES;
-delete from SCENARIOS;
-delete from RESPONSE_BODY;
-delete from RESPONSES;
-delete from REQUEST_BODY;
-delete from PROBLEMS;
-delete from REQUEST_PARAMS;
-delete from REQUESTS;
-delete from PATHS;
-delete from SPECS;
-
-drop table if exists SCENARIO_RESPONSES;
-drop table if exists SCENARIOS;
-drop table if exists RESPONSE_BODY;
-drop table if exists RESPONSES;
-drop table if exists REQUEST_BODY;
-drop table if exists PROBLEMS;
-drop table if exists REQUEST_PARAMS;
-drop table if exists REQUESTS;
-drop table if exists PATHS;
-drop table if exists SPECS;
-
 CREATE TABLE IF NOT EXISTS TRANSACTIONS(
     uuid VARCHAR(256) PRIMARY KEY,
     host varchar(256) not null CHECK(LENGTH(host) >= 1 and LENGTH(host) <= 256)
 );
 
 CREATE TABLE IF NOT EXISTS OPEN_TRANSACTIONS(
-    uuid VARCHAR(256) PRIMARY KEY
+    uuid VARCHAR(256) PRIMARY KEY,
+    host varchar(256) not null CHECK(LENGTH(host) >= 1 and LENGTH(host) <= 256),
+    isAlive boolean not null DEFAULT true
 );
 
 CREATE TABLE IF NOT EXISTS SPECS(
     id serial primary key,
     name varchar(256) not null CHECK(LENGTH(name) >= 1 and LENGTH(name) <= 256),
     description varchar(256) CHECK(LENGTH(description) >= 1 and LENGTH(description) <= 256),
-    transaction_id varchar(256) not null
+    transaction_token varchar(256) not null
 );
 
 CREATE TABLE IF NOT EXISTS PATHS(
@@ -107,11 +87,10 @@ CREATE TABLE IF NOT EXISTS RESPONSE_BODY(
 
 CREATE TABLE IF NOT EXISTS SCENARIOS(
     name VARCHAR(256) NOT NULL CHECK(LENGTH(name) >= 1 and LENGTH(name) <= 256),
-    client_token VARCHAR(256) NOT NULL CHECK(LENGTH(client_token) >= 1 and LENGTH(client_token) <= 256),
     spec_id integer not null,
-    transaction_id varchar(256) not null,
+    transaction_token varchar(256) not null,
     FOREIGN KEY (spec_id) REFERENCES SPECS(id) ON DELETE CASCADE,
-    PRIMARY KEY (name, client_token)
+    PRIMARY KEY (name, spec_id)
 );
 
 CREATE TABLE IF NOT EXISTS SCENARIO_RESPONSES(
@@ -119,10 +98,10 @@ CREATE TABLE IF NOT EXISTS SCENARIO_RESPONSES(
     status_code VARCHAR(256) NOT NULL CHECK(LENGTH(status_code) >= 1 and LENGTH(status_code) <= 256),
     body BYTEA,
     headers jsonb,
-    scenario_name VARCHAR(256) NOT NULL CHECK(LENGTH(scenario_name) >= 1 and LENGTH(scenario_name) <= 256),
-    client_token VARCHAR(256) NOT NULL CHECK(LENGTH(client_token) >= 1 and LENGTH(client_token) <= 256),
-    FOREIGN KEY (scenario_name, client_token) REFERENCES SCENARIOS(name, client_token) ON DELETE CASCADE,
-    PRIMARY KEY (index, scenario_name, client_token)
+    spec_id integer NOT NULL,
+    scenario_name VARCHAR(256) NOT NULL,
+    FOREIGN KEY (spec_id, scenario_name) REFERENCES SCENARIOS(spec_id, name) ON DELETE CASCADE,
+    PRIMARY KEY (index, scenario_name)
 );
 
 create or replace function notify_specs_update()
@@ -134,11 +113,11 @@ returns trigger as $$
     $$ language plpgsql;
 
 create or replace trigger notify_spec_insert
-after insert on SPECS
+after insert on TRANSACTIONS
 for each row
 execute procedure notify_specs_update();
 
 create or replace trigger notify_spec_delete
-after delete on SPECS
+after delete on TRANSACTIONS
 for each row
 execute procedure notify_specs_update();

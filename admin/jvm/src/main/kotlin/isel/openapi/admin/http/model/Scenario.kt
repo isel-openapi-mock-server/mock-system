@@ -1,7 +1,7 @@
 package isel.openapi.admin.http.model
 
-import isel.openapi.admin.parsingServices.model.HttpMethod
-import isel.openapi.admin.parsingServices.model.StatusCode
+import isel.openapi.admin.parsing.model.HttpMethod
+import isel.openapi.admin.parsing.model.StatusCode
 
 data class Scenario(
     val name: String,

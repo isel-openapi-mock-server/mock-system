@@ -1,154 +1,200 @@
 package isel.openapi.admin.services
 
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import isel.openapi.admin.domain.AdminDomain
-import isel.openapi.admin.domain.RequestInfo
+import isel.openapi.admin.domain.admin.AdminDomain
 import isel.openapi.admin.http.model.Scenario
-import isel.openapi.admin.parsingServices.Parsing
+import isel.openapi.admin.parsing.Parsing
+import isel.openapi.admin.parsing.model.ApiPath
+import isel.openapi.admin.parsing.model.ApiSpec
+import isel.openapi.admin.parsing.model.PathOperation
 import isel.openapi.admin.repository.TransactionManager
 import isel.openapi.admin.utils.Either
 import isel.openapi.admin.utils.failure
 import isel.openapi.admin.utils.success
 import org.springframework.stereotype.Component
-import kotlinx.datetime.Clock
-
-sealed interface RequestInfoError {
-    data object RequestNotFound : RequestInfoError
-    data object RequestCredentialNotFound : RequestInfoError
-}
-
-typealias RequestInfoResult = Either<RequestInfoError, List<RequestInfo>>
 
 sealed interface CreateSpecError {
     data object InvalidOpenApiSpec : CreateSpecError
-    data object HostDoesNotExist : CreateSpecError
 }
 
 typealias CreateSpecResult = Either<CreateSpecError, String>
+
+sealed interface SaveScenarioError {
+    data object TransactionOrHostNotProvided : SaveScenarioError
+    data object PathOperationDoesNotExist : SaveScenarioError
+    data object InvalidResponseContent : SaveScenarioError
+    data object InvalidTransaction : SaveScenarioError
+    data object HostDoesNotExist : SaveScenarioError
+}
+
+typealias SaveScenarioResult = Either<SaveScenarioError, String>
 
 sealed interface CommitError {
     data object InvalidTransaction : CommitError
     data object HostDoesNotExist : CommitError
 }
 
-typealias CommitResult = Either<CommitError, Boolean>
-
-sealed interface SaveScenarioError {
-    data object PathOperationDoesNotExist : SaveScenarioError
-    data object InvalidResponseContent : SaveScenarioError
-}
-
-typealias SaveScenarioResult = Either<SaveScenarioError, String>
+typealias CommitResult = Either<CommitError, String>
 
 @Component
 class AdminServices(
     private val parsing: Parsing,
     private val transactionManager: TransactionManager,
     private val adminDomain: AdminDomain,
-    private val router: NotRouter,
+    private val router: RouteValidatorResolver,
 ) {
 
-    fun getRequestInfo(
-        uuid: String?,
-        externalKey: String?
-    ) : RequestInfoResult {
-        return transactionManager.run {
-
-            val adminRepository = it.adminRepository
-
-            val requests = if(uuid != null) {
-                listOf(adminRepository.getRequestInfoUUID(uuid) ?: return@run failure(RequestInfoError.RequestNotFound))
-            } else if (externalKey != null) {
-                adminRepository.getRequestInfoExternalKey(externalKey)
-            } else return@run failure(RequestInfoError.RequestCredentialNotFound)
-
-            if(requests.isEmpty()) return@run failure(RequestInfoError.RequestNotFound)
-
-            success(requests)
-
-        }
-    }
-
-
     /**
-     * Retorna o token da transaçao, se o transactionToken == null cria um novo, se não retorna o mesmo. Só retorna token se não tiver erros.
+     * Salva uma nova especificação OpenAPI no sistema.
+     * @param openApiSpec A especificação OpenAPI em formato String.
+     * @return Um resultado que contém o token de transação se a operação for bem-sucedida, ou um erro caso contrário.
      */
-    fun saveSpec(
+    fun saveNewSpec(
         openApiSpec: String,
-        host: String? = null,
-        transactionToken: String?,
     ) : CreateSpecResult {
 
-        if(!parsing.validateOpenApi(openApiSpec)) {
-            failure(CreateSpecError.InvalidOpenApiSpec)
-        }
-        val openApi = parsing.parseOpenApi(openApiSpec)
+        val apiSpec = parseOpenApiSpec(openApiSpec)
             ?: return failure(CreateSpecError.InvalidOpenApiSpec)
-
-        val apiSpec = parsing.extractApiSpec(openApi)
-        var currentHost = host ?: adminDomain.generateHost()
 
         val mapper = jacksonObjectMapper()
             .registerKotlinModule()
 
-        //val transToken = transactionToken ?: TODO() //funçao para criar o novo token
-        /*
-        if (host == null) gerar novo host
-        if (transactionToken == null) gerar novo token
-        adicionar a spec à DB.
-        */
+        var transactionToken = adminDomain.generateTokenValue()
+
         transactionManager.run {
             val adminRepository = it.adminRepository
-            if(host == null) {
-                while(adminRepository.getSpecId(currentHost) != null) {
-                    currentHost = adminDomain.generateHost()
-                }
-                val specId = adminRepository.addAPISpec(apiSpec.name, apiSpec.description, currentHost)
-                for (path in apiSpec.paths) {
-                    val operationsJson = mapper.writeValueAsString(path.operations)
-                    adminRepository.addPath(specId, path.fullPath, operationsJson)
-                }
-            } else {
-                val specId = adminRepository.getSpecId(currentHost)
-                    ?: return@run failure(CreateSpecError.HostDoesNotExist)
-                adminRepository.updateAPISpec(specId, apiSpec.name, apiSpec.description)
-                for (path in apiSpec.paths) {
-                    val operationsJson = mapper.writeValueAsString(path.operations)
-                    adminRepository.addPath(specId, path.fullPath, operationsJson)
-                }
+            val transactionsRepository = it.transactionsRepository
+
+            //Verifica se o transactionToken não existe ainda
+            while(transactionsRepository.isTransactionActive(transactionToken)) {
+                transactionToken = adminDomain.generateTokenValue()
             }
+
+
+            val specId = adminRepository.addAPISpec(apiSpec.name, apiSpec.description, transactionToken)
+            for (path in apiSpec.paths) {
+                val operationsJson = mapper.writeValueAsString(path.operations)
+                adminRepository.addPath(specId, path.fullPath, operationsJson)
+            }
+
         }
-
-        router.register(apiSpec, currentHost) // TODO acho que aqui nao muda nada com o transactionToken
-
-        return success(currentHost)
+        // Regista a especificação no router
+        router.register(apiSpec, transactionToken)
+        return success(transactionToken)
     }
 
     /**
-     * Retorna o token da transaçao, se o transactionToken == null cria um novo, se não retorna o mesmo. Só retorna token se não tiver erros.
+     * Salva a configuração de resposta para um cenário específico.
+     * @param host O host para o qual a configuração de resposta será salva.
+     * @param scenario O cenário contendo as respostas a serem salvas.
+     * @param transactionToken O token da transação, se existir. Se for nulo, cria um novo token.
+     * @return Um resultado que contém o token de transação atualizado se a operação for bem-sucedida, ou um erro caso contrário.
      */
-    fun saveResponseConfig(host: String, scenario: Scenario, transactionToken: String?): SaveScenarioResult {
-        val responseValidator = router.match(host, scenario.method, scenario.path) ?: return failure(SaveScenarioError.PathOperationDoesNotExist) //erro que nao existe aquele path/method
+    fun saveResponseConfig(
+        host: String?,
+        scenario: Scenario,
+        transactionToken: String?
+    ): SaveScenarioResult {
+
+        var token = transactionToken ?:
+            adminDomain.generateTokenValue()
+
+        if(transactionToken == null && host == null) {
+            return failure(SaveScenarioError.TransactionOrHostNotProvided)
+        }
+
+        if(transactionToken == null) {
+            val spec = getApiSpec(host!!)
+                ?: return failure(SaveScenarioError.HostDoesNotExist)
+
+            transactionManager.run {
+                val transactionsRepository = it.transactionsRepository
+                val adminRepository = it.adminRepository
+                while(transactionsRepository.isTransactionActive(token)) {
+                    token = adminDomain.generateTokenValue()
+                }
+                //Cria uma nova transação
+                transactionsRepository.addNewTransaction(token, host)
+
+                // Copia a especificação para a transação
+                val specId = adminRepository.getSpecId(host)
+                transactionsRepository.copySpecToTransaction(token, specId!!)
+
+            }
+            router.register(spec, token)
+        }
+
+        val responseValidator = router.match(token, scenario.method, scenario.path)
+            ?: return failure(SaveScenarioError.PathOperationDoesNotExist)
+
         scenario.responses.forEach { response ->
             val respValRes = responseValidator.validateResponse(response)
-            // TODO nao seria assim, ter a lista de erros de validaçao, para depois guarda-los na DB
             if (respValRes.isNotEmpty()) {
                 // Guardar as falhas na DB ou retornar as falhas?
                 return failure(SaveScenarioError.InvalidResponseContent)
             }
         }
-        TODO("Not yet implemented") // se ainda nao teve erros, guardar, se teve, guardar os erros de validaçao, ver o transactionToken
-    }
 
-    fun commitChanges(
-        host: String?,
-        transaction: String,
-    ) : CommitResult {
+        val mapper = jacksonObjectMapper()
+            .registerKotlinModule()
+
         transactionManager.run {
             val transactionsRepository = it.transactionsRepository
 
-            if(!transactionsRepository.isTransactionActive(transaction)) {
+            if (transactionToken!= null && !transactionsRepository.isTransactionActive(transactionToken)) {
+                return@run failure(SaveScenarioError.InvalidTransaction)
+            }
+
+            //Verifica se já existe um cenário com o mesmo nome e se sim apaga-o
+            if(transactionsRepository.getScenarioNameByTransaction(token) != null) {
+                transactionsRepository.deleteScenario(token, scenario.name)
+            }
+
+            // Regista o cenário no repositório
+            transactionsRepository.addScenario(token, scenario.name)
+
+            // Regista as respostas no repositório
+            for (i in scenario.responses.indices) {
+
+                //Converte os headers para JSON
+                val jsonHeaders =
+                    if(scenario.responses[i].headers != null) mapper.writeValueAsString(scenario.responses[i].headers)
+                    else null
+
+                transactionsRepository.addScenarioResponse(
+                    token,
+                    scenario.name,
+                    i,
+                    scenario.responses[i].statusCode.code,
+                    scenario.responses[i].body,
+                    jsonHeaders,
+                )
+            }
+        }
+
+        return success(token)
+
+    }
+
+    /**
+     * Confirma as alterações feitas em uma transação, associando-a a um host específico.
+     * @param host O host ao qual as alterações serão aplicadas. Se nulo, um novo host será gerado.
+     * @param transactionToken O token da transação a ser confirmada.
+     * @return Um resultado que contém o host associado à transação se a operação for bem-sucedida, ou um erro caso contrário.
+     */
+    fun commitChanges(
+        host: String?,
+        transactionToken: String,
+    ) : CommitResult {
+
+        var currentHost = host ?: adminDomain.generateHost()
+
+        transactionManager.run {
+            val transactionsRepository = it.transactionsRepository
+
+            if(!transactionsRepository.isTransactionActive(transactionToken)) {
                 return@run failure(CommitError.InvalidTransaction)
             }
 
@@ -156,16 +202,74 @@ class AdminServices(
                 return@run failure(CommitError.HostDoesNotExist)
             }
 
-            val newHost = adminDomain.generateHost()
+            if(host == null) {
+                while(transactionsRepository.isHostExists(currentHost)) {
+                    currentHost = adminDomain.generateHost()
+                }
+            }
+            transactionsRepository.commitTransaction(transactionToken,currentHost)
+        }
+        router.remove(transactionToken)
+        return success(currentHost)
+    }
 
-            transactionsRepository.commitTransaction(
-                transaction,
-                newHost,
+    /**
+     * Valida e extrai uma especificação OpenAPI a partir de uma string.
+     * @param openApiSpec A especificação OpenAPI em formato String.
+     * @return Um objeto ApiSpec se a especificação for válida, ou null caso contrário.
+     */
+    private fun parseOpenApiSpec(openApiSpec: String): ApiSpec? {
+        if(!parsing.validateOpenApi(openApiSpec)) {
+            return null
+        }
+        val openApi = parsing.parseOpenApi(openApiSpec)
+            ?: return null
+
+        return parsing.extractApiSpec(openApi)
+    }
+
+    /**
+     * Obtém a especificação da API associada a um host específico.
+     * @param host O host para o qual a especificação da API será recuperada.
+     * @return Um objeto ApiSpec contendo a especificação da API, ou null se não for encontrada.
+     */
+    private fun getApiSpec(host: String): ApiSpec? {
+
+        val spec = transactionManager.run {
+            val adminRepository = it.adminRepository
+            val transactionRepository = it.transactionsRepository
+
+            val transactionToken = transactionRepository.getTransactionByHost(host)
+                ?: return@run null
+
+            adminRepository.getApiSpecByTransactionToken(transactionToken)
+        } ?: return null
+
+        val mapper = jacksonObjectMapper()
+            .registerKotlinModule()
+
+        val paths = mutableListOf<ApiPath>()
+
+        spec.paths.forEach { apiPath ->
+
+            val operations: List<PathOperation> =
+                mapper.readValue(apiPath.operations, object : TypeReference<List<PathOperation>>() {})
+
+            paths.add(
+                ApiPath(
+                    fullPath = apiPath.path,
+                    operations = operations,
+                    path = parsing.splitPath(apiPath.path)
+                )
             )
+
         }
 
-        return success(true)
-
+        return ApiSpec(
+            name = spec.name,
+            description = spec.description,
+            paths = paths
+        )
     }
 
 }

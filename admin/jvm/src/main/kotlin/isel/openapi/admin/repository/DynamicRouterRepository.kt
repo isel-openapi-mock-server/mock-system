@@ -1,20 +1,23 @@
 package isel.openapi.admin.repository
 
-import isel.openapi.admin.domain.HostInfo
-import isel.openapi.admin.domain.RouteNode
+import isel.openapi.admin.domain.admin.RouteNode
 import org.springframework.stereotype.Component
 
 @Component
-class DynamicRoutesRepository{
+class ResolverRepository{
 
-    private val mappings = mutableMapOf<String, HostInfo>()
+    private val mappings = mutableMapOf<String, RouteNode>()
 
-    fun register(host:String, root: RouteNode) {
-        mappings[host] = HostInfo(root)
+    fun register(transactionToken:String, root: RouteNode) {
+        mappings[transactionToken] = root
     }
 
-    fun getOperations(host: String): HostInfo? {
+    fun getValidator(host: String): RouteNode? {
         return mappings[host]
+    }
+
+    fun remove(transactionToken: String) {
+        mappings.remove(transactionToken)
     }
 
 }

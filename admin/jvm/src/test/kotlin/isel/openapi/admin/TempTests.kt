@@ -3,7 +3,7 @@ package isel.openapi.admin
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import isel.openapi.admin.parsingServices.model.*
+import isel.openapi.admin.parsing.model.*
 import kotlin.test.Test
 
 class TempTests {

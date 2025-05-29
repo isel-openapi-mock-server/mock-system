@@ -1,6 +1,7 @@
 package isel.openapi.mock.repository
 
 import isel.openapi.mock.services.DynamicHandlerServices
+import isel.openapi.mock.services.Synchronizer
 import jakarta.annotation.PostConstruct
 import org.postgresql.PGConnection
 import org.springframework.stereotype.Component
@@ -10,7 +11,7 @@ import kotlin.concurrent.thread
 @Component
 class PostgresListener(
     private val dataSource: DataSource,
-    private val dynamicHandlerServices: DynamicHandlerServices
+    private val synchronizer: Synchronizer
 ) {
 
     @PostConstruct
@@ -26,7 +27,7 @@ class PostgresListener(
                 if (notifications != null) {
                     for (notification in notifications) {
                         if(notification.name == "update_spec") {
-                            dynamicHandlerServices.updateDynamicRoutes()
+                            synchronizer.queue()
                         }
                     }
                 }
@@ -34,5 +35,4 @@ class PostgresListener(
             }
         }
     }
-
 }

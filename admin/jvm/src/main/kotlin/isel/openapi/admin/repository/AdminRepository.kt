@@ -1,35 +1,13 @@
 package isel.openapi.admin.repository
 
-import isel.openapi.admin.domain.HeadersInfo
-import isel.openapi.admin.domain.ProblemInfo
-import isel.openapi.admin.domain.RequestInfo
+import isel.openapi.admin.domain.admin.SpecInfo
 
 interface AdminRepository {
-
-    fun getRequestInfoExternalKey(
-        externalKey: String
-    ): List<RequestInfo>
-
-    fun getRequestInfoUUID(
-        uuid: String
-    ) : RequestInfo?
-
-    fun getRequestProblems(
-        requestUUID: String
-    ): List<ProblemInfo>
-
-    fun getRequestBody(
-        requestUUID: String
-    ) : ByteArray?
-
-    fun getRequestHeaders(
-        requestUUID: String
-    ) : List<HeadersInfo>
 
     fun addAPISpec(
         name: String,
         description: String?,
-        host: String,
+        transactionToken: String
     ): Int
 
     fun addPath(
@@ -47,5 +25,9 @@ interface AdminRepository {
         name: String,
         description: String?
     )
+
+    fun getApiSpecByTransactionToken(
+        transactionToken: String
+    ): SpecInfo?
 
 }

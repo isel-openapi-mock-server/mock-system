@@ -1,9 +1,8 @@
 package isel.openapi.admin.repository.jdbi
 
-import isel.openapi.admin.domain.HeadersInfo
-import isel.openapi.admin.domain.ProblemInfo
-import isel.openapi.admin.domain.RequestDetails
-import isel.openapi.admin.domain.RequestInfo
+import isel.openapi.admin.domain.admin.OpenAPIDetails
+import isel.openapi.admin.domain.admin.PathOperations
+import isel.openapi.admin.domain.admin.SpecInfo
 import isel.openapi.admin.repository.AdminRepository
 import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.kotlin.mapTo
@@ -13,138 +12,21 @@ class JdbiAdminRepository(
     private val handle: Handle,
 ) : AdminRepository {
 
-    override fun getRequestInfoUUID(
-        uuid: String
-    ): RequestInfo? {
-        val temp = handle.createQuery(
-            """
-            SELECT external_key, url, method, host, uuid FROM requests WHERE uuid = :uuid
-            """
-        )
-            .bind("uuid", uuid)
-            .mapTo<RequestDetails>()
-            .firstOrNull()
-
-        if(temp == null) return null
-
-        val problems = getRequestProblems(uuid)
-
-        val headers = getRequestHeaders(uuid)
-
-        val body = getRequestBody(uuid)
-
-        return RequestInfo(
-            uuid = uuid,
-            externalKey = temp.externalKey,
-            method = temp.method,
-            path = temp.url,
-            host = temp.host,
-            body = body,
-            headers = headers,
-            problems = problems
-        )
-    }
-
-    override fun getRequestInfoExternalKey(
-        externalKey: String
-    ): List<RequestInfo> {
-
-        val toReturn = mutableListOf<RequestInfo>()
-
-        val requestTemp = handle.createQuery(
-            """
-            SELECT external_key, url, method, host, uuid FROM requests WHERE external_key = :externalKey
-            """
-        )
-            .bind("externalKey", externalKey)
-            .mapTo<RequestDetails>()
-            .list()
-
-        requestTemp.forEach {
-            val problems = getRequestProblems(it.uuid)
-
-            val headers = getRequestHeaders(it.uuid)
-
-            val body = getRequestBody(it.uuid)
-
-            toReturn.add(
-                RequestInfo(
-                    uuid = it.uuid,
-                    externalKey = externalKey,
-                    method = it.method,
-                    path = it.url,
-                    host = it.host,
-                    body = body,
-                    headers = headers,
-                    problems = problems
-                )
-            )
-        }
-
-        return toReturn
-
-    }
-
-    override fun getRequestProblems(
-        requestUUID: String,
-    ): List<ProblemInfo> {
-
-        return handle.createQuery(
-            """
-            SELECT description, type FROM problems WHERE uuid = :uuid
-            """
-        )
-            .bind("uuid", requestUUID)
-            .mapTo<ProblemInfo>()
-            .list()
-
-    }
-
-    override fun getRequestHeaders(
-        requestUUID: String,
-    ): List<HeadersInfo> {
-
-        return handle.createQuery(
-            """
-            SELECT name, content FROM request_headers WHERE uuid = :uuid
-            """
-        )
-            .bind("uuid", requestUUID)
-            .mapTo<HeadersInfo>()
-            .toList()
-
-    }
-
-    override fun getRequestBody(
-        requestUUID: String,
-    ): ByteArray? {
-
-        return handle.createQuery(
-            """
-            SELECT content FROM request_body WHERE uuid = :uuid
-            """
-        )
-            .bind("uuid", requestUUID)
-            .mapTo<ByteArray>() //Base64
-            .firstOrNull()
-
-    }
-
-    override fun addAPISpec(name: String, description: String?, host: String): Int {
+    override fun addAPISpec(name: String, description: String?, transactionToken: String): Int {
         return handle.createUpdate(
             """
-            INSERT INTO specs (name, description, host) VALUES (:name, :description, :host)
+            INSERT INTO specs (name, description, transaction) VALUES (:name, :description, :transaction)
             """
         )
             .bind("name", name)
             .bind("description", description)
-            .bind("host", host)
+            .bind("transaction", transactionToken)
             .executeAndReturnGeneratedKeys()
             .mapTo<Int>()
             .one()
     }
 
-    override fun addPath(id: Int, path: String, operations: String) {
+    override fun addPath(specId: Int, path: String, operations: String) {
         handle.createUpdate(
             """
             INSERT INTO paths (full_path, operations, spec_id) VALUES (:path, :operations, :id)
@@ -152,17 +34,29 @@ class JdbiAdminRepository(
         )
             .bind("path", path)
             .bind("operations", jsonb(operations))
-            .bind("id", id)
+            .bind("id", specId)
             .execute()
     }
 
     override fun getSpecId(host: String): Int? {
-        return handle.createQuery(
+
+        val transactionToken = handle.createQuery(
             """
-            SELECT id FROM specs WHERE host = :host
+            SELECT uuid FROM open_transactions WHERE host = :host
             """
         )
             .bind("host", host)
+            .mapTo<String>()
+            .firstOrNull()
+
+        if (transactionToken == null) return null
+
+        return handle.createQuery(
+            """
+            SELECT id FROM specs WHERE transaction = :transaction
+            """
+        )
+            .bind("transaction", transactionToken)
             .mapTo<Int>()
             .firstOrNull()
     }
@@ -185,6 +79,60 @@ class JdbiAdminRepository(
         )
             .bind("id", id)
             .execute()
+    }
+
+    override fun getApiSpecByTransactionToken(transactionToken: String): SpecInfo? {
+
+        val specId = handle.createQuery(
+            """
+            SELECT id FROM specs
+            where transaction = :transactionToken
+            """
+        )
+            .mapTo<Int>()
+            .firstOrNull() ?: return null
+
+
+        val temp = handle.createQuery(
+            """
+        SELECT id, name, description FROM specs WHERE id = :id
+        """
+        )
+            .bind("id", specId)
+            .mapTo<OpenAPIDetails>()
+            .first()
+
+        val pathsIds = handle.createQuery(
+            """
+        SELECT id FROM paths WHERE spec_id = :id
+        """
+        )
+            .bind("id", specId)
+            .mapTo<Int>()
+            .list()
+
+        val pathsInfo = mutableListOf<PathOperations>()
+
+        for (pathId in pathsIds) {
+            val operation = handle.createQuery(
+                """
+            SELECT full_path as path, operations FROM paths WHERE id = :pathId
+            """
+            )
+                .bind("pathId", pathId)
+                .mapTo<PathOperations>()
+                .first()
+
+            pathsInfo.add(operation)
+
+        }
+
+        return SpecInfo(
+                    name = temp.name,
+                    description = temp.description,
+                    paths = pathsInfo
+                )
+
     }
 
     private fun jsonb(value: String): PGobject {
