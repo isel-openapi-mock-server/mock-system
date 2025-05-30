@@ -28,8 +28,6 @@ class JdbiRequestsRepository(
 
         val problems = getRequestProblems(exchangeKey)
 
-        val headers = getRequestHeaders(exchangeKey)
-
         val body = getRequestBody(exchangeKey)
 
         return RequestInfo(
@@ -39,7 +37,6 @@ class JdbiRequestsRepository(
             path = temp.url,
             host = temp.host,
             body = body,
-            headers = headers,
             problems = problems
         )
     }
@@ -62,8 +59,6 @@ class JdbiRequestsRepository(
         requestTemp.forEach {
             val problems = getRequestProblems(it.uuid)
 
-            val headers = getRequestHeaders(it.uuid)
-
             val body = getRequestBody(it.uuid)
 
             toReturn.add(
@@ -74,7 +69,6 @@ class JdbiRequestsRepository(
                     path = it.url,
                     host = it.host,
                     body = body,
-                    headers = headers,
                     problems = problems
                 )
             )
@@ -96,21 +90,6 @@ class JdbiRequestsRepository(
             .bind("uuid", requestUUID)
             .mapTo<ProblemInfo>()
             .list()
-
-    }
-
-    override fun getRequestHeaders(
-        requestUUID: String,
-    ): List<HeadersInfo> {
-
-        return handle.createQuery(
-            """
-            SELECT name, content FROM request_headers WHERE uuid = :uuid
-            """
-        )
-            .bind("uuid", requestUUID)
-            .mapTo<HeadersInfo>()
-            .toList()
 
     }
 
@@ -172,8 +151,6 @@ class JdbiRequestsRepository(
         requests.forEach { request ->
             val problems = getRequestProblems(request.uuid)
 
-            val headers = getRequestHeaders(request.uuid)
-
             val body = getRequestBody(request.uuid)
 
             toReturn.add(
@@ -184,7 +161,6 @@ class JdbiRequestsRepository(
                     path = request.url,
                     host = request.host,
                     body = body,
-                    headers = headers,
                     problems = problems
                 )
             )

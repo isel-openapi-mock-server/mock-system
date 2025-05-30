@@ -11,5 +11,5 @@ class HandlerResult(
     val headers: Map<String, String> = emptyMap(),
     val cookies: List<Cookie> = emptyList(),
     val params: List<ParameterInfo>,
-    val response: ResponseConfig,
+    val response: ResponseConfig?,
 )

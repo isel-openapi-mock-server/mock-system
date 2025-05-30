@@ -1,5 +1,6 @@
 package isel.openapi.admin.repository.jdbi
 
+import isel.openapi.admin.parsing.model.HttpMethod
 import isel.openapi.admin.repository.TransactionsRepository
 import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.kotlin.mapTo
@@ -13,9 +14,10 @@ class JdbiTransactionsRepository(
         return handle.createQuery(
             """
             SELECT uuid from open_transactions
-            where uuid = :uuid and isActive = true
+            where uuid = :uuid and isAlive = true
             """
         )
+            .bind("uuid", uuid)
             .mapTo<String>()
             .firstOrNull() != null
     }
@@ -24,11 +26,12 @@ class JdbiTransactionsRepository(
         handle.createUpdate(
             """
             update open_transactions
-            set isActive = false, host = :host
+            set isAlive = false, host = :host
             where uuid = :uuid
             """
         )
             .bind("uuid", uuid)
+            .bind("host", host)
             .execute()
 
         val isHostExists = handle.createQuery(
@@ -38,8 +41,8 @@ class JdbiTransactionsRepository(
             """
         )
             .bind("host", host)
-            .mapTo<Boolean>()
-            .one()
+            .mapTo<String>()
+            .firstOrNull() != null
 
         if(!isHostExists) {
             handle.createUpdate(
@@ -89,15 +92,16 @@ class JdbiTransactionsRepository(
             .firstOrNull()
     }
 
-    override fun addNewTransaction(uuid: String, host: String) {
+    override fun addNewTransaction(uuid: String, specId: Int, host: String?) {
         handle.createUpdate(
             """
-            INSERT INTO open_transactions (uuid, host)
-            VALUES (:uuid, :host)
+            INSERT INTO open_transactions (uuid, host, spec_id)
+            VALUES (:uuid, :host, :specId)
             """
         )
             .bind("uuid", uuid)
             .bind("host", host)
+            .bind("specId", specId)
             .execute()
     }
 
@@ -170,7 +174,7 @@ class JdbiTransactionsRepository(
         return rowsAffected > 0
     }
 
-    override fun addScenario(transactionToken: String, scenarioName: String): Boolean {
+    override fun addScenario(transactionToken: String, scenarioName: String, method: String, path: String): Boolean {
 
         val specId = handle.createQuery(
             """
@@ -184,13 +188,15 @@ class JdbiTransactionsRepository(
 
         val rowsAffected = handle.createUpdate(
             """
-            INSERT INTO scenarios (transaction_token, name, spec_id)
-            VALUES (:transactionToken, :scenarioName, :specId)
+            INSERT INTO scenarios (transaction_token, name, spec_id, method, path)
+            VALUES (:transactionToken, :scenarioName, :specId, :method, :path)
             """
         )
             .bind("transactionToken", transactionToken)
             .bind("scenarioName", scenarioName)
             .bind("specId", specId)
+            .bind("method", method.uppercase())
+            .bind("path", path)
             .execute()
 
         return rowsAffected > 0
@@ -200,14 +206,16 @@ class JdbiTransactionsRepository(
         transactionToken: String,
         scenarioName: String,
         index: Int,
-        statusCode: Int,
+        statusCode: String,
         body: ByteArray?,
-        headers: String?
+        headers: String?,
+        contentType: String?,
+        specId: Int
     ): Boolean {
         val rowsAffected = handle.createUpdate(
             """
-            INSERT INTO scenario_responses (transaction_token, scenario_name, index, status_code, body, headers)
-            VALUES (:transactionToken, :scenarioName, :index, :statusCode, :body, :headers)
+            INSERT INTO scenario_responses (scenario_name, index, status_code, body, headers, content_type, spec_id)
+            VALUES (:scenarioName, :index, :statusCode, :body, :headers, :contentType, :specId)
             """
         )
             .bind("transactionToken", transactionToken)
@@ -216,9 +224,23 @@ class JdbiTransactionsRepository(
             .bind("statusCode", statusCode)
             .bind("body", body)
             .bind("headers", if(headers != null)jsonb(headers) else null)
+            .bind("contentType", contentType)
+            .bind("specId", specId)
             .execute()
 
         return rowsAffected > 0
+    }
+
+    override fun getSpecIdByTransaction(transactionToken: String): Int? {
+        return handle.createQuery(
+            """
+            SELECT spec_id FROM open_transactions
+            WHERE uuid = :transactionToken
+            """
+        )
+            .bind("transactionToken", transactionToken)
+            .mapTo<Int>()
+            .firstOrNull()
     }
 
     private fun jsonb(value: String): PGobject {

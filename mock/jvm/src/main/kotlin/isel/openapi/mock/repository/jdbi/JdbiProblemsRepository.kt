@@ -17,26 +17,25 @@ class JdbiProblemsRepository(
 
     override fun addRequest(uuid: String, url: String, method: String, path: String, externalKey: String?, host: String, headers: String?) {
 
-        val specId = handle.createQuery(
+        val transactionToken = handle.createQuery(
             """
-            SELECT id FROM specs WHERE host = :host
+            SELECT uuid FROM open_transactions WHERE host = :host
             """
         )
             .bind("host", host)
-            .mapTo<Int>()
+            .mapTo<String>()
             .first()
 
-        val pathId = handle.createQuery(
+        val specId = handle.createQuery(
             """
-            SELECT id FROM paths WHERE full_path = :path AND spec_id = :specId
+            SELECT id FROM specs WHERE transaction_token = :transactionToken
             """
         )
-            .bind("path", url)
-            .bind("specId", specId)
+            .bind("transactionToken", transactionToken)
             .mapTo<Int>()
             .first()
 
-        handle.createUpdate("INSERT INTO requests (uuid, url, method, path, external_key, host, spec_id, path_id, headers) VALUES (:uuid, :url, :method, :path, :externalKey, :host, :specId, :pathId, :headers)")
+        handle.createUpdate("INSERT INTO requests (uuid, url, method, path, external_key, host, spec_id, headers) VALUES (:uuid, :url, :method, :path, :externalKey, :host, :specId, :headers)")
             .bind("uuid", uuid)
             .bind("url", url)
             .bind("method", method)
@@ -44,7 +43,6 @@ class JdbiProblemsRepository(
             .bind("externalKey", externalKey)
             .bind("host", host)
             .bind("specId", specId)
-            .bind("pathId", pathId)
             .bind("headers", jsonb(headers))
             .execute()
     }
@@ -90,9 +88,9 @@ class JdbiProblemsRepository(
     }
 
     override fun addResponseBody(id: Int, body: ByteArray, contentType: String) {
-        handle.createUpdate("INSERT INTO response_body (response_id, content, content_type) VALUES (:uuid, :content, :contentType)")
+        handle.createUpdate("INSERT INTO response_body (response_id, content, content_type) VALUES (:response_id, :content, :contentType)")
             .bind("response_id", id)
-            .bind("content", body.toString())
+            .bind("content", body)
             .bind("contentType", contentType)
             .execute()
     }

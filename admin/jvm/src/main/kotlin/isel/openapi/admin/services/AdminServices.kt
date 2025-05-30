@@ -8,6 +8,7 @@ import isel.openapi.admin.http.model.Scenario
 import isel.openapi.admin.parsing.Parsing
 import isel.openapi.admin.parsing.model.ApiPath
 import isel.openapi.admin.parsing.model.ApiSpec
+import isel.openapi.admin.parsing.model.HttpMethod
 import isel.openapi.admin.parsing.model.PathOperation
 import isel.openapi.admin.repository.TransactionManager
 import isel.openapi.admin.utils.Either
@@ -72,8 +73,14 @@ class AdminServices(
                 transactionToken = adminDomain.generateTokenValue()
             }
 
-
             val specId = adminRepository.addAPISpec(apiSpec.name, apiSpec.description, transactionToken)
+
+            transactionsRepository.addNewTransaction(
+                transactionToken,
+                specId,
+                null
+            )
+
             for (path in apiSpec.paths) {
                 val operationsJson = mapper.writeValueAsString(path.operations)
                 adminRepository.addPath(specId, path.fullPath, operationsJson)
@@ -115,18 +122,22 @@ class AdminServices(
                 while(transactionsRepository.isTransactionActive(token)) {
                     token = adminDomain.generateTokenValue()
                 }
-                //Cria uma nova transação
-                transactionsRepository.addNewTransaction(token, host)
 
                 // Copia a especificação para a transação
-                val specId = adminRepository.getSpecId(host)
-                transactionsRepository.copySpecToTransaction(token, specId!!)
+                val specId = adminRepository.getSpecId(host) ?:
+                    return@run failure(SaveScenarioError.HostDoesNotExist)
+
+                //Cria uma nova transação
+                transactionsRepository.addNewTransaction(token, specId, host)
+                transactionsRepository.copySpecToTransaction(token, specId)
 
             }
             router.register(spec, token)
         }
 
-        val responseValidator = router.match(token, scenario.method, scenario.path)
+        val httpMethod = HttpMethod.valueOf(scenario.method.uppercase())
+
+        val responseValidator = router.match(token, httpMethod, scenario.path)
             ?: return failure(SaveScenarioError.PathOperationDoesNotExist)
 
         scenario.responses.forEach { response ->
@@ -153,7 +164,10 @@ class AdminServices(
             }
 
             // Regista o cenário no repositório
-            transactionsRepository.addScenario(token, scenario.name)
+            transactionsRepository.addScenario(token, scenario.name, scenario.method, scenario.path)
+
+            val specId = transactionsRepository.getSpecIdByTransaction(token)
+                ?: return@run failure(SaveScenarioError.InvalidTransaction)
 
             // Regista as respostas no repositório
             for (i in scenario.responses.indices) {
@@ -167,15 +181,15 @@ class AdminServices(
                     token,
                     scenario.name,
                     i,
-                    scenario.responses[i].statusCode.code,
-                    scenario.responses[i].body,
+                    scenario.responses[i].statusCode.toString(),
+                    scenario.responses[i].body?.toByteArray(),
                     jsonHeaders,
+                    scenario.responses[i].contentType,
+                    specId
                 )
             }
         }
-
         return success(token)
-
     }
 
     /**

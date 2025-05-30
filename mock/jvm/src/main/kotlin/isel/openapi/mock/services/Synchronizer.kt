@@ -1,5 +1,6 @@
 package isel.openapi.mock.services
 
+import jakarta.annotation.PostConstruct
 import org.springframework.stereotype.Component
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -12,7 +13,9 @@ import kotlin.concurrent.withLock
  * coloca-a a falso, larga o lock e faz a atualizaçao do Router em memoria com a info da DB. Fica num ciclo a fazer isto.
  */
 @Component
-class  Synchronizer {
+class  Synchronizer(
+    private val services: DynamicHandlerServices
+) {
 
     private val lock = ReentrantLock()
 
@@ -28,17 +31,18 @@ class  Synchronizer {
 
     }
 
+    @PostConstruct
     fun dequeue() {
-        while (true) {
-            lock.withLock {
-                while (!update) {
-                    condition.await()
+        Thread.ofPlatform().start {
+            while (true) {
+                lock.withLock {
+                    while (!update) {
+                        condition.await()
+                    }
+                    update = false
                 }
-                update = false
+                services.updateDynamicRouter()
             }
-
-            //TODO ir buscar os dados à DB e criar nova instancia de Router
         }
-
     }
 }

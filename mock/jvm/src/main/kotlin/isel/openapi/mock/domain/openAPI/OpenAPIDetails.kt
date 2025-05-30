@@ -4,5 +4,5 @@ data class OpenAPIDetails(
     val id: Int,
     val name: String,
     val description: String?,
-    val host: String,
+    val transactionToken: String
 )

@@ -6,6 +6,5 @@ import isel.openapi.mock.services.Scenario
 class HandlerAndUUID(
     val dynamicHandler: DynamicHandler,
     val resourceUrl: String,
-    //val scenarios: List<Scenario>
-    //val isRootUpToDate: Boolean,
+    val routeNode: RouteNode
 )

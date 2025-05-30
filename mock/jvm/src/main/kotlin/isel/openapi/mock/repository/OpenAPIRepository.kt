@@ -1,9 +1,9 @@
 package isel.openapi.mock.repository
 
-import isel.openapi.mock.domain.openAPI.SpecInfo
+import isel.openapi.mock.domain.dynamic.SpecAndScenario
 
 interface OpenAPIRepository {
 
-    fun uploadOpenAPI(): List<Pair<String, SpecInfo>>
+    fun uploadOpenAPI(): List<SpecAndScenario>
 
 }

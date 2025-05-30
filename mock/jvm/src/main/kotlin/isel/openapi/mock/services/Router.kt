@@ -16,12 +16,14 @@ class Router(
     private val dynamicDomain: DynamicDomain,
 ) {
 
-    fun createRouterNode(apiSpec: ApiSpec, host: String) : RouteNode {
+    fun createRouterNode(apiSpec: ApiSpec, scenarios: List<Scenario>) : RouteNode {
 
         val root = RouteNode("")
 
         apiSpec.paths.forEach { apiPath ->
             apiPath.operations.forEach { operation ->
+
+                val operationScenarios = scenarios.filter { it.method == operation.method && it.path == apiPath.fullPath }
 
                 val handler = DynamicHandler(
                     apiPath.path,
@@ -31,7 +33,7 @@ class Router(
                     operation.headers,
                     operation.security,
                     dynamicDomain,
-                    null
+                    operationScenarios
                 )
 
                 val parts = apiPath.fullPath.split("/").filter { it.isNotEmpty() }
@@ -49,15 +51,24 @@ class Router(
                         }
                     } else {
                         if(current.children.containsKey(part)) {
-                            current.children[part]!!.operations.add(RouteOperation(operation.method, handler))
+                            current.children[part]!!.operations.add(
+                                RouteOperation(
+                                    operation.method,
+                                    apiPath.fullPath,
+                                    operationScenarios.map { it.name },
+                                    handler))
                             current
                         } else {
                             val newNode = RouteNode(part)
                             current.children[part] = newNode
-                            newNode.operations.add(RouteOperation(operation.method, handler))
+                            newNode.operations.add(
+                                RouteOperation(
+                                    operation.method,
+                                    apiPath.fullPath,
+                                    operationScenarios.map { it.name },
+                                    handler))
                             newNode
                         }
-
                     }
                 }
             }
@@ -71,9 +82,7 @@ class Router(
 
     fun match(host: String, method: HttpMethod, path: String): HandlerAndUUID? {
 
-        val op = repository.getOperations(host) ?: return null
-
-        var current = op.root
+        var current = repository.getOperations(host) ?: return null
 
         val resourceUrl = path.split("?").first().split("/").toMutableList()
 
@@ -100,16 +109,15 @@ class Router(
         return HandlerAndUUID(
             dynamicHandler = dynamicHandler,
             resourceUrl = resourceUrl.joinToString("/"),
-            //scenarios = dynamicHandler?.scenarios ?: emptyList() //op.scenarios.filter { it.responseForPathMethod(path, method) }
-            //isRootUpToDate = op.isRootUpToDate
+            routeNode = current
         )
     }
 
 
     fun doesHostExist(host: String): Boolean = repository.getOperations(host) != null
 
-    fun doesScenarioExist(host: String, scenarioName: String): Boolean =
-        repository.getOperations(host)?.scenarios?.any { it.name == scenarioName } == true
+    fun doesScenarioExist(routeNode: RouteNode, scenarioName: String, path: String, method: HttpMethod): Boolean =
+        repository.isScenarioExists(routeNode, scenarioName, path, method)
 }
 
 

@@ -119,14 +119,13 @@ class AdminDomain {
 
         val failList = mutableListOf<VerifyResponseError>()
 
-        //TODO()
         if (bodySpec == null && body == null && contentType == null) return failList
 
         if (bodySpec != null && body != null && contentType != null) {
             try {
                 bodySpec.content.forEach { (key, value) ->
                     if (key == contentType) {
-                        val validationResult = jsonValidator(value.schema, body.toString())
+                        val validationResult = jsonValidator(value.schema, String(body, Charsets.UTF_8))
                         if (validationResult != null) {
                             failList.add(
                                 VerifyResponseError.InvalidBodyFormat(

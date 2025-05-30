@@ -15,11 +15,12 @@ import jakarta.servlet.http.HttpServletRequest
 import org.springframework.stereotype.Component
 
 sealed interface DynamicHandlerError {
-    data object NotFound: DynamicHandlerError
+    data object HandlerNotFound: DynamicHandlerError
     data object HostDoesNotExist: DynamicHandlerError
     data object ScenarioNotFound: DynamicHandlerError
-    data class NoResponseForThisRequestInScenario(val scenarioName: String) : DynamicHandlerError // Para quando nao as resposta do scenario nao forem para aquele pedido
+    data class NoResponseForThisRequestInScenario(val scenarioName: String) : DynamicHandlerError
     data object NoResponseForThisRequest : DynamicHandlerError
+    data class BadRequest(val exchangeKey: String) : DynamicHandlerError
 }
 
 typealias DynamicHandlerResult = Either<DynamicHandlerError, Pair<ResponseConfig, String>>
@@ -37,22 +38,18 @@ class DynamicHandlerServices(
         path: String,
         request: HttpServletRequest,
         externalKey: String? = null,
-        //scenarioName: String,
+        scenarioName: String,
     ) : DynamicHandlerResult {
 
         if (!router.doesHostExist(host)) return failure(DynamicHandlerError.HostDoesNotExist)
 
-        //if (!router.doesScenarioExist(host, scenarioName)) return failure(DynamicHandlerError.ScenarioNotFound)
+        val dynamicHandler = router.match(host, method, path) ?: return failure(DynamicHandlerError.HandlerNotFound)
 
-        val dynamicHandler = router.match(host, method, path) ?: return failure(DynamicHandlerError.NotFound)
+        if (!router.doesScenarioExist(dynamicHandler.routeNode, scenarioName, path, method)) return failure(DynamicHandlerError.ScenarioNotFound)
 
-        //dynamicHandler.scenarios.find { it.name == scenarioName } ?: return failure(DynamicHandlerError.NoResponseForThisRequestInScenario)
+        val handlerResponse : HandlerResult = dynamicHandler.dynamicHandler.handle(request, scenarioName)
 
-        if (!dynamicHandler.dynamicHandler.hasResponse())  return failure(DynamicHandlerError.NoResponseForThisRequest)
-
-        val handlerResponse : HandlerResult = dynamicHandler.dynamicHandler.handle(request)
-
-        val requestUuid = problemsDomain.generateUuidValue()
+        val exchangeKey = problemsDomain.generateUuidValue()
         val fails = handlerResponse.fails
 
         val mapper = jacksonObjectMapper()
@@ -66,7 +63,7 @@ class DynamicHandlerServices(
                 else null
 
             problemsRepository.addRequest(
-                requestUuid,
+                exchangeKey,
                 dynamicHandler.resourceUrl,
                 method.name,
                 path,
@@ -76,38 +73,39 @@ class DynamicHandlerServices(
             )
 
             if(handlerResponse.body != null) {
-                problemsRepository.addRequestBody(requestUuid, handlerResponse.body.toByteArray(), handlerResponse.headers["content-type"] ?: "")
+                problemsRepository.addRequestBody(exchangeKey, handlerResponse.body.toByteArray(), handlerResponse.headers["content-type"] ?: "")
             }
 
             if(handlerResponse.params.isNotEmpty()) {
-                problemsRepository.addRequestParams(requestUuid, handlerResponse.params)
+                problemsRepository.addRequestParams(exchangeKey, handlerResponse.params)
             }
 
             if(fails.isNotEmpty()) {
-                problemsRepository.addProblems(requestUuid, fails)
-            }
+                problemsRepository.addProblems(exchangeKey, fails)
+            } else {
+                val jsonResponseHeaders =
+                    if(handlerResponse.headers.isNotEmpty()) mapper.writeValueAsString(handlerResponse.headers)
+                    else null
 
-            val jsonResponseHeaders =
-                if(handlerResponse.headers.isNotEmpty()) mapper.writeValueAsString(handlerResponse.headers)
-                else null
+                val responseId = problemsRepository.addResponse(exchangeKey, handlerResponse.response!!.statusCode.code, jsonResponseHeaders)
 
-            val responseId = problemsRepository.addResponse(requestUuid, handlerResponse.response.statusCode.code, jsonResponseHeaders)
-
-            if(handlerResponse.response.body != null) {
-                problemsRepository.addResponseBody(responseId, handlerResponse.response.body, handlerResponse.headers["content-type"] ?: "")
+                if(handlerResponse.response.body != null) {
+                    problemsRepository.addResponseBody(responseId, handlerResponse.response.body, handlerResponse.headers["content-type"] ?: "")
+                }
             }
         }
 
+        if (fails.isNotEmpty()) return failure(DynamicHandlerError.BadRequest(exchangeKey))
+
         return success(
             Pair(
-                handlerResponse.response,
-                requestUuid
+                handlerResponse.response!!,
+                exchangeKey
             )
         )
-
     }
 
-    fun updateDynamicRoutes() {
+    fun updateDynamicRouter() {
 
         val newMap = mutableMapOf<String, RouteNode>()
 
@@ -119,11 +117,11 @@ class DynamicHandlerServices(
         val mapper = jacksonObjectMapper()
             .registerKotlinModule()
 
-        for( (host, openAPI) in specs) {
+        for(sp in specs) {
 
             val paths = mutableListOf<ApiPath>()
 
-            openAPI.paths.forEach { apiPath ->
+            sp.spec.paths.forEach { apiPath ->
 
                 val operations : List<PathOperation> = mapper.readValue(apiPath.operations, object : TypeReference<List<PathOperation>>() {})
 
@@ -134,19 +132,34 @@ class DynamicHandlerServices(
                         path = splitPath(apiPath.path)
                     )
                 )
+            }
 
+            val scenarios = sp.scenarios.map {
+                Scenario(
+                    name = it.name,
+                    method = HttpMethod.valueOf(it.method.uppercase()),
+                    path = it.path,
+                    responses = it.responses.map { response ->
+                        ResponseConfig(
+                            statusCode = StatusCode.valueOf(response.statusCode.uppercase()),
+                            body = response.body,
+                            headers = response.headers?.let { mapper.readValue(it, object : TypeReference<Map<String, String>>() {}) },
+                            contentType = response.contentType
+                        )
+                    }
+                )
             }
 
             val routeNode = router.createRouterNode(
                 ApiSpec(
-                    name = openAPI.name,
-                    description = openAPI.description,
+                    name = sp.spec.name,
+                    description = sp.spec.description,
                     paths = paths
                 ),
-                host
+                scenarios
             )
 
-            newMap[host] = routeNode
+            newMap[sp.host] = routeNode
 
         }
 

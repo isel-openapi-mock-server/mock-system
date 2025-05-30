@@ -5,7 +5,8 @@ CREATE TABLE IF NOT EXISTS TRANSACTIONS(
 
 CREATE TABLE IF NOT EXISTS OPEN_TRANSACTIONS(
     uuid VARCHAR(256) PRIMARY KEY,
-    host varchar(256) not null CHECK(LENGTH(host) >= 1 and LENGTH(host) <= 256),
+    host varchar(256),
+    spec_id integer not null,
     isAlive boolean not null DEFAULT true
 );
 
@@ -22,7 +23,7 @@ CREATE TABLE IF NOT EXISTS PATHS(
     operations jsonb not null,
     spec_id integer not null,
     foreign key (spec_id) references SPECS(id) on delete cascade,
-    primary key (id, spec_id)
+    primary key (full_path, spec_id)
 );
 
 CREATE TABLE IF NOT EXISTS REQUESTS(
@@ -33,9 +34,8 @@ CREATE TABLE IF NOT EXISTS REQUESTS(
     path VARCHAR(256) NOT NULL,
     host VARCHAR(256) NOT NULL,
     spec_id integer not null,
-    path_id integer not null,
     headers jsonb,
-    foreign key (spec_id, path_id) references PATHS(spec_id, id) on delete cascade
+    foreign key (spec_id, path) references PATHS(spec_id, full_path) on delete cascade
 );
 
 CREATE TABLE IF NOT EXISTS REQUEST_PARAMS(
@@ -89,7 +89,9 @@ CREATE TABLE IF NOT EXISTS SCENARIOS(
     name VARCHAR(256) NOT NULL CHECK(LENGTH(name) >= 1 and LENGTH(name) <= 256),
     spec_id integer not null,
     transaction_token varchar(256) not null,
-    FOREIGN KEY (spec_id) REFERENCES SPECS(id) ON DELETE CASCADE,
+    method VARCHAR(256) NOT NULL CHECK(LENGTH(method) >= 1 and LENGTH(method) <= 256),
+    path VARCHAR(256) NOT NULL CHECK(LENGTH(path) >= 1 and LENGTH(path) <= 256),
+    FOREIGN KEY (spec_id, path) REFERENCES PATHS(spec_id, full_path) ON DELETE CASCADE,
     PRIMARY KEY (name, spec_id)
 );
 
@@ -98,10 +100,11 @@ CREATE TABLE IF NOT EXISTS SCENARIO_RESPONSES(
     status_code VARCHAR(256) NOT NULL CHECK(LENGTH(status_code) >= 1 and LENGTH(status_code) <= 256),
     body BYTEA,
     headers jsonb,
+    content_type VARCHAR(256) NOT NULL CHECK(LENGTH(content_type) >= 1 and LENGTH(content_type) <= 256),
     spec_id integer NOT NULL,
     scenario_name VARCHAR(256) NOT NULL,
     FOREIGN KEY (spec_id, scenario_name) REFERENCES SCENARIOS(spec_id, name) ON DELETE CASCADE,
-    PRIMARY KEY (index, scenario_name)
+    PRIMARY KEY (index, scenario_name, spec_id)
 );
 
 create or replace function notify_specs_update()

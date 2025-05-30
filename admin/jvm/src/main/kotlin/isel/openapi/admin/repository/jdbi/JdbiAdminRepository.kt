@@ -15,7 +15,7 @@ class JdbiAdminRepository(
     override fun addAPISpec(name: String, description: String?, transactionToken: String): Int {
         return handle.createUpdate(
             """
-            INSERT INTO specs (name, description, transaction) VALUES (:name, :description, :transaction)
+            INSERT INTO specs (name, description, transaction_token) VALUES (:name, :description, :transaction)
             """
         )
             .bind("name", name)

@@ -22,10 +22,6 @@ interface RequestsRepository {
         requestUUID: String
     ) : ByteArray?
 
-    fun getRequestHeaders(
-        requestUUID: String
-    ) : List<HeadersInfo>
-
     fun searchRequests(
         host: String,
         method: String?,

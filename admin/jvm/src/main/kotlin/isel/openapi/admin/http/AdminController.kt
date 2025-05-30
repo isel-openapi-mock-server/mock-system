@@ -1,5 +1,6 @@
 package isel.openapi.admin.http
 
+import isel.openapi.admin.http.model.CommitOutputModel
 import isel.openapi.admin.http.model.CreateSpecInputModel
 import isel.openapi.admin.http.model.CreateSpecOutputModel
 import isel.openapi.admin.http.model.Problem
@@ -13,7 +14,7 @@ import isel.openapi.admin.utils.Success
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
-const val TRANSACTION_HEADER = "transaction-token"
+const val TRANSACTION_HEADER = "Transaction-token"
 
 @RestController
 class AdminController(
@@ -73,7 +74,7 @@ class AdminController(
     ): ResponseEntity<*> {
         val res = adminServices.commitChanges(host, transactionToken)
         return when(res) {
-            is Success -> ResponseEntity.ok().build<Unit>()
+            is Success -> ResponseEntity.ok().body(CommitOutputModel(res.value))
             is Failure -> {
                 when(res.value) {
                     is CommitError.InvalidTransaction -> Problem.response(400, Problem.invalidTransaction)

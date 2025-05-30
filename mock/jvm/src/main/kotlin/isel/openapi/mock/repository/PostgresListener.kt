@@ -4,6 +4,7 @@ import isel.openapi.mock.services.DynamicHandlerServices
 import isel.openapi.mock.services.Synchronizer
 import jakarta.annotation.PostConstruct
 import org.postgresql.PGConnection
+import org.postgresql.ds.PGSimpleDataSource
 import org.springframework.stereotype.Component
 import javax.sql.DataSource
 import kotlin.concurrent.thread
@@ -27,6 +28,7 @@ class PostgresListener(
                 if (notifications != null) {
                     for (notification in notifications) {
                         if(notification.name == "update_spec") {
+                            println("Received notification: ${notification.name}")
                             synchronizer.queue()
                         }
                     }

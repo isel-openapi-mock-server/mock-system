@@ -7,6 +7,5 @@ data class RequestInfo(
     val path: String,
     val host: String,
     val body: ByteArray?,
-    val headers: List<HeadersInfo>,
     val problems: List<ProblemInfo>,
 )

@@ -2,6 +2,7 @@ package isel.openapi.admin.domain.admin
 
 import isel.openapi.admin.http.model.ResponseConfig
 import isel.openapi.admin.parsing.model.Response
+import isel.openapi.admin.parsing.model.StatusCode
 
 class ResponseValidator(
     private val responses: List<Response>,
@@ -11,17 +12,21 @@ class ResponseValidator(
     // TODO() retornar a lista de erros, mas cada resposta vai ter a sua, lista de listas?
     fun validateResponse(responseConfig: ResponseConfig): List<VerifyResponseError> {
         val failList = mutableListOf<VerifyResponseError>()
-        responses.forEach { response ->
-            failList.addAll(
-                adminDomain.verifyResponse(
-                    response,
-                    responseConfig.statusCode,
-                    responseConfig.contentType,
-                    responseConfig.headers,
-                    responseConfig.body
-                )
-            )
+        val response = responses.firstOrNull { it.statusCode == StatusCode.valueOf(responseConfig.statusCode) }
+        if(response == null) {
+            failList.add(VerifyResponseError.WrongStatusCode)
+            return failList
         }
+        val errors = adminDomain.verifyResponse(
+            response,
+            StatusCode.valueOf(responseConfig.statusCode),
+            responseConfig.contentType,
+            responseConfig.headers,
+            responseConfig.body?.toByteArray()
+        )
+
+        errors.forEach { failList.add(it) }
+
         return failList
     }
 

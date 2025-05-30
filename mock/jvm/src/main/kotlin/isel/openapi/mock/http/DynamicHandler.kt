@@ -5,6 +5,7 @@ import isel.openapi.mock.domain.dynamic.DynamicDomain
 import isel.openapi.mock.domain.dynamic.HandlerResult
 import isel.openapi.mock.domain.openAPI.*
 import isel.openapi.mock.domain.problems.ParameterInfo
+import isel.openapi.mock.services.ResponseConfig
 import isel.openapi.mock.services.Scenario
 
 interface VerificationError
@@ -31,19 +32,17 @@ sealed class VerifyParamsError : VerificationError {
 class DynamicHandler(
     private val path: List<PathParts>,
     private val method: HttpMethod,
-    //private val responses: List<Response>,
     private val params: List<ApiParameter>?,
     private val body: ApiRequestBody?,
     private val headers : List<ApiHeader>?,
     private val security: Boolean = false,
     private val dynamicDomain: DynamicDomain,
-    //val scenarios: List<Scenario>
-    private val scenario: Scenario?
+    private val scenarios: List<Scenario>,
 ) {
 
     fun handle(
         request: HttpServletRequest,
-        //scenarioName: String
+        scenarioName: String
     ): HandlerResult {
 
         val requestBody = request.reader.readText().ifBlank { null }
@@ -52,7 +51,7 @@ class DynamicHandler(
         val requestHeaders = request.headerNames.toList().associateWith { request.getHeader(it) }
         val cookies = request.cookies ?: emptyArray()
 
-        val currentParameters = mutableListOf<ParameterInfo>()
+        //val currentParameters = mutableListOf<ParameterInfo>()
 
         val contentType = request.contentType
 
@@ -75,38 +74,7 @@ class DynamicHandler(
         val cookiesResult = dynamicDomain.verifyCookies(cookies, params?.filter { it.location == Location.COOKIE } ?: emptyList())
         cookiesResult.forEach { fails.add(it) }
 
-
-        val response = if(fails.isEmpty() && scenario != null) {
-            //responses.firstOrNull { it.statusCode == StatusCode.OK } ?: responses.first() // TODO Mudar isto
-            /*val scenario = scenarios.find { it.name == scenarioName} ?: return TODO() // resposta quando não há resposta definida
-            val fullPath = StringBuilder()
-            path.forEach { part ->
-                fullPath.append(part.name)
-            }
-            scenario.getResponse(path = fullPath.toString(), method = method) ?: return TODO() // resposta quando não há resposta definida
-            */
-            scenario.getResponse()
-        } else {
-            TODO() // resposta quando há falhas de validaçao
-            /*Response(
-                statusCode = StatusCode.BAD_REQUEST,
-                schema = ContentOrSchema.ContentField(
-                    content = mapOf(
-                        Pair(
-                            "application/json",
-                            ContentOrSchema.SchemaObject(
-                                schema =
-                                """
-                                    {
-                                        "type": "null"
-                                    }
-                                """.trimIndent()
-                            )
-                        )
-                    )
-                )
-            )*/
-        }
+        val response = if(fails.isEmpty()) scenarios.find { it.name == scenarioName }?.getResponse() else null
 
         return HandlerResult(
             fails = fails,
@@ -114,7 +82,7 @@ class DynamicHandler(
             headers = requestHeaders,
             cookies = cookies.toList(),
             params = pathParamsResult.params + queryParamsResult.params,
-            response = response //TODO Ver se dá assim, com o ResponseConfig
+            response = response
         )
     }
 
@@ -127,5 +95,4 @@ class DynamicHandler(
         }
     }
 
-    fun hasResponse(): Boolean = scenario != null
 }

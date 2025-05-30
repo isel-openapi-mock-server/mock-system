@@ -7,18 +7,17 @@ data class ResponseConfig(
     val statusCode: StatusCode,
     val contentType: String?,
     val headers: Map<String, String>?,
-    val body: ByteArray?, // TODO nao sei se deve ser deste tipo
+    val body: ByteArray?,
 )
 
 class Scenario(
     val name: String,
-    //val method: HttpMethod,
-    //val path: String,
+    val method: HttpMethod,
+    val path: String,
     private val responses: List<ResponseConfig>
 ) {
     private var state = 0
 
-    // Para ser chamado no handle de uma operaçao
     fun getResponse(): ResponseConfig {
         val response = responses[state]
 
