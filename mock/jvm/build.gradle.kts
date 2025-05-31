@@ -38,14 +38,34 @@ dependencies {
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	implementation("org.springframework.boot:spring-boot-starter-web")
+
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-webflux")
+    testImplementation(kotlin("test"))
 }
 
 kotlin {
-	compilerOptions {
-		freeCompilerArgs.addAll("-Xjsr305=strict")
-	}
+	jvmToolchain(21)
 }
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+task<Exec>("dbTestsUp") {
+    commandLine("docker", "compose", "up", "-d", "--build", "--force-recreate", "db-mock-tests")
+}
+
+task<Exec>("dbTestsWait") {
+    commandLine("docker", "exec", "db-mock-tests", "/app/bin/wait-for-postgres.sh", "localhost")
+    dependsOn("dbTestsUp")
+}
+
+task<Exec>("dbTestsDown") {
+    commandLine("docker", "compose", "down")
+}
+
+tasks.named("check") {
+    dependsOn("dbTestsWait")
+    finalizedBy("dbTestsDown")
 }

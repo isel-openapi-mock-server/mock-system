@@ -12,14 +12,14 @@ class ResponseValidator(
     // TODO() retornar a lista de erros, mas cada resposta vai ter a sua, lista de listas?
     fun validateResponse(responseConfig: ResponseConfig): List<VerifyResponseError> {
         val failList = mutableListOf<VerifyResponseError>()
-        val response = responses.firstOrNull { it.statusCode == StatusCode.valueOf(responseConfig.statusCode) }
+        val response = responses.firstOrNull { it.statusCode == StatusCode.fromCode(responseConfig.statusCode) }
         if(response == null) {
             failList.add(VerifyResponseError.WrongStatusCode)
             return failList
         }
         val errors = adminDomain.verifyResponse(
             response,
-            StatusCode.valueOf(responseConfig.statusCode),
+            StatusCode.fromCode(responseConfig.statusCode)!!,
             responseConfig.contentType,
             responseConfig.headers,
             responseConfig.body?.toByteArray()

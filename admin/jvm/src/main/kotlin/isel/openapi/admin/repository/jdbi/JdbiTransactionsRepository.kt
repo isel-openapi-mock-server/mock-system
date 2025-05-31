@@ -143,6 +143,8 @@ class JdbiTransactionsRepository(
                 .execute()
         }
 
+        println(newSpecId)
+
         return newSpecId
 
     }
@@ -174,19 +176,11 @@ class JdbiTransactionsRepository(
         return rowsAffected > 0
     }
 
-    override fun addScenario(transactionToken: String, scenarioName: String, method: String, path: String): Boolean {
+    override fun addScenario(transactionToken: String, scenarioName: String, method: String, path: String, specId: Int) {
 
-        val specId = handle.createQuery(
-            """
-            SELECT id FROM specs
-            WHERE transaction_token = :transactionToken
-            """
-        )
-            .bind("transactionToken", transactionToken)
-            .mapTo<Int>()
-            .firstOrNull() ?: return false
+        println(specId)
 
-        val rowsAffected = handle.createUpdate(
+        handle.createUpdate(
             """
             INSERT INTO scenarios (transaction_token, name, spec_id, method, path)
             VALUES (:transactionToken, :scenarioName, :specId, :method, :path)
@@ -198,8 +192,6 @@ class JdbiTransactionsRepository(
             .bind("method", method.uppercase())
             .bind("path", path)
             .execute()
-
-        return rowsAffected > 0
     }
 
     override fun addScenarioResponse(
@@ -212,6 +204,7 @@ class JdbiTransactionsRepository(
         contentType: String?,
         specId: Int
     ): Boolean {
+
         val rowsAffected = handle.createUpdate(
             """
             INSERT INTO scenario_responses (scenario_name, index, status_code, body, headers, content_type, spec_id)
@@ -240,6 +233,18 @@ class JdbiTransactionsRepository(
         )
             .bind("transactionToken", transactionToken)
             .mapTo<Int>()
+            .firstOrNull()
+    }
+
+    override fun getHostByTransactionToken(transactionToken: String): String? {
+        return handle.createQuery(
+            """
+            SELECT host FROM open_transactions
+            WHERE uuid = :transactionToken
+            """
+        )
+            .bind("transactionToken", transactionToken)
+            .mapTo<String>()
             .firstOrNull()
     }
 

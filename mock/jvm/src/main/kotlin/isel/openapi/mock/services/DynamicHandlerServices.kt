@@ -90,7 +90,7 @@ class DynamicHandlerServices(
                 val responseId = problemsRepository.addResponse(exchangeKey, handlerResponse.response!!.statusCode.code, jsonResponseHeaders)
 
                 if(handlerResponse.response.body != null) {
-                    problemsRepository.addResponseBody(responseId, handlerResponse.response.body, handlerResponse.headers["content-type"] ?: "")
+                    problemsRepository.addResponseBody(responseId, handlerResponse.response.body, handlerResponse.response.contentType!!)
                 }
             }
         }
@@ -141,7 +141,7 @@ class DynamicHandlerServices(
                     path = it.path,
                     responses = it.responses.map { response ->
                         ResponseConfig(
-                            statusCode = StatusCode.valueOf(response.statusCode.uppercase()),
+                            statusCode = StatusCode.fromCode(response.statusCode)!!,
                             body = response.body,
                             headers = response.headers?.let { mapper.readValue(it, object : TypeReference<Map<String, String>>() {}) },
                             contentType = response.contentType

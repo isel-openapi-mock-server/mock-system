@@ -1,0 +1,12 @@
+services:
+  db-mock-tests:
+    container_name: db-mock-tests
+    build:
+      context: .
+      dockerfile: ./tests/Dockerfile-mock-db
+    environment:
+      - POSTGRES_USER=mock
+      - POSTGRES_PASSWORD=mock
+      - POSTGRES_DB=mock
+    ports:
+      - 5435:5432

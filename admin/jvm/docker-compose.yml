@@ -1,0 +1,12 @@
+services:
+  db-admin-tests:
+    container_name: db-admin-tests
+    build:
+      context: .
+      dockerfile: ./tests/Dockerfile-admin-db
+    environment:
+      - POSTGRES_USER=mock
+      - POSTGRES_PASSWORD=mock
+      - POSTGRES_DB=admin
+    ports:
+      - 5434:5432

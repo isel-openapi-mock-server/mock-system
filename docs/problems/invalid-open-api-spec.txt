@@ -1,1 +1,1 @@
-invalid Open APISpec
+Invalid OpenAPI Spec

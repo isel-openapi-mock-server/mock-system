@@ -42,7 +42,7 @@ class JdbiAdminRepository(
 
         val transactionToken = handle.createQuery(
             """
-            SELECT uuid FROM open_transactions WHERE host = :host
+            SELECT uuid FROM transactions WHERE host = :host
             """
         )
             .bind("host", host)
@@ -53,7 +53,7 @@ class JdbiAdminRepository(
 
         return handle.createQuery(
             """
-            SELECT id FROM specs WHERE transaction = :transaction
+            SELECT id FROM specs WHERE transaction_token = :transaction
             """
         )
             .bind("transaction", transactionToken)
@@ -86,9 +86,10 @@ class JdbiAdminRepository(
         val specId = handle.createQuery(
             """
             SELECT id FROM specs
-            where transaction = :transactionToken
+            where transaction_token = :transactionToken
             """
         )
+            .bind("transactionToken", transactionToken)
             .mapTo<Int>()
             .firstOrNull() ?: return null
 

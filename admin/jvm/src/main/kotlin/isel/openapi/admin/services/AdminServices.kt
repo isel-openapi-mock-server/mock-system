@@ -12,6 +12,7 @@ import isel.openapi.admin.parsing.model.HttpMethod
 import isel.openapi.admin.parsing.model.PathOperation
 import isel.openapi.admin.repository.TransactionManager
 import isel.openapi.admin.utils.Either
+import isel.openapi.admin.utils.Failure
 import isel.openapi.admin.utils.failure
 import isel.openapi.admin.utils.success
 import org.springframework.stereotype.Component
@@ -112,7 +113,18 @@ class AdminServices(
             return failure(SaveScenarioError.TransactionOrHostNotProvided)
         }
 
-        if(transactionToken == null) {
+        var currentSpecId: Int = -1
+
+        if (transactionToken != null) {
+            val isActive = transactionManager.run {
+                val transactionsRepository = it.transactionsRepository
+                transactionsRepository.isTransactionActive(transactionToken)
+            }
+
+            if (!isActive) {
+                return failure(SaveScenarioError.InvalidTransaction)
+            }
+        } else {
             val spec = getApiSpec(host!!)
                 ?: return failure(SaveScenarioError.HostDoesNotExist)
 
@@ -128,8 +140,8 @@ class AdminServices(
                     return@run failure(SaveScenarioError.HostDoesNotExist)
 
                 //Cria uma nova transação
-                transactionsRepository.addNewTransaction(token, specId, host)
-                transactionsRepository.copySpecToTransaction(token, specId)
+                currentSpecId = transactionsRepository.copySpecToTransaction(token, specId)
+                transactionsRepository.addNewTransaction(token, currentSpecId, host)
 
             }
             router.register(spec, token)
@@ -154,20 +166,18 @@ class AdminServices(
         transactionManager.run {
             val transactionsRepository = it.transactionsRepository
 
-            if (transactionToken!= null && !transactionsRepository.isTransactionActive(transactionToken)) {
-                return@run failure(SaveScenarioError.InvalidTransaction)
-            }
-
             //Verifica se já existe um cenário com o mesmo nome e se sim apaga-o
             if(transactionsRepository.getScenarioNameByTransaction(token) != null) {
                 transactionsRepository.deleteScenario(token, scenario.name)
             }
 
-            // Regista o cenário no repositório
-            transactionsRepository.addScenario(token, scenario.name, scenario.method, scenario.path)
+            if(currentSpecId == -1) {
+                currentSpecId = transactionsRepository.getSpecIdByTransaction(token)
+                    ?: return@run failure(SaveScenarioError.InvalidTransaction)
+            }
 
-            val specId = transactionsRepository.getSpecIdByTransaction(token)
-                ?: return@run failure(SaveScenarioError.InvalidTransaction)
+            // Regista o cenário no repositório
+            transactionsRepository.addScenario(token, scenario.name, scenario.method, scenario.path, currentSpecId)
 
             // Regista as respostas no repositório
             for (i in scenario.responses.indices) {
@@ -185,7 +195,7 @@ class AdminServices(
                     scenario.responses[i].body?.toByteArray(),
                     jsonHeaders,
                     scenario.responses[i].contentType,
-                    specId
+                    currentSpecId
                 )
             }
         }
@@ -203,9 +213,9 @@ class AdminServices(
         transactionToken: String,
     ) : CommitResult {
 
-        var currentHost = host ?: adminDomain.generateHost()
+        var currentHost = host ?: ""
 
-        transactionManager.run {
+        val result = transactionManager.run {
             val transactionsRepository = it.transactionsRepository
 
             if(!transactionsRepository.isTransactionActive(transactionToken)) {
@@ -217,14 +227,34 @@ class AdminServices(
             }
 
             if(host == null) {
-                while(transactionsRepository.isHostExists(currentHost)) {
+                val isHostRegistered = transactionsRepository.getHostByTransactionToken(transactionToken)
+                if(isHostRegistered != null) {
+                    // Se o host já está registado, usa-o
+                    currentHost = isHostRegistered
+                } else {
+                    // Se não está registado, gera um novo host
                     currentHost = adminDomain.generateHost()
+                    while(transactionsRepository.isHostExists(currentHost)) {
+                        currentHost = adminDomain.generateHost()
+                    }
                 }
             }
-            transactionsRepository.commitTransaction(transactionToken,currentHost)
+            transactionsRepository.commitTransaction(transactionToken, currentHost)
         }
-        router.remove(transactionToken)
-        return success(currentHost)
+        when(result) {
+            is Failure<*> -> {
+                return when (result.value) {
+                    is CommitError.InvalidTransaction -> failure(CommitError.InvalidTransaction)
+                    is CommitError.HostDoesNotExist -> failure(CommitError.HostDoesNotExist)
+                    else -> failure(CommitError.InvalidTransaction)
+                }
+            }
+
+            else -> {
+                router.remove(transactionToken)
+                return success(currentHost)
+            }
+        }
     }
 
     /**

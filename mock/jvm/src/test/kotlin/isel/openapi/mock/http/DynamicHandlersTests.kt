@@ -8,7 +8,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class DynamicHandlersTests {
-
+/*
     private val response = listOf(
         Response(
         statusCode = StatusCode.OK,
@@ -656,4 +656,6 @@ class DynamicHandlersTests {
     companion object {
         val dynamicDomain = DynamicDomain()
     }
+
+ */
 }

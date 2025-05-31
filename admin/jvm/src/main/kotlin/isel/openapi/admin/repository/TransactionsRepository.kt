@@ -38,7 +38,8 @@ interface TransactionsRepository {
         scenarioName: String,
         method: String,
         path: String,
-    ): Boolean
+        specId: Int
+    )
 
     fun addScenarioResponse(
         transactionToken: String,
@@ -54,5 +55,9 @@ interface TransactionsRepository {
     fun getSpecIdByTransaction(
         transactionToken: String
     ): Int?
+
+    fun getHostByTransactionToken(
+        transactionToken: String
+    ): String?
 
 }
