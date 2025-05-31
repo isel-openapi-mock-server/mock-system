@@ -120,7 +120,7 @@ class DynamicDomain {
             is ContentOrSchema.SchemaObject -> {
                 val currentValue = if(valueType is Type.StringType) "\"$value\"" else value.toString()
                 val validationResult = jsonValidator(contentOrSchema.schema , currentValue )
-                if(validationResult != null) {
+                if(!validationResult) {
                     return error
                 }
             }
@@ -131,7 +131,7 @@ class DynamicDomain {
                     return error
                 }
                 val validationResult = jsonValidator(contentField, currentValue)
-                if(validationResult != null) {
+                if(!validationResult) {
                     return error
                 }
             }
@@ -247,7 +247,7 @@ class DynamicDomain {
                 }
             } else {
                 val validationResult = jsonValidator(schema, cookie.value) //TODO temos de fazer algo com isto, acrescentar uma falha para se vier algum erro daqui e adicionar à lista.
-                if (validationResult != null) {
+                if (!validationResult) {
                     failList.add(VerifyParamsError.JsonValidationError(location = Location.COOKIE))
                 }
             }
@@ -289,7 +289,7 @@ class DynamicDomain {
             when(val headerType = expectedHeader.type) {
                 is ContentOrSchema.SchemaObject -> {
                     val validationResult = jsonValidator(headerType.schema , "\"$headerValue\"" )
-                    if(validationResult != null) {
+                    if(!validationResult) {
                         failList.add(VerifyHeadersError.InvalidType(expectedHeader.name, expectedHeader.type.toString(), convertToType(headerValue).toString()))
                     }
                 }
@@ -299,15 +299,15 @@ class DynamicDomain {
                         failList.add(VerifyHeadersError.InvalidType(expectedHeader.name, expectedHeader.type.toString(), convertToType(headerValue).toString()))
                     }
                     val validationResult = jsonValidator(contentField?.schema, "\"$headerValue\"")
-                    if(validationResult != null) {
+                    if(!validationResult) {
                         failList.add(VerifyHeadersError.InvalidType(expectedHeader.name, expectedHeader.type.toString(), convertToType(headerValue).toString()))
                     }
                 }
             }
         }
-        if(contentType != null && headers["content-type"] != null) {
-            if(headers["content-type"] != contentType) {
-                failList.add(VerifyHeadersError.InvalidContentType(contentType, headers["content-type"] ?: ""))
+        if(contentType != null && headers["Content-Type"] != null) {
+            if(headers["Content-Type"] != contentType) {
+                failList.add(VerifyHeadersError.InvalidContentType(contentType, headers["Content-Type"] ?: ""))
             }
         }
         if(security && headers["authorization"] == null) {
@@ -334,7 +334,7 @@ class DynamicDomain {
             expectedBody.content.content.forEach { (key, value) ->
                 if (key == contentType) {
                     val validationResult = jsonValidator(value.schema, body)
-                    if(validationResult != null) {
+                    if(!validationResult) {
                         failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.content.content[contentType]?.schema.toString() ?: contentType, body))
                     }
                 }
@@ -348,9 +348,9 @@ class DynamicDomain {
     private fun jsonValidator(
         schema: String?,
         receivedType: String,
-    ): ValidationFailure? {
+    ): Boolean {
 
-        if(schema == null) { return null }
+        if(schema == null) { return true }
 
         val jsonVal = JsonParser(schema).parse()
 
@@ -359,7 +359,7 @@ class DynamicDomain {
         try {
             val receivedJsonType = JsonParser(receivedType).parse()
             val validationResult = validator.validate(receivedJsonType)
-            return validationResult
+            return validationResult == null
         } catch (e: JsonParseException) {
             println(e.location)
             println(e.message)
@@ -367,7 +367,7 @@ class DynamicDomain {
             println(e.cause)
             println(e.suppressed)
             println(e.stackTrace)
-            return null // TODO mudar
+            return false
         }
     }
 

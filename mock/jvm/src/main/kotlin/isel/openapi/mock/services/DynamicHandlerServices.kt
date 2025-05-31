@@ -45,7 +45,7 @@ class DynamicHandlerServices(
 
         val dynamicHandler = router.match(host, method, path) ?: return failure(DynamicHandlerError.HandlerNotFound)
 
-        if (!router.doesScenarioExist(dynamicHandler.routeNode, scenarioName, path, method)) return failure(DynamicHandlerError.ScenarioNotFound)
+        if (!router.doesScenarioExist(dynamicHandler.routeNode, scenarioName, dynamicHandler.resourceUrl, method)) return failure(DynamicHandlerError.ScenarioNotFound)
 
         val handlerResponse : HandlerResult = dynamicHandler.dynamicHandler.handle(request, scenarioName)
 

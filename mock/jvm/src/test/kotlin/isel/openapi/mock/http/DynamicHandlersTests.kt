@@ -8,26 +8,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class DynamicHandlersTests {
-/*
-    private val response = listOf(
-        Response(
-        statusCode = StatusCode.OK,
-        schema = ContentOrSchema.ContentField(
-            content = mapOf(
-                Pair(
-                    "application/json",
-                    ContentOrSchema.SchemaObject(
-                        """
-                        {
-                            "type": "null"
-                        }
-                        """.trimIndent()
-                    )
-                )
-            )
-        )
-    )
-    )
 
     @Test
     fun objectVerificationTest() {
@@ -77,13 +57,14 @@ class DynamicHandlersTests {
         """.trimIndent()
 
         val dynamicHandler = DynamicHandler(
-            responses = response,
             params = null,
             body = expectedBody,
             path = listOf((PathParts("users", false))),
             headers = null,
             security = false,
             dynamicDomain = dynamicDomain,
+            scenarios = emptyList(),
+            method = HttpMethod.POST,
         )
 
         val result1 = dynamicDomain.verifyBody(contentType, body, expectedBody)
@@ -136,11 +117,12 @@ class DynamicHandlersTests {
         """.trimIndent()
 
         val dynamicHandler = DynamicHandler(
-            responses = response,
             params = null,
             body = expectedBody,
             path = listOf((PathParts("users", false))),
             headers = null,
+            scenarios = emptyList(),
+            method = HttpMethod.POST,
             dynamicDomain = dynamicDomain
         )
 
@@ -215,12 +197,13 @@ class DynamicHandlersTests {
         """.trimIndent()
 
         val dynamicHandler = DynamicHandler(
-            responses = response,
             params = null,
             body = expectedBody,
             path = listOf((PathParts("users", false))),
             headers = null,
-            dynamicDomain = dynamicDomain
+            dynamicDomain = dynamicDomain,
+            scenarios = emptyList(),
+            method = HttpMethod.POST,
         )
 
         val result1 = dynamicDomain.verifyBody(contentType, body, expectedBody)
@@ -260,12 +243,13 @@ class DynamicHandlersTests {
         val body = ""
 
         val dynamicHandler = DynamicHandler(
-            responses = response,
             params = null,
             body = expectedBody,
             path = listOf((PathParts("users", false))),
             headers = null,
-            dynamicDomain = dynamicDomain
+            dynamicDomain = dynamicDomain,
+            scenarios = emptyList(),
+            method = HttpMethod.POST,
         )
 
         val result1 = dynamicDomain.verifyBody(contentType, body, expectedBody)
@@ -305,12 +289,13 @@ class DynamicHandlersTests {
         val body3 = "null"
 
         val dynamicHandler = DynamicHandler(
-            responses = response,
             params = null,
             body = expectedBody,
             path = listOf((PathParts("users", false))),
             headers = null,
-            dynamicDomain = dynamicDomain
+            dynamicDomain = dynamicDomain,
+            scenarios = emptyList(),
+            method = HttpMethod.POST,
         )
 
         val result1 = dynamicDomain.verifyBody(contentType, body, expectedBody)
@@ -354,12 +339,13 @@ class DynamicHandlersTests {
         val body3 = "null"
 
         val dynamicHandler = DynamicHandler(
-            responses = response,
             params = null,
             body = expectedBody,
             path = listOf((PathParts("users", false))),
             headers = null,
-            dynamicDomain = dynamicDomain
+            dynamicDomain = dynamicDomain,
+            scenarios = emptyList(),
+            method = HttpMethod.POST,
         )
 
         val result1 = dynamicDomain.verifyBody(contentType, body, expectedBody)
@@ -403,12 +389,13 @@ class DynamicHandlersTests {
         val body3 = "\"null\""
 
         val dynamicHandler = DynamicHandler(
-            responses = response,
             params = null,
             body = expectedBody,
             path = listOf((PathParts("users", false))),
             headers = null,
-            dynamicDomain = dynamicDomain
+            dynamicDomain = dynamicDomain,
+            scenarios = emptyList(),
+            method = HttpMethod.POST,
         )
 
         val result1 = dynamicDomain.verifyBody(contentType, body, expectedBody)
@@ -452,12 +439,13 @@ class DynamicHandlersTests {
         val body3 = "null"
 
         val dynamicHandler = DynamicHandler(
-            responses = response,
             params = null,
             body = expectedBody,
             path = listOf((PathParts("users", false))),
             headers = null,
-            dynamicDomain = dynamicDomain
+            dynamicDomain = dynamicDomain,
+            scenarios = emptyList(),
+            method = HttpMethod.POST,
         )
 
         val result1 = dynamicDomain.verifyBody(contentType, body, expectedBody)
@@ -534,12 +522,13 @@ class DynamicHandlersTests {
         )
 
         val dynamicHandler = DynamicHandler(
-            responses = response,
             params = null,
             body = null,
             path = listOf((PathParts("users", false))),
             headers = expectedHeaders,
-            dynamicDomain = dynamicDomain
+            dynamicDomain = dynamicDomain,
+            scenarios = emptyList(),
+            method = HttpMethod.POST,
         )
 
         val result1 = dynamicDomain.verifyHeaders(headers, expectedHeaders, "application/json", false)
@@ -618,7 +607,7 @@ class DynamicHandlersTests {
         assertTrue { result1.isEmpty() }
         assertEquals(emptyList(), result2)
 
-        assertTrue { result3.size == 1 }
+        assertTrue { result3.size == 2 }
         assertEquals(
             VerifyParamsError.MissingParam(
                 location = Location.COOKIE,
@@ -626,12 +615,12 @@ class DynamicHandlersTests {
             ),
             result3[0]
         )
-        /*assertEquals(
+        assertEquals(
             VerifyParamsError.JsonValidationError(
                 location = Location.COOKIE,
             ),
-            result3[0]
-        )*/
+            result3[1]
+        )
 
         assertTrue { result4.size == 1 }
         assertEquals(
@@ -656,6 +645,4 @@ class DynamicHandlersTests {
     companion object {
         val dynamicDomain = DynamicDomain()
     }
-
- */
 }

@@ -1,10 +1,76 @@
-INSERT INTO SPECS (id, name, description, transaction_token) VALUES
-(1, 'ChIMP API', 'API for Instant messaging application', 'transaction1'),
-(2, 'ChIMP API', 'API for Instant messaging application', 'transaction2');
+INSERT INTO SPECS (name, description, transaction_token) VALUES
+('ChIMP API', 'API for Instant messaging application', 'transaction1'),
+('ChIMP API', 'API for Instant messaging application', 'transaction2');
 
-INSERT INTO PATHS (id, full_path, operations, spec_id) VALUES
-(1, '/users/search', '[{"method": "GET", "headers": [], "servers": [], "security": true, "responses": [{"schema": {"@type": "ContentField", "content": {"application/json": {"@type": "SchemaObject", "schema": "{\"type\":\"array\",\"exampleSetFlag\":false,\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"integer\",\"example\":1,\"exampleSetFlag\":true,\"types\":[\"integer\"]},\"username\":{\"type\":\"string\",\"example\":\"bob123\",\"exampleSetFlag\":true,\"types\":[\"string\"]}},\"exampleSetFlag\":false,\"types\":[\"object\"]},\"types\":[\"array\"]}"}}}, "headers": [{"name": "A", "type": {"@type": "SchemaObject", "schema": "{\"type\":\"string\",\"exampleSetFlag\":false,\"types\":[\"string\"]}"}, "style": "FORM", "explode": false, "required": false, "description": "bom dia"}], "statusCode": "OK"}, {"schema": null, "headers": [], "statusCode": "INTERNAL_SERVER_ERROR"}], "parameters": [{"name": "username", "type": {"@type": "SchemaObject", "schema": "{\"type\":\"string\",\"exampleSetFlag\":false,\"types\":[\"string\"]}"}, "style": "FORM", "explode": true, "location": "QUERY", "required": true, "description": null, "allowEmptyValue": false}, {"name": "limit", "type": {"@type": "SchemaObject", "schema": "{\"type\":\"integer\",\"exampleSetFlag\":false,\"types\":[\"integer\"]}"}, "style": "FORM", "explode": true, "location": "QUERY", "required": false, "description": null, "allowEmptyValue": false}, {"name": "skip", "type": {"@type": "SchemaObject", "schema": "{\"type\":\"integer\",\"exampleSetFlag\":false,\"types\":[\"integer\"]}"}, "style": "FORM", "explode": true, "location": "QUERY", "required": false, "description": null, "allowEmptyValue": false}], "requestBody": {"content": {"@type": "ContentField", "content": {}}, "required": false}}]'::jsonb, 1),
-(2, '/users/search', '[{"method": "GET", "headers": [], "servers": [], "security": true, "responses": [{"schema": {"@type": "ContentField", "content": {"application/json": {"@type": "SchemaObject", "schema": "{\"type\":\"array\",\"exampleSetFlag\":false,\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"integer\",\"example\":1,\"exampleSetFlag\":true,\"types\":[\"integer\"]},\"username\":{\"type\":\"string\",\"example\":\"bob123\",\"exampleSetFlag\":true,\"types\":[\"string\"]}},\"exampleSetFlag\":false,\"types\":[\"object\"]},\"types\":[\"array\"]}"}}}, "headers": [{"name": "A", "type": {"@type": "SchemaObject", "schema": "{\"type\":\"string\",\"exampleSetFlag\":false,\"types\":[\"string\"]}"}, "style": "FORM", "explode": false, "required": false, "description": "bom dia"}], "statusCode": "OK"}, {"schema": null, "headers": [], "statusCode": "INTERNAL_SERVER_ERROR"}], "parameters": [{"name": "username", "type": {"@type": "SchemaObject", "schema": "{\"type\":\"string\",\"exampleSetFlag\":false,\"types\":[\"string\"]}"}, "style": "FORM", "explode": true, "location": "QUERY", "required": true, "description": null, "allowEmptyValue": false}, {"name": "limit", "type": {"@type": "SchemaObject", "schema": "{\"type\":\"integer\",\"exampleSetFlag\":false,\"types\":[\"integer\"]}"}, "style": "FORM", "explode": true, "location": "QUERY", "required": false, "description": null, "allowEmptyValue": false}, {"name": "skip", "type": {"@type": "SchemaObject", "schema": "{\"type\":\"integer\",\"exampleSetFlag\":false,\"types\":[\"integer\"]}"}, "style": "FORM", "explode": true, "location": "QUERY", "required": false, "description": null, "allowEmptyValue": false}], "requestBody": {"content": {"@type": "ContentField", "content": {}}, "required": false}}]'::jsonb, 2);
+INSERT INTO PATHS (full_path, operations, spec_id) VALUES
+('/users/search', '[{"method": "GET", "headers": [], "servers": [], "security": true, "responses": [{"schema": {"@type": "ContentField", "content": {"application/json": {"@type": "SchemaObject", "schema": "{\"type\":\"array\",\"exampleSetFlag\":false,\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"integer\",\"example\":1,\"exampleSetFlag\":true,\"types\":[\"integer\"]},\"username\":{\"type\":\"string\",\"example\":\"bob123\",\"exampleSetFlag\":true,\"types\":[\"string\"]}},\"exampleSetFlag\":false,\"types\":[\"object\"]},\"types\":[\"array\"]}"}}}, "headers": [{"name": "A", "type": {"@type": "SchemaObject", "schema": "{\"type\":\"string\",\"exampleSetFlag\":false,\"types\":[\"string\"]}"}, "style": "FORM", "explode": false, "required": false, "description": "bom dia"}], "statusCode": "OK"}, {"schema": null, "headers": [], "statusCode": "INTERNAL_SERVER_ERROR"}], "parameters": [{"name": "username", "type": {"@type": "SchemaObject", "schema": "{\"type\":\"string\",\"exampleSetFlag\":false,\"types\":[\"string\"]}"}, "style": "FORM", "explode": true, "location": "QUERY", "required": true, "description": null, "allowEmptyValue": false}, {"name": "limit", "type": {"@type": "SchemaObject", "schema": "{\"type\":\"integer\",\"exampleSetFlag\":false,\"types\":[\"integer\"]}"}, "style": "FORM", "explode": true, "location": "QUERY", "required": false, "description": null, "allowEmptyValue": false}, {"name": "skip", "type": {"@type": "SchemaObject", "schema": "{\"type\":\"integer\",\"exampleSetFlag\":false,\"types\":[\"integer\"]}"}, "style": "FORM", "explode": true, "location": "QUERY", "required": false, "description": null, "allowEmptyValue": false}], "requestBody": {"content": {"@type": "ContentField", "content": {}}, "required": false}}]'::jsonb, 1),
+    ('/users/{id}',
+        '[
+          {
+            "method": "GET",
+            "headers": [],
+            "servers": ["http://localhost:8080/api"],
+            "security": false,
+            "responses": [
+              {
+                "schema": {
+                  "@type": "ContentField",
+                  "content": {
+                    "application/json": {
+                      "@type": "SchemaObject",
+                      "schema": "{ \"type\": \"object\", \"properties\": { \"id\": { \"type\": \"integer\" }, \"username\": { \"type\": \"string\" } } }"
+                    }
+                  }
+                },
+                "headers": [],
+                "statusCode": "200"
+              },
+              {
+                "schema": {
+                  "@type": "ContentField",
+                  "content": {
+                    "application/json": {
+                      "@type": "SchemaObject",
+                      "schema": "{ \"type\": \"string\", \"example\": \"User not found\" }"
+                    }
+                  }
+                },
+                "headers": [],
+                "statusCode": "404"
+              },
+              {
+                "schema": null,
+                "headers": [],
+                "statusCode": "500"
+              }
+            ],
+            "parameters": [
+              {
+                "name": "id",
+                "type": {
+                  "@type": "SchemaObject",
+                  "schema": "{ \"type\": \"integer\" }"
+                },
+                "style": "SIMPLE",
+                "explode": false,
+                "location": "PATH",
+                "required": true,
+                "description": "The ID of the user",
+                "allowEmptyValue": false
+              }
+            ],
+            "requestBody": {
+              "content": {
+                "@type": "ContentField",
+                "content": {}
+              },
+              "required": false
+            }
+          }
+        ]'::jsonb,
+        1
+    ),
+('/users/search', '[{"method": "GET", "headers": [], "servers": [], "security": true, "responses": [{"schema": {"@type": "ContentField", "content": {"application/json": {"@type": "SchemaObject", "schema": "{\"type\":\"array\",\"exampleSetFlag\":false,\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"integer\",\"example\":1,\"exampleSetFlag\":true,\"types\":[\"integer\"]},\"username\":{\"type\":\"string\",\"example\":\"bob123\",\"exampleSetFlag\":true,\"types\":[\"string\"]}},\"exampleSetFlag\":false,\"types\":[\"object\"]},\"types\":[\"array\"]}"}}}, "headers": [{"name": "A", "type": {"@type": "SchemaObject", "schema": "{\"type\":\"string\",\"exampleSetFlag\":false,\"types\":[\"string\"]}"}, "style": "FORM", "explode": false, "required": false, "description": "bom dia"}], "statusCode": "OK"}, {"schema": null, "headers": [], "statusCode": "INTERNAL_SERVER_ERROR"}], "parameters": [{"name": "username", "type": {"@type": "SchemaObject", "schema": "{\"type\":\"string\",\"exampleSetFlag\":false,\"types\":[\"string\"]}"}, "style": "FORM", "explode": true, "location": "QUERY", "required": true, "description": null, "allowEmptyValue": false}, {"name": "limit", "type": {"@type": "SchemaObject", "schema": "{\"type\":\"integer\",\"exampleSetFlag\":false,\"types\":[\"integer\"]}"}, "style": "FORM", "explode": true, "location": "QUERY", "required": false, "description": null, "allowEmptyValue": false}, {"name": "skip", "type": {"@type": "SchemaObject", "schema": "{\"type\":\"integer\",\"exampleSetFlag\":false,\"types\":[\"integer\"]}"}, "style": "FORM", "explode": true, "location": "QUERY", "required": false, "description": null, "allowEmptyValue": false}], "requestBody": {"content": {"@type": "ContentField", "content": {}}, "required": false}}]'::jsonb, 2);
 
 INSERT INTO transactions (uuid, host) VALUES
 ('transaction1', 'host1');
@@ -17,12 +83,12 @@ INSERT INTO requests (uuid, external_key, url, method, path, host, spec_id, head
 ('request1','type2', '/users/search', 'GET', '/users/search', 'host1', 1, '{"A": "bom dia"}'::jsonb),
 ('request2', 'type2', '/users/search', 'GET', '/users/search', 'host1', 1, '{"A": "bom dia"}'::jsonb);
 
-INSERT INTO request_params (id, type, location, name, content, uuid) VALUES
-(1, '{"type":"string","exampleSetFlag":false,"types":["string"]}', 'query', 'username', 'bob123', 'request1'),
-(2, '{"type":"string","exampleSetFlag":false,"types":["string"]}', 'query', 'username', '1', 'request2');
+INSERT INTO request_params (type, location, name, content, uuid) VALUES
+('{"type":"string","exampleSetFlag":false,"types":["string"]}', 'query', 'username', 'bob123', 'request1'),
+('{"type":"string","exampleSetFlag":false,"types":["string"]}', 'query', 'username', '1', 'request2');
 
-INSERT INTO problems (id, description, type, uuid) VALUES
-(1, 'Invalid parameter type: {"type":"string","exampleSetFlag":false,"types":["string"]} for parameter username in query', 'InvalidType', 'request2');
+INSERT INTO problems (description, type, uuid) VALUES
+('Invalid parameter type: {"type":"string","exampleSetFlag":false,"types":["string"]} for parameter username in query', 'InvalidType', 'request2');
 
 INSERT INTO responses (uuid, status_code, headers) VALUES
 ('request1', '200', '{"host": "RnQdue2a6rh45A6t", "accept": "*/*", "connection": "keep-alive", "user-agent": "PostmanRuntime/7.44.0", "external-key": "type2", "authorization": "Bearer 8WSe5Uf9htPDkH3yza_mjNnUi01W76C6hS0dcc38dMI=", "cache-control": "no-cache", "postman-token": "bb77b13d-abca-417b-ac36-f56558394913", "scenario-name": "test2", "accept-encoding": "gzip, deflate, br"}'::jsonb);

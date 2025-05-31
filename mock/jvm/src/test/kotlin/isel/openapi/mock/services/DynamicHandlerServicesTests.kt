@@ -1,0 +1,364 @@
+package isel.openapi.mock.services
+
+import isel.openapi.mock.domain.dynamic.DynamicDomain
+import isel.openapi.mock.domain.openAPI.ApiParameter
+import isel.openapi.mock.domain.openAPI.ApiPath
+import isel.openapi.mock.domain.openAPI.ApiRequestBody
+import isel.openapi.mock.domain.openAPI.ApiSpec
+import isel.openapi.mock.domain.openAPI.ContentOrSchema
+import isel.openapi.mock.domain.openAPI.HttpMethod
+import isel.openapi.mock.domain.openAPI.Location
+import isel.openapi.mock.domain.openAPI.ParameterStyle
+import isel.openapi.mock.domain.openAPI.PathOperation
+import isel.openapi.mock.domain.openAPI.PathParts
+import isel.openapi.mock.domain.openAPI.Response
+import isel.openapi.mock.domain.openAPI.StatusCode
+import isel.openapi.mock.domain.problems.ProblemsDomain
+import isel.openapi.mock.repository.DynamicRoutesRepository
+import isel.openapi.mock.repository.jdbi.JdbiTransactionManager
+import isel.openapi.mock.repository.jdbi.configureWithAppRequirements
+import isel.openapi.mock.utils.Failure
+import isel.openapi.mock.utils.Success
+import org.jdbi.v3.core.Jdbi
+import org.junit.jupiter.api.Test
+import org.postgresql.ds.PGSimpleDataSource
+import org.springframework.mock.web.MockHttpServletRequest
+import kotlin.test.assertEquals
+
+class DynamicHandlerServicesTests {
+
+    @Test
+    fun `can execute Dynamic Handler`() {
+
+        val router = Router(
+            repository = DynamicRoutesRepository(),
+            dynamicDomain = DynamicDomain()
+        )
+
+        val dynamicServices = createDynamicServices(router)
+
+        val node = router.createRouterNode(apiSpec, listOf(scenario))
+        router.register(mapOf("host1" to node))
+
+        val result = dynamicServices.executeDynamicHandler(
+            host = "host1",
+            method = HttpMethod.GET,
+            path = "/users/1",
+            request = MockHttpServletRequest("GET", "/users/1"),
+            externalKey = null,
+            scenarioName = "test1"
+        )
+
+        assert(result is Success) { "Expected success but got failure: $result" }
+        val response = (result as Success).value
+
+        assertEquals(StatusCode.fromCode("500"), response.first.statusCode)
+        assertEquals(null, response.first.contentType)
+        assertEquals(null, response.first.headers)
+        assertEquals(null, response.first.body)
+
+    }
+
+    @Test
+    fun `scenario with multiple responses returns correct response`() {
+        val router = Router(
+            repository = DynamicRoutesRepository(),
+            dynamicDomain = DynamicDomain()
+        )
+
+        val dynamicServices = createDynamicServices(router)
+
+        val node = router.createRouterNode(apiSpec, listOf(scenario))
+        router.register(mapOf("host1" to node))
+
+        val results = mutableListOf<Success<Pair<ResponseConfig, String>>>()
+
+        // Simulate multiple requests to the same scenario
+        for (i in 1..4) {
+            val result = dynamicServices.executeDynamicHandler(
+                host = "host1",
+                method = HttpMethod.GET,
+                path = "/users/1",
+                request = MockHttpServletRequest("GET", "/users/1"),
+                externalKey = null,
+                scenarioName = "test1"
+            )
+            if (result is Success) {
+                results.add(result)
+            } else {
+                throw Exception("Expected success but got failure: $result")
+            }
+        }
+
+        assertEquals(4, results.size)
+        assertEquals(StatusCode.fromCode("500"), results[0].value.first.statusCode)
+        assertEquals(null, results[0].value.first.contentType)
+        assertEquals(null, results[0].value.first.headers)
+        assertEquals(null, results[0].value.first.body)
+        assertEquals(StatusCode.fromCode("404"), results[1].value.first.statusCode)
+        assertEquals("application/json", results[1].value.first.contentType)
+        assertEquals(null, results[1].value.first.headers)
+        assertEquals("""{"error": "User not found"}""", results[1].value.first.body!!.toString(Charsets.UTF_8))
+        assertEquals(StatusCode.fromCode("200"), results[2].value.first.statusCode)
+        assertEquals("application/json", results[2].value.first.contentType)
+        assertEquals(null, results[2].value.first.headers)
+        assertEquals("""{"id": 1, "username": "bob123"}""", results[2].value.first.body!!.toString(Charsets.UTF_8))
+        assertEquals(StatusCode.fromCode("500"), results[3].value.first.statusCode)
+    }
+
+    @Test
+    fun `failed to a non-existent scenario`() {
+        val router = Router(
+            repository = DynamicRoutesRepository(),
+            dynamicDomain = DynamicDomain()
+        )
+
+        val dynamicServices = createDynamicServices(router)
+
+        val node = router.createRouterNode(apiSpec, listOf(scenario))
+        router.register(mapOf("host1" to node))
+
+        val result = dynamicServices.executeDynamicHandler(
+            host = "host1",
+            method = HttpMethod.GET,
+            path = "/users/1",
+            request = MockHttpServletRequest("GET", "/users/1"),
+            externalKey = null,
+            scenarioName = "nonExistentScenario"
+        )
+
+        assert(result is Failure)
+        val error = result as Failure<DynamicHandlerError>
+        assertEquals(DynamicHandlerError.ScenarioNotFound, error.value)
+    }
+
+    @Test
+    fun `host does not exist`() {
+        val router = Router(
+            repository = DynamicRoutesRepository(),
+            dynamicDomain = DynamicDomain()
+        )
+
+        val dynamicServices = createDynamicServices(router)
+
+        router.createRouterNode(apiSpec, listOf(scenario))
+
+        val result = dynamicServices.executeDynamicHandler(
+            host = "nonExistentHost",
+            method = HttpMethod.GET,
+            path = "/users/1",
+            request = MockHttpServletRequest("GET", "/users/1"),
+            externalKey = null,
+            scenarioName = "test1"
+        )
+
+        assert(result is Failure)
+        val error = result as Failure<DynamicHandlerError>
+        assertEquals(DynamicHandlerError.HostDoesNotExist, error.value)
+    }
+
+    @Test
+    fun `handler not found for given path and method`() {
+        val router = Router(
+            repository = DynamicRoutesRepository(),
+            dynamicDomain = DynamicDomain()
+        )
+
+        val dynamicServices = createDynamicServices(router)
+
+        val node = router.createRouterNode(apiSpec, listOf(scenario))
+        router.register(mapOf("host1" to node))
+
+        val result = dynamicServices.executeDynamicHandler(
+            host = "host1",
+            method = HttpMethod.POST, // Using a method that does not match the scenario
+            path = "/users/1",
+            request = MockHttpServletRequest("POST", "/users/1"),
+            externalKey = null,
+            scenarioName = "test1"
+        )
+
+        assert(result is Failure)
+        val error = result as Failure<DynamicHandlerError>
+        assertEquals(DynamicHandlerError.HandlerNotFound, error.value)
+    }
+
+    @Test
+    fun `bad request with invalid parameters`() {
+        val router = Router(
+            repository = DynamicRoutesRepository(),
+            dynamicDomain = DynamicDomain()
+        )
+
+        val dynamicServices = createDynamicServices(router)
+
+        val node = router.createRouterNode(apiSpec, listOf(scenario))
+        router.register(mapOf("host1" to node))
+
+        val request = MockHttpServletRequest("GET", "/users/1")
+        request.addParameter("invalidParam", "value")
+
+        val result = dynamicServices.executeDynamicHandler(
+            host = "host1",
+            method = HttpMethod.GET,
+            path = "/users/1",
+            request = request,
+            externalKey = null,
+            scenarioName = "test1"
+        )
+
+        assert(result is Failure)
+        val error = result as Failure<DynamicHandlerError>
+        val exchangeKey = (error as Failure<DynamicHandlerError.BadRequest>).value.exchangeKey
+        assertEquals(DynamicHandlerError.BadRequest(exchangeKey), error.value)
+    }
+
+    val scenario = Scenario(
+        name = "test1",
+        method = HttpMethod.GET,
+        path = "/users/{id}",
+        responses = listOf(
+            ResponseConfig(
+                statusCode = StatusCode.fromCode("500")!!,
+                contentType = null,
+                headers = null,
+                body = null
+            ),
+            ResponseConfig(
+                statusCode = StatusCode.fromCode("404")!!,
+                contentType = "application/json",
+                headers = null,
+                body = """{"error": "User not found"}""".toByteArray()
+            ),
+            ResponseConfig(
+                statusCode = StatusCode.fromCode("200")!!,
+                contentType = "application/json",
+                headers = null,
+                body = """{"id": 1, "username": "bob123"}""".toByteArray()
+            )
+        )
+    )
+
+    val apiSpec = ApiSpec(
+        name = "ChIMP API",
+        description = "API for Instant messaging application",
+        paths = listOf(
+            ApiPath(
+                fullPath = "/users",
+                path = listOf(PathParts("users", isParam = false)),
+                operations = listOf(
+                    PathOperation(
+                        method = HttpMethod.POST,
+                        security = false,
+                        parameters = emptyList(),
+                        requestBody = ApiRequestBody(
+                            content = ContentOrSchema.ContentField(
+                                content = mapOf(
+                                    "application/json" to ContentOrSchema.SchemaObject(
+                                        schema = """
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "inviteCode": { "type": "string", "example": "jFeqtSelG7Nj" },
+                                            "username": { "type": "string", "example": "bob123" },
+                                            "password": { "type": "string", "example": "password123" }
+                                        }
+                                    }
+                                    """.trimIndent()
+                                    )
+                                )
+                            ),
+                            required = true
+                        ),
+                        responses = listOf(
+                            Response(StatusCode.fromCode("201")!!, null),
+                            Response(
+                                StatusCode.fromCode("400")!!,
+                                ContentOrSchema.SchemaObject(
+                                    """
+                                {
+                                    "type": "string",
+                                    "enum": [
+                                        "User already exists",
+                                        "Password is insecure",
+                                        "Invalid username",
+                                        "Invalid register code"
+                                    ],
+                                    "example": "User already exists"
+                                }
+                                """.trimIndent()
+                                )
+                            ),
+                            Response(StatusCode.fromCode("500")!!, null)
+                        ),
+                        servers = listOf("http://localhost:8080/api"),
+                        headers = emptyList()
+                    )
+                )
+            ),
+            ApiPath(
+                fullPath = "/users/{id}",
+                path = listOf(
+                    PathParts("users", isParam = false),
+                    PathParts("id", isParam = true)
+                ),
+                operations = listOf(
+                    PathOperation(
+                        method = HttpMethod.GET,
+                        security = false,
+                        parameters = listOf(
+                            ApiParameter(
+                                name = "id",
+                                location = Location.PATH,
+                                description = "The ID of the user",
+                                type = ContentOrSchema.SchemaObject("""{ "type": "integer" }"""),
+                                required = true,
+                                allowEmptyValue = false,
+                                style = ParameterStyle.SIMPLE,
+                                explode = false
+                            )
+                        ),
+                        requestBody = null,
+                        responses = listOf(
+                            Response(
+                                StatusCode.fromCode("200")!!,
+                                ContentOrSchema.SchemaObject(
+                                    """
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "id": { "type": "integer" },
+                                        "username": { "type": "string" }
+                                    }
+                                }
+                                """.trimIndent()
+                                )
+                            ),
+                            Response(StatusCode.fromCode("404")!!, ContentOrSchema.SchemaObject("""{ "type": "string", "example": "User not found" }""")),
+                            Response(StatusCode.fromCode("500")!!, null)
+                        ),
+                        servers = listOf("http://localhost:8080/api"),
+                        headers = emptyList()
+                    )
+                )
+            )
+        )
+    )
+
+    companion object {
+        private val jdbi = Jdbi.create(
+            PGSimpleDataSource().apply {
+                setURL("jdbc:postgresql://localhost:5435/mock?user=mock&password=mock")
+            }
+        ).configureWithAppRequirements()
+
+        private fun createDynamicServices(router: Router): DynamicHandlerServices {
+            return DynamicHandlerServices(
+                router = router,
+                problemsDomain = ProblemsDomain(),
+                transactionManager = JdbiTransactionManager(jdbi)
+            )
+        }
+    }
+
+}

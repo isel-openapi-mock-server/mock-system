@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS REQUESTS(
     host VARCHAR(256) NOT NULL,
     spec_id integer not null,
     headers jsonb,
-    foreign key (spec_id, path) references PATHS(spec_id, full_path) on delete cascade
+    foreign key (spec_id, url) references PATHS(spec_id, full_path) on delete cascade
 );
 
 CREATE TABLE IF NOT EXISTS REQUEST_PARAMS(
