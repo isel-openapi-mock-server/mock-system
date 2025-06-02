@@ -53,12 +53,17 @@ tasks.withType<Test> {
 }
 
 task<Exec>("dbTestsUp") {
-    commandLine("docker", "compose", "up", "-d", "--build", "--force-recreate", "db-mock-tests")
+    commandLine("docker", "compose", "up", "-d", "--build", "--force-recreate", "db-mock-tests", "mock-db")
 }
 
 task<Exec>("dbTestsWait") {
     commandLine("docker", "exec", "db-mock-tests", "/app/bin/wait-for-postgres.sh", "localhost")
-    dependsOn("dbTestsUp")
+	dependsOn("dbTestsUp")
+}
+
+task<Exec>("dbWait") {
+	commandLine("docker", "exec", "mock-db", "/app/bin/wait-for-postgres.sh", "localhost")
+	dependsOn("dbTestsUp")
 }
 
 task<Exec>("dbTestsDown") {
@@ -67,5 +72,6 @@ task<Exec>("dbTestsDown") {
 
 tasks.named("check") {
     dependsOn("dbTestsWait")
+	dependsOn("dbWait")
     finalizedBy("dbTestsDown")
 }

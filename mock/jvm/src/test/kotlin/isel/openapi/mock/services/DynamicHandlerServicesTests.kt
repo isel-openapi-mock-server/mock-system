@@ -213,6 +213,25 @@ class DynamicHandlerServicesTests {
         assertEquals(DynamicHandlerError.BadRequest(exchangeKey), error.value)
     }
 
+    @Test
+    fun `can update Dynamic Router`() {
+
+        val router = Router(
+            repository = DynamicRoutesRepository(),
+            dynamicDomain = DynamicDomain()
+        )
+
+        val dynamicServices = createDynamicServices(router)
+
+        dynamicServices.updateDynamicRouter()
+
+        val match = router.match("host1", HttpMethod.GET, "/users/search")
+
+        assert(match != null)
+        assertEquals("/users/search", match!!.resourceUrl)
+        assertEquals(HttpMethod.GET, match.routeNode.operations.first().method)
+    }
+
     val scenario = Scenario(
         name = "test1",
         method = HttpMethod.GET,

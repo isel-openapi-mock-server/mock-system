@@ -1,13 +1,21 @@
-package isel.openapi.mock.http
+package isel.openapi.mock.domain
 
 import isel.openapi.mock.domain.dynamic.DynamicDomain
-import isel.openapi.mock.domain.openAPI.*
+import isel.openapi.mock.domain.openAPI.ApiHeader
+import isel.openapi.mock.domain.openAPI.ApiParameter
+import isel.openapi.mock.domain.openAPI.ApiRequestBody
+import isel.openapi.mock.domain.openAPI.ContentOrSchema
+import isel.openapi.mock.domain.openAPI.Location
+import isel.openapi.mock.domain.openAPI.ParameterStyle
+import isel.openapi.mock.http.VerifyBodyError
+import isel.openapi.mock.http.VerifyHeadersError
+import isel.openapi.mock.http.VerifyParamsError
 import jakarta.servlet.http.Cookie
-import kotlin.test.Test
+import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class DynamicHandlersTests {
+class DynamicDomainTests {
 
     @Test
     fun objectVerificationTest() {
@@ -32,11 +40,13 @@ class DynamicHandlersTests {
 
         val expectedBody =
             ApiRequestBody(
-                content = ContentOrSchema.ContentField(mapOf(
-                    contentType to ContentOrSchema.SchemaObject(
-                        schema = schemaJson
+                content = ContentOrSchema.ContentField(
+                    mapOf(
+                        contentType to ContentOrSchema.SchemaObject(
+                            schema = schemaJson
+                        )
                     )
-                )),
+                ),
                 required = true
             )
 
@@ -56,30 +66,23 @@ class DynamicHandlersTests {
             bom dia
         """.trimIndent()
 
-        val dynamicHandler = DynamicHandler(
-            params = null,
-            body = expectedBody,
-            path = listOf((PathParts("users", false))),
-            headers = null,
-            security = false,
-            dynamicDomain = dynamicDomain,
-            scenarios = emptyList(),
-            method = HttpMethod.POST,
-        )
-
         val result1 = dynamicDomain.verifyBody(contentType, body, expectedBody)
         val result2 = dynamicDomain.verifyBody(contentType, body2, expectedBody)
         val result3 = dynamicDomain.verifyBody(contentType, body3, expectedBody)
 
         assertTrue { result1.isEmpty() }
-        assertEquals(VerifyBodyError.InvalidBodyFormat(
-            schemaJson.toString(),
-            receivedBody = body2,
-        ), result2[0])
-        assertEquals(VerifyBodyError.InvalidBodyFormat(
-            schemaJson.toString(),
-            receivedBody = body3,
-        ), result3[0])
+        assertEquals(
+            VerifyBodyError.InvalidBodyFormat(
+                schemaJson.toString(),
+                receivedBody = body2,
+            ), result2[0]
+        )
+        assertEquals(
+            VerifyBodyError.InvalidBodyFormat(
+                schemaJson.toString(),
+                receivedBody = body3,
+            ), result3[0]
+        )
 
     }
 
@@ -101,11 +104,13 @@ class DynamicHandlersTests {
 
         val expectedBody =
             ApiRequestBody(
-                content = ContentOrSchema.ContentField(mapOf(
-                    contentType to ContentOrSchema.SchemaObject(
-                        schema = schemaJson
+                content = ContentOrSchema.ContentField(
+                    mapOf(
+                        contentType to ContentOrSchema.SchemaObject(
+                            schema = schemaJson
+                        )
                     )
-                )),
+                ),
                 required = true
             )
 
@@ -116,24 +121,16 @@ class DynamicHandlersTests {
             [1,2,3,"4"]
         """.trimIndent()
 
-        val dynamicHandler = DynamicHandler(
-            params = null,
-            body = expectedBody,
-            path = listOf((PathParts("users", false))),
-            headers = null,
-            scenarios = emptyList(),
-            method = HttpMethod.POST,
-            dynamicDomain = dynamicDomain
-        )
-
         val result1 = dynamicDomain.verifyBody(contentType, body, expectedBody)
         val result2 = dynamicDomain.verifyBody(contentType, body2, expectedBody)
 
         assertTrue { result1.isEmpty() }
-        assertEquals(VerifyBodyError.InvalidBodyFormat(
-            schemaJson.toString(),
-            receivedBody = body2,
-        ), result2[0])
+        assertEquals(
+            VerifyBodyError.InvalidBodyFormat(
+                schemaJson.toString(),
+                receivedBody = body2,
+            ), result2[0]
+        )
 
     }
 
@@ -163,11 +160,13 @@ class DynamicHandlersTests {
 
         val expectedBody =
             ApiRequestBody(
-                content = ContentOrSchema.ContentField(mapOf(
-                    contentType to ContentOrSchema.SchemaObject(
-                        schema = schemaJson
+                content = ContentOrSchema.ContentField(
+                    mapOf(
+                        contentType to ContentOrSchema.SchemaObject(
+                            schema = schemaJson
+                        )
                     )
-                )),
+                ),
                 required = true
             )
 
@@ -196,24 +195,16 @@ class DynamicHandlersTests {
             ]
         """.trimIndent()
 
-        val dynamicHandler = DynamicHandler(
-            params = null,
-            body = expectedBody,
-            path = listOf((PathParts("users", false))),
-            headers = null,
-            dynamicDomain = dynamicDomain,
-            scenarios = emptyList(),
-            method = HttpMethod.POST,
-        )
-
         val result1 = dynamicDomain.verifyBody(contentType, body, expectedBody)
         val result2 = dynamicDomain.verifyBody(contentType, body2, expectedBody)
 
         assertTrue { result1.isEmpty() }
-        assertEquals(VerifyBodyError.InvalidBodyFormat(
-            schemaJson.toString(),
-            receivedBody = body2,
-        ), result2[0])
+        assertEquals(
+            VerifyBodyError.InvalidBodyFormat(
+                schemaJson.toString(),
+                receivedBody = body2,
+            ), result2[0]
+        )
 
     }
 
@@ -232,32 +223,26 @@ class DynamicHandlersTests {
 
         val expectedBody =
             ApiRequestBody(
-                content = ContentOrSchema.ContentField(mapOf(
-                    contentType to ContentOrSchema.SchemaObject(
-                        schema = schemaJson
+                content = ContentOrSchema.ContentField(
+                    mapOf(
+                        contentType to ContentOrSchema.SchemaObject(
+                            schema = schemaJson
+                        )
                     )
-                )),
+                ),
                 required = true
             )
 
         val body = ""
 
-        val dynamicHandler = DynamicHandler(
-            params = null,
-            body = expectedBody,
-            path = listOf((PathParts("users", false))),
-            headers = null,
-            dynamicDomain = dynamicDomain,
-            scenarios = emptyList(),
-            method = HttpMethod.POST,
-        )
-
         val result1 = dynamicDomain.verifyBody(contentType, body, expectedBody)
 
-        assertEquals(VerifyBodyError.InvalidBodyFormat(
-            schemaJson.toString(),
-            receivedBody = body,
-        ), result1[0])
+        assertEquals(
+            VerifyBodyError.InvalidBodyFormat(
+                schemaJson.toString(),
+                receivedBody = body,
+            ), result1[0]
+        )
 
     }
 
@@ -276,11 +261,13 @@ class DynamicHandlersTests {
 
         val expectedBody =
             ApiRequestBody(
-                content = ContentOrSchema.ContentField(mapOf(
-                    contentType to ContentOrSchema.SchemaObject(
-                        schema = schemaJson
+                content = ContentOrSchema.ContentField(
+                    mapOf(
+                        contentType to ContentOrSchema.SchemaObject(
+                            schema = schemaJson
+                        )
                     )
-                )),
+                ),
                 required = true
             )
 
@@ -288,26 +275,18 @@ class DynamicHandlersTests {
         val body2 = "false"
         val body3 = "null"
 
-        val dynamicHandler = DynamicHandler(
-            params = null,
-            body = expectedBody,
-            path = listOf((PathParts("users", false))),
-            headers = null,
-            dynamicDomain = dynamicDomain,
-            scenarios = emptyList(),
-            method = HttpMethod.POST,
-        )
-
         val result1 = dynamicDomain.verifyBody(contentType, body, expectedBody)
         val result2 = dynamicDomain.verifyBody(contentType, body2, expectedBody)
         val result3 = dynamicDomain.verifyBody(contentType, body3, expectedBody)
 
         assertTrue { result1.isEmpty() }
         assertTrue { result2.isEmpty() }
-        assertEquals(VerifyBodyError.InvalidBodyFormat(
-            schemaJson.toString(),
-            receivedBody = body3,
-        ), result3[0])
+        assertEquals(
+            VerifyBodyError.InvalidBodyFormat(
+                schemaJson.toString(),
+                receivedBody = body3,
+            ), result3[0]
+        )
 
     }
 
@@ -326,11 +305,13 @@ class DynamicHandlersTests {
 
         val expectedBody =
             ApiRequestBody(
-                content = ContentOrSchema.ContentField(mapOf(
-                    contentType to ContentOrSchema.SchemaObject(
-                        schema = schemaJson
+                content = ContentOrSchema.ContentField(
+                    mapOf(
+                        contentType to ContentOrSchema.SchemaObject(
+                            schema = schemaJson
+                        )
                     )
-                )),
+                ),
                 required = true
             )
 
@@ -338,26 +319,18 @@ class DynamicHandlersTests {
         val body2 = "3"
         val body3 = "null"
 
-        val dynamicHandler = DynamicHandler(
-            params = null,
-            body = expectedBody,
-            path = listOf((PathParts("users", false))),
-            headers = null,
-            dynamicDomain = dynamicDomain,
-            scenarios = emptyList(),
-            method = HttpMethod.POST,
-        )
-
         val result1 = dynamicDomain.verifyBody(contentType, body, expectedBody)
         val result2 = dynamicDomain.verifyBody(contentType, body2, expectedBody)
         val result3 = dynamicDomain.verifyBody(contentType, body3, expectedBody)
 
         assertTrue { result1.isEmpty() }
         assertTrue { result2.isEmpty() }
-        assertEquals(VerifyBodyError.InvalidBodyFormat(
-            schemaJson.toString(),
-            receivedBody = body3,
-        ), result3[0])
+        assertEquals(
+            VerifyBodyError.InvalidBodyFormat(
+                schemaJson.toString(),
+                receivedBody = body3,
+            ), result3[0]
+        )
 
     }
 
@@ -376,11 +349,13 @@ class DynamicHandlersTests {
 
         val expectedBody =
             ApiRequestBody(
-                content = ContentOrSchema.ContentField(mapOf(
-                    contentType to ContentOrSchema.SchemaObject(
-                        schema = schemaJson
+                content = ContentOrSchema.ContentField(
+                    mapOf(
+                        contentType to ContentOrSchema.SchemaObject(
+                            schema = schemaJson
+                        )
                     )
-                )),
+                ),
                 required = true
             )
 
@@ -388,25 +363,17 @@ class DynamicHandlersTests {
         val body2 = ""
         val body3 = "\"null\""
 
-        val dynamicHandler = DynamicHandler(
-            params = null,
-            body = expectedBody,
-            path = listOf((PathParts("users", false))),
-            headers = null,
-            dynamicDomain = dynamicDomain,
-            scenarios = emptyList(),
-            method = HttpMethod.POST,
-        )
-
         val result1 = dynamicDomain.verifyBody(contentType, body, expectedBody)
         val result2 = dynamicDomain.verifyBody(contentType, body2, expectedBody)
         val result3 = dynamicDomain.verifyBody(contentType, body3, expectedBody)
 
         assertTrue { result1.isEmpty() }
-        assertEquals(VerifyBodyError.InvalidBodyFormat(
-            schemaJson,
-            receivedBody = body2,
-        ), result2[0])
+        assertEquals(
+            VerifyBodyError.InvalidBodyFormat(
+                schemaJson,
+                receivedBody = body2,
+            ), result2[0]
+        )
         assertTrue { result3.isEmpty() }
 
     }
@@ -426,11 +393,13 @@ class DynamicHandlersTests {
 
         val expectedBody =
             ApiRequestBody(
-                content = ContentOrSchema.ContentField(mapOf(
-                    contentType to ContentOrSchema.SchemaObject(
-                        schema = schemaJson
+                content = ContentOrSchema.ContentField(
+                    mapOf(
+                        contentType to ContentOrSchema.SchemaObject(
+                            schema = schemaJson
+                        )
                     )
-                )),
+                ),
                 required = true
             )
 
@@ -438,29 +407,23 @@ class DynamicHandlersTests {
         val body2 = "3.14"
         val body3 = "null"
 
-        val dynamicHandler = DynamicHandler(
-            params = null,
-            body = expectedBody,
-            path = listOf((PathParts("users", false))),
-            headers = null,
-            dynamicDomain = dynamicDomain,
-            scenarios = emptyList(),
-            method = HttpMethod.POST,
-        )
-
         val result1 = dynamicDomain.verifyBody(contentType, body, expectedBody)
         val result2 = dynamicDomain.verifyBody(contentType, body2, expectedBody)
         val result3 = dynamicDomain.verifyBody(contentType, body3, expectedBody)
 
         assertTrue { result1.isEmpty() }
-        assertEquals(VerifyBodyError.InvalidBodyFormat(
-            schemaJson.toString(),
-            receivedBody = body2,
-        ), result2[0])
-        assertEquals(VerifyBodyError.InvalidBodyFormat(
-            schemaJson.toString(),
-            receivedBody = body3,
-        ), result3[0])
+        assertEquals(
+            VerifyBodyError.InvalidBodyFormat(
+                schemaJson.toString(),
+                receivedBody = body2,
+            ), result2[0]
+        )
+        assertEquals(
+            VerifyBodyError.InvalidBodyFormat(
+                schemaJson.toString(),
+                receivedBody = body3,
+            ), result3[0]
+        )
 
     }
 
@@ -519,16 +482,6 @@ class DynamicHandlersTests {
             "Content-Type" to "application/json",
             "Authorization" to "token123",
             "Extra" to "extra"
-        )
-
-        val dynamicHandler = DynamicHandler(
-            params = null,
-            body = null,
-            path = listOf((PathParts("users", false))),
-            headers = expectedHeaders,
-            dynamicDomain = dynamicDomain,
-            scenarios = emptyList(),
-            method = HttpMethod.POST,
         )
 
         val result1 = dynamicDomain.verifyHeaders(headers, expectedHeaders, "application/json", false)
@@ -640,7 +593,6 @@ class DynamicHandlersTests {
             result5[0]
         )
     }
-
 
     companion object {
         val dynamicDomain = DynamicDomain()

@@ -12,7 +12,7 @@ import kotlin.concurrent.thread
 @Component
 class PostgresListener(
     private val dataSource: DataSource,
-    private val synchronizer: Synchronizer
+    private val synchronizer: Synchronizer,
 ) {
 
     @PostConstruct

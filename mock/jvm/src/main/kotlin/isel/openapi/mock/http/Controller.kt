@@ -6,6 +6,7 @@ import isel.openapi.mock.services.DynamicHandlerError
 import isel.openapi.mock.services.DynamicHandlerServices
 import isel.openapi.mock.utils.Failure
 import isel.openapi.mock.utils.Success
+import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -73,4 +74,11 @@ class DynamicRouteController(
             }
         }
     }
+
+    @PostMapping("/dynamic-routes/update")
+    fun updateDynamicRoutes(): ResponseEntity<*> {
+        services.updateDynamicRouter()
+        return ResponseEntity.ok().body("Dynamic routes updated successfully")
+    }
+
 }

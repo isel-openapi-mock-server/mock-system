@@ -23,7 +23,7 @@ INSERT INTO PATHS (full_path, operations, spec_id) VALUES
                   }
                 },
                 "headers": [],
-                "statusCode": "200"
+                "statusCode": "OK"
               },
               {
                 "schema": {
@@ -36,12 +36,12 @@ INSERT INTO PATHS (full_path, operations, spec_id) VALUES
                   }
                 },
                 "headers": [],
-                "statusCode": "404"
+                "statusCode": "NOT_FOUND"
               },
               {
                 "schema": null,
                 "headers": [],
-                "statusCode": "500"
+                "statusCode": "INTERNAL_SERVER_ERROR"
               }
             ],
             "parameters": [

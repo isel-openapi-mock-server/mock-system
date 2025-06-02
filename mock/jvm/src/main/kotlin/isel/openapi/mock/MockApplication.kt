@@ -4,6 +4,7 @@ import isel.openapi.mock.repository.PostgresListener
 import isel.openapi.mock.repository.jdbi.configureWithAppRequirements
 import isel.openapi.mock.services.DynamicHandlerServices
 import isel.openapi.mock.services.Synchronizer
+import jakarta.annotation.PostConstruct
 import org.jdbi.v3.core.Jdbi
 import org.postgresql.ds.PGSimpleDataSource
 import org.springframework.boot.autoconfigure.SpringBootApplication

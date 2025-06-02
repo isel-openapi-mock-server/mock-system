@@ -10,6 +10,8 @@ import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.Jdbi
 import org.junit.jupiter.api.Test
 import org.postgresql.ds.PGSimpleDataSource
+import java.security.SecureRandom
+import java.util.Base64
 import kotlin.test.assertEquals
 
 class JdbiProblemsRepositoryTests {
@@ -19,9 +21,10 @@ class JdbiProblemsRepositoryTests {
         runWithHandle { handle ->
             val repo = JdbiProblemsRepository(handle)
             val testRepo = RequestRepository(handle)
+            val requestKey = generateTokenValue()
 
             repo.addRequest(
-                uuid = "request1",
+                uuid = requestKey,
                 url = "/users/search",
                 method = "GET",
                 path = "/users/search",
@@ -31,7 +34,7 @@ class JdbiProblemsRepositoryTests {
             )
 
             repo.addRequestParams(
-                uuid = "request1",
+                uuid = requestKey,
                 params = listOf(
                     ParameterInfo(
                         name = "username",
@@ -53,7 +56,7 @@ class JdbiProblemsRepositoryTests {
             )
 
             repo.addProblems(
-                uuid = "request1",
+                uuid = requestKey,
                 problems = listOf(
                     VerifyParamsError.InvalidParam(
                         location = Location.QUERY,
@@ -62,14 +65,13 @@ class JdbiProblemsRepositoryTests {
                 )
             )
 
-            val result = testRepo.getRequestInfoExchangeKey("request1")
+            val result = testRepo.getRequestInfoExchangeKey(requestKey)
 
             assert(result != null)
             assertEquals(expected.externalKey, result!!.externalKey)
             assertEquals(expected.method, result.method)
             assertEquals(expected.path, result.path)
             assertEquals(expected.host, result.host)
-            assertEquals(expected.exchangeKey, result.exchangeKey)
             assertEquals(expected.problems.size, result.problems.size)
             assertEquals(expected.problems[0].description, result.problems[0].description)
             assertEquals(expected.problems[0].type, result.problems[0].type)
@@ -80,7 +82,7 @@ class JdbiProblemsRepositoryTests {
     }
 
     val expected = RequestInfo(
-        exchangeKey = "request1",
+        exchangeKey = "",
         externalKey = "external1",
         method = "GET",
         path = "/users/search",
@@ -88,13 +90,19 @@ class JdbiProblemsRepositoryTests {
         body = null,
         problems = listOf(
             ProblemInfo(
-                description = "Invalid parameter 'limit' in query",
-                type = "isel.openapi.mock.http.VerifyParamsError.InvalidParam"
+                description = "Invalid parameter: limit in query",
+                type = "InvalidParam"
             )
         )
     )
 
     companion object {
+        private fun generateTokenValue(): String =
+            ByteArray(256 / 8).let { byteArray ->
+                SecureRandom.getInstanceStrong().nextBytes(byteArray)
+                Base64.getUrlEncoder().encodeToString(byteArray)
+            }
+
         private fun runWithHandle(block: (Handle) -> Unit) =
             jdbi.useTransaction<Exception>(block)
 
