@@ -12,11 +12,13 @@ sealed interface VerifyResponseError {
 
     data class MissingHeader(val name: String) : VerifyResponseError
 
-    data class MissingHeaderContent(val name: String) : VerifyResponseError
+    data class MissingHeaderContent(val name: String) : VerifyResponseError // TODO isto devia ser usado quando o valor vem vazio mas o allowEmptyValue é false. mas nao temos o allowEmptyValue
 
     data class InvalidType(val name: String, val expectedType: String, val givenType: String) : VerifyResponseError
 
     data class InvalidBodyFormat(val expectedFormat: String, val givenFormat: ByteArray) : VerifyResponseError
+
+    data class InvalidHeader(val name: String) : VerifyResponseError
 
     data object WrongStatusCode : VerifyResponseError
 
@@ -69,13 +71,20 @@ class AdminDomain {
         val failList = mutableListOf<VerifyResponseError>()
 
         if (headersSpec.isEmpty() && headers != null) {
-            return TODO() //erro headers que a mais
+            headers.forEach { header ->
+                failList.add(VerifyResponseError.InvalidHeader(header.key))
+            }
+            return failList
         }
         // nao há headers
         if (headers == null) {
             // eram esperados headers obrigatórios
             if (headersSpec.isNotEmpty() && headersSpec.any { it.required }) {
-                return TODO() //lista com todos os headers que estão em falta e sao obrigatorios
+                headersSpec.forEach { header ->
+                    if (header.required)
+                        failList.add(VerifyResponseError.MissingHeader(header.name))
+                }
+                return failList
             }
             // nao são esperados headers, ou nenhum dos esperados é obrigatório
             return failList
@@ -89,7 +98,7 @@ class AdminDomain {
             val headerValue = headers[headerSpec.name]
 
             if(headerValue == null && headerSpec.required) {
-                failList.add(VerifyResponseError.MissingHeaderContent(headerSpec.name))
+                failList.add(VerifyResponseError.MissingHeader(headerSpec.name))
             }
 
             when(val headerType = headerSpec.type) {
