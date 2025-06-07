@@ -75,6 +75,9 @@ class DynamicRouteController(
         }
     }
 
+    /**
+     * Rota adicionada para fins de testes
+     */
     @PostMapping("/dynamic-routes/update")
     fun updateDynamicRoutes(): ResponseEntity<*> {
         services.updateDynamicRouter()
