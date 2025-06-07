@@ -39,8 +39,30 @@ class RequestsControllerTests {
             .expectStatus().isOk
     }
 
+    @Test
+    fun `getRequestInfo returns 404 when request not found`() {
+        val client = WebTestClient.bindToServer().baseUrl("http://localhost:$port/").build()
 
-    companion object {
+        client.get().uri { uriBuilder ->
+            uriBuilder
+                .path("admin/requests")
+                .queryParam("exchangeKey", "nonexistent")
+                .build()
+        }
+            .exchange()
+            .expectStatus().isNotFound
+    }
 
+    @Test
+    fun `getRequestInfo returns 400 when credentials are required`() {
+        val client = WebTestClient.bindToServer().baseUrl("http://localhost:$port/").build()
+
+        client.get().uri { uriBuilder ->
+            uriBuilder
+                .path("admin/requests")
+                .build()
+        }
+            .exchange()
+            .expectStatus().isBadRequest
     }
 }
