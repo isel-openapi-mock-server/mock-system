@@ -70,6 +70,13 @@ task<Exec>("dbTestsDown") {
 	commandLine("docker", "compose", "down")
 }
 
+tasks.test {
+	useJUnitPlatform()
+	if (System.getenv("DB_URL") == null) {
+		environment("DB_URL", "jdbc:postgresql://localhost:5433/db?user=mock&password=mock")
+	}
+}
+
 tasks.named("check") {
 	dependsOn("dbTestsWait")
 	dependsOn("dbWait")
