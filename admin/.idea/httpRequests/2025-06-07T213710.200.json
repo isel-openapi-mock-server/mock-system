@@ -1,0 +1,57 @@
+[
+  {
+    "exchangeKey": "lBS8eX1_GX9LEMfrQ407NJgL_10KkPSRnbiCS3JntWg=",
+    "externalKey": "demokey",
+    "method": "POST",
+    "path": "/users",
+    "host": "YGnUjN6FCLyVsC82",
+    "body": "ewogICJpbnZpdGVDb2RlIjogImpGZXF0U2VsRzdOaiIsCiAgInVzZXJuYW1lIjogImJvYjEyMyIsCiAgInBhc3N3b3JkIjogInBhc3N3b3JkMTIzIgp9",
+    "problems": []
+  },
+  {
+    "exchangeKey": "n_S1GBKtAcWcTDptaVW0CqqwWefS8TjwMAGFWt9T2vM=",
+    "externalKey": "demokey",
+    "method": "POST",
+    "path": "/users",
+    "host": "YGnUjN6FCLyVsC82",
+    "body": "ewogICJpbnZpdGVDb2RlIjogImpGZXF0U2VsRzdOaiIsCiAgInVzZXJuYW1lIjogImJvYjEyMyIsCiAgInBhc3N3b3JkIjogInBhc3N3b3JkMTIzIgp9",
+    "problems": []
+  },
+  {
+    "exchangeKey": "6cNxdEADyq5Dc_XLtKTwhpctOgl5Rf0AmxjLGdDoRpg=",
+    "externalKey": "demokey",
+    "method": "POST",
+    "path": "/users/token",
+    "host": "YGnUjN6FCLyVsC82",
+    "body": "ewogICJ1c2VybmFtZSI6ICJib2IxMjMiLAogICJwYXNzd29yZCI6ICJwYXNzd29yZDEyMyIKfQ==",
+    "problems": []
+  },
+  {
+    "exchangeKey": "pMQSmP4ln-i1DvFTgjgy1eodsOFygU96sDoGXaTqFZA=",
+    "externalKey": "demokey",
+    "method": "GET",
+    "path": "/users/search",
+    "host": "YGnUjN6FCLyVsC82",
+    "body": null,
+    "problems": [
+      {
+        "description": "Missing header: Authorization",
+        "type": "MissingHeader"
+      }
+    ]
+  },
+  {
+    "exchangeKey": "fGblDSfhXl0Qgm-8j_ag2p2v86U0NAyDPgocgIZ5egw=",
+    "externalKey": "demokey",
+    "method": "POST",
+    "path": "/users/token",
+    "host": "YGnUjN6FCLyVsC82",
+    "body": "ewogICJ1c2VybmFtZSI6IDEsCiAgInBhc3N3b3JkIjogInBhc3N3b3JkMTIzIgp9",
+    "problems": [
+      {
+        "description": "Invalid body format: {\n  \"username\": 1,\n  \"password\": \"password123\"\n} for content type {\"type\":\"object\",\"properties\":{\"username\":{\"type\":\"string\",\"example\":\"bob123\",\"exampleSetFlag\":true,\"types\":[\"string\"]},\"password\":{\"type\":\"string\",\"example\":\"password123\",\"exampleSetFlag\":true,\"types\":[\"string\"]}},\"exampleSetFlag\":false,\"types\":[\"object\"]}",
+        "type": "InvalidBodyFormat"
+      }
+    ]
+  }
+]

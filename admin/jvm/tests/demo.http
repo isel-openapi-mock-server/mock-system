@@ -1,0 +1,136 @@
+### Enviar uma definição OpenAPI
+POST http://localhost:8081/admin/openapi
+Content-Type: application/json
+
+{
+  "spec": "openapi: 3.0.1\ninfo:\n  title: ChIMP API\n  version: 1.0.0\n  description: API for Instant messaging application\nservers:\n  - description: Localhost server for testing API\n    url: http://localhost:8080/api\npaths:\n  /users:\n    post:\n      tags:\n        - Users\n      summary: Create a new user\n      requestBody:\n        required: true\n        content:\n          application/json:\n            schema:\n              type: object\n              properties:\n                inviteCode:\n                  type: string\n                  example: jFeqtSelG7Nj\n                username:\n                  type: string\n                  example: bob123\n                password:\n                  type: string\n                  example: password123\n      responses:\n        '201':\n          description: User created successfully\n        '400':\n          description: Bad Request\n          content:\n            text/plain:\n              schema:\n                type: string\n                enum:\n                  - User already exists\n                  - Password is insecure\n                  - Invalid username\n                  - Invalid register code\n                example: User already exists\n        '500':\n          description: Internal server error\n\n  /users/token:\n    post:\n      tags:\n        - Users\n      summary: Authenticate user and get token\n      requestBody:\n        required: true\n        content:\n          application/json:\n            schema:\n              type: object\n              properties:\n                username:\n                  type: string\n                  example: bob123\n                password:\n                  type: string\n                  example: password123\n      responses:\n        '200':\n          description: Token generated successfully\n          content:\n            application/json:\n              schema:\n                type: object\n                properties:\n                  token:\n                    type: string\n                    example: Xa3KdPtDjDfI7v8mYQ2zWnJ5m7iHrPOf2D3_YcPtE8I\n        '400':\n          description: User or Password Invalid\n          content:\n            text/plain:\n              schema:\n                type: string\n                example: User or password are invalid\n        '500':\n          description: Internal server error\n  /users/search:\n    get:\n      tags:\n        - Users\n      summary: Search for a user by username\n      security:\n        - BearerAuth: []\n      parameters:\n        - name: username\n          in: query\n          required: true\n          schema:\n            type: string\n        - name: limit\n          in: query\n          required: false\n          schema:\n            type: integer\n        - name: skip\n          in: query\n          required: false\n          schema:\n            type: integer\n\n      responses:\n        '200':\n          description: User retrieved successfully\n          content:\n            application/json:\n              schema:\n                type: array\n                items:\n                  type: object\n                  properties:\n                    id:\n                      type: integer\n                      example: 1\n                    username:\n                      type: string\n                      example: bob123\n        '500':\n          description: Internal server error\n  /users/{id}:\n    get:\n      tags:\n        - Users\n      summary: Gets user by id\n      security:\n        - BearerAuth: []\n      parameters:\n        - name: id\n          in: path\n          required: true\n          schema:\n            type: integer\n      responses:\n        '200':\n          description: User retrieved successfully\n          content:\n            application/json:\n              schema:\n                type: object\n                properties:\n                  id:\n                    type: integer\n                    example: 1\n                  username:\n                    type: string\n                    example: bob123\n        '400':\n          description: Invalid request\n          content:\n            text/plain:\n              schema:\n                type: string\n                example: User doesn't exist\n        '500':\n          description: Internal server error\n  /logout:\n    post:\n      tags:\n        - Users\n      summary: Terminates user's session\n      security:\n        - BearerAuth: []\n      responses:\n        '200':\n          description: User's session terminated successfully\n        '500':\n          description: Internal server error\n\n  /me/channels:\n    get:\n      tags:\n        - Users\n      summary: Gets user channels\n      security:\n        - BearerAuth: []\n      responses:\n        '200':\n          description: Retrieved user's channels successfully\n          content:\n            application/json:\n              schema:\n                type: object\n                properties:\n                  channels:\n                    type: array\n                    items:\n                      type: object\n                      properties:\n                        id:\n                          type: integer\n                          example: 1\n                        name:\n                          type: string\n                          example: Channel A\n                        description:\n                          type: string\n                          example: chat\n                        lastMessageDate:\n                          type: integer\n                          example: 17993482349\n                        noNewMessages:\n                          type: integer\n                          example: 2\ncomponents:\n  securitySchemes:\n    BearerAuth:\n      type: http\n      scheme: bearer\n      description: |\n        Bearer token for authentication. Format: \"Bearer {token}\""
+}
+
+> {%
+    client.global.set("transaction_token", response.body.transactionToken);
+%}
+
+### Adicionar o primerio cenário
+PUT http://localhost:8081/admin/response
+Content-Type: application/json
+Transaction-token: {{ transaction_token }}
+
+{
+  "name": "POST_users",
+  "path": "/users",
+  "method": "POST",
+  "responses": [
+    {
+      "statusCode": "400",
+      "contentType": "text/plain",
+      "body": "\"User already exists\""
+    },
+    {
+      "statusCode": "201"
+    }
+  ]
+}
+
+### Adicionar o segundo cenário
+PUT http://localhost:8081/admin/response
+Content-Type: application/json
+Transaction-token: {{ transaction_token }}
+
+{
+  "name": "POST_users_token",
+  "path": "/users/token",
+  "method": "POST",
+  "responses": [
+    {
+      "statusCode": "200",
+      "contentType": "application/json",
+      "body": "{\"token\": \"Xa3KdPtDjDfI7v8mYQ2zWnJ5m7iHrPOf2D3_YcPtE8I\"}"
+    }
+  ]
+}
+
+### Adicionar o terceiro cenário
+PUT http://localhost:8081/admin/response
+Content-Type: application/json
+Transaction-token: {{ transaction_token }}
+
+{
+  "name": "GET_users_search",
+  "path": "/users/search",
+  "method": "GET",
+  "responses": [
+    {
+      "statusCode": "200",
+      "contentType": "application/json",
+      "body": "[{\"id\": 1, \"username\": \"bob123\"}]"
+    }
+  ]
+}
+
+### Confirmar as definições
+POST http://localhost:8081/admin/commit
+Transaction-token: {{ transaction_token }}
+
+> {%
+    client.global.set("host", response.body.host);
+%}
+
+### Pedidos à API configurada --------------------------------------------------------------------------------
+
+### POST /users
+POST http://localhost:8080/users
+Content-Type: application/json
+Host: {{ host }}
+Scenario-name: POST_users
+External-key: demokey
+
+{
+  "inviteCode": "jFeqtSelG7Nj",
+  "username": "bob123",
+  "password": "password123"
+}
+
+### POST /users/token
+POST http://localhost:8080/users/token
+Content-Type: application/json
+Host: {{ host }}
+Scenario-name: POST_users_token
+External-key: demokey
+
+{
+  "username": "bob123",
+  "password": "password123"
+}
+
+### GET /users/search
+GET http://localhost:8080/users/search?username=bob123
+Host: {{ host }}
+Scenario-name: GET_users_search
+External-key: demokey
+
+### GET /users/{id}
+GET http://localhost:8080/users/1
+Host: {{ host }}
+Scenario-name: GET_users_search
+External-key: demokey
+
+### POST /users/token com erro
+POST http://localhost:8080/users/token
+Content-Type: application/json
+Host: {{ host }}
+Scenario-name: POST_users_token
+External-key: demokey
+
+{
+  "username": 1,
+  "password": "password123"
+}
+
+### Pedidos para ver os detalhes dos pedidos --------------------------------------------------
+
+### Exchange Key
+GET http://localhost:8081/admin/requests?exchangeKey=13J5mnQFk6Y5_6iGIioGEVRidlGbOTUTzQJXsgQ9E4E=
+
+### External Key
+GET http://localhost:8081/admin/requests?externalKey=demokey
+

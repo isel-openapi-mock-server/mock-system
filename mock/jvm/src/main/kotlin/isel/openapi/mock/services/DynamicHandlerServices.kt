@@ -11,7 +11,6 @@ import isel.openapi.mock.repository.TransactionManager
 import isel.openapi.mock.utils.Either
 import isel.openapi.mock.utils.failure
 import isel.openapi.mock.utils.success
-import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.stereotype.Component
 

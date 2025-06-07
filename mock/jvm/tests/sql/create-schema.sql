@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS REQUEST_PARAMS(
 
 CREATE TABLE IF NOT EXISTS PROBLEMS(
     id SERIAL unique,
-    description VARCHAR(256) NOT NULL CHECK(LENGTH(description) >= 1 and LENGTH(description) <= 256),
+    description VARCHAR(1024) NOT NULL CHECK(LENGTH(description) >= 1 and LENGTH(description) <= 1024),
     type VARCHAR(256) NOT NULL CHECK(LENGTH(type) >= 1 and LENGTH(type) <= 256),
     uuid VARCHAR(256) NOT NULL,
     FOREIGN KEY (uuid) REFERENCES REQUESTS(uuid) ON DELETE CASCADE,

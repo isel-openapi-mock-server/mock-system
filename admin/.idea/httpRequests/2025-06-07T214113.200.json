@@ -1,0 +1,16 @@
+[
+  {
+    "exchangeKey": "13J5mnQFk6Y5_6iGIioGEVRidlGbOTUTzQJXsgQ9E4E=",
+    "externalKey": "demokey",
+    "method": "GET",
+    "path": "/users/search",
+    "host": "YGnUjN6FCLyVsC82",
+    "body": null,
+    "problems": [
+      {
+        "description": "Missing header: Authorization",
+        "type": "MissingHeader"
+      }
+    ]
+  }
+]
