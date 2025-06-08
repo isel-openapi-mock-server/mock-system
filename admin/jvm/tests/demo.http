@@ -102,7 +102,18 @@ External-key: demokey
   "password": "password123"
 }
 
-### GET /users/search
+> {%
+    client.global.set("token", response.body.token);
+%}
+
+### GET /users/search com token
+GET http://localhost:8080/users/search?username=bob123
+Host: {{ host }}
+Scenario-name: GET_users_search
+External-key: demokey
+Authorization: Bearer {{ token }}
+
+### GET /users/search sem token
 GET http://localhost:8080/users/search?username=bob123
 Host: {{ host }}
 Scenario-name: GET_users_search

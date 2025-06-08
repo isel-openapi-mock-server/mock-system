@@ -29,13 +29,13 @@ class DynamicRouteController(
             "POST" -> HttpMethod.POST
             "PUT" -> HttpMethod.PUT
             "DELETE" -> HttpMethod.DELETE
-            else -> return ResponseEntity.badRequest().body("Unsupported method")
+            else -> return Problem.response(500, Problem.unsupportedMethod)
         }
         val host = request.getHeader("Host")
-            ?: return ResponseEntity.badRequest().body("Host header is missing")
+            ?: return Problem.response(400, Problem.hostHeader)
         val externalKey = request.getHeader("External-Key")
         val scenarioName: String = request.getHeader("Scenario-name")
-            ?: return ResponseEntity.badRequest().body("Scenario-name header is missing")
+            ?: return Problem.response(400, Problem.scenarioHeader)
         val res = services.executeDynamicHandler(
             host = host,
             method = method,
@@ -53,7 +53,13 @@ class DynamicRouteController(
                     resp.header(header.key, header.value)
                 }
 
-                resp.body(res.value.first.body)
+                resp.header("Content-Type", res.value.first.contentType)
+
+                if(res.value.first.contentType == "application/json") {
+                    resp.body(String(res.value.first.body!!, Charsets.UTF_8))
+                } else {
+                    resp.body(res.value.first.body)
+                }
 
             }
             is Failure -> {

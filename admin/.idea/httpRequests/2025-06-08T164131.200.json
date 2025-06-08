@@ -1,0 +1,13 @@
+{
+  "headers": {
+    "Exchange-Key": [
+      "GIwRdGnp1smMnMJofWoPX2hPq5mmLsvSQF9FGp4SY04="
+    ],
+    "Content-Type": [
+      "application/json"
+    ]
+  },
+  "body": "{\"token\": \"Xa3KdPtDjDfI7v8mYQ2zWnJ5m7iHrPOf2D3_YcPtE8I\"}",
+  "statusCode": "OK",
+  "statusCodeValue": 200
+}

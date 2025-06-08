@@ -67,5 +67,26 @@ class Problem(
                 ),
             )
 
+        val hostHeader =
+            Problem(
+                URI(
+                    "https://github.com/isel-openapi-mock-server/private-spring/tree/main/docs/problems/host-header-missing",
+                ),
+            )
+
+        val scenarioHeader =
+            Problem(
+                URI(
+                    "https://github.com/isel-openapi-mock-server/private-spring/tree/main/docs/problems/scenario-header-missing",
+                ),
+            )
+
+        val unsupportedMethod =
+            Problem(
+                URI(
+                    "https://github.com/isel-openapi-mock-server/private-spring/tree/main/docs/problems/unsupported-method",
+                ),
+            )
+
     }
 }
