@@ -77,29 +77,4 @@ class ControllerTests {
             )
     }
 
-    companion object {
-
-        private val jdbi = Jdbi.create(
-            PGSimpleDataSource().apply {
-                setURL("jdbc:postgresql://localhost:5435/mock?user=mock&password=mock")
-            }
-        ).configureWithAppRequirements()
-
-        val services = DynamicHandlerServices(
-            router = Router(DynamicRoutesRepository(), DynamicDomain()),
-            problemsDomain = ProblemsDomain(),
-            transactionManager = JdbiTransactionManager(
-                jdbi = jdbi
-            ),
-            clock = Clock.System
-        )
-
-        fun notifyDB() {
-            val handle = jdbi.open()
-            handle.createUpdate("NOTIFY update_spec").execute()
-            handle.close()
-        }
-
-    }
-
 }

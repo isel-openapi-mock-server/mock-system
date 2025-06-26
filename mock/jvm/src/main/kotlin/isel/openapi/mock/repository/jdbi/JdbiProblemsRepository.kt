@@ -35,7 +35,7 @@ class JdbiProblemsRepository(
             .mapTo<Int>()
             .first()
 
-        handle.createUpdate("INSERT INTO requests (uuid, path_template, method, resolved_path, external_key, host, spec_id, headers, date) VALUES (:uuid, :url, :method, :path, :externalKey, :host, :specId, :headers, :date)")
+        handle.createUpdate("INSERT INTO requests (uuid, path_template, method, resolved_path, external_key, host, spec_id, headers, date) VALUES (:uuid, :path_template, :method, :resolved_path, :externalKey, :host, :specId, :headers, :date)")
             .bind("uuid", uuid)
             .bind("path_template", pathTemplate)
             .bind("method", method)
