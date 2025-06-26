@@ -5,7 +5,7 @@ import isel.openapi.mock.http.VerificationError
 
 interface ProblemsRepository {
 
-    fun addRequest(uuid: String, url: String, method: String, path: String, externalKey: String?, host: String, headers: String?)
+    fun addRequest(uuid: String, pathTemplate: String, method: String, resolvedPath: String, externalKey: String?, host: String, headers: String?, date: Long)
 
     fun addRequestParams(uuid: String, params: List<ParameterInfo>)
 

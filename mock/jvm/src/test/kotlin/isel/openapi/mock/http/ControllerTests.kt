@@ -7,6 +7,7 @@ import isel.openapi.mock.repository.jdbi.JdbiTransactionManager
 import isel.openapi.mock.repository.jdbi.configureWithAppRequirements
 import isel.openapi.mock.services.DynamicHandlerServices
 import isel.openapi.mock.services.Router
+import kotlinx.datetime.Clock
 import org.jdbi.v3.core.Jdbi
 import org.postgresql.ds.PGSimpleDataSource
 import org.springframework.boot.test.context.SpringBootTest
@@ -89,7 +90,8 @@ class ControllerTests {
             problemsDomain = ProblemsDomain(),
             transactionManager = JdbiTransactionManager(
                 jdbi = jdbi
-            )
+            ),
+            clock = Clock.System
         )
 
         fun notifyDB() {

@@ -19,6 +19,7 @@ import isel.openapi.mock.repository.jdbi.JdbiTransactionManager
 import isel.openapi.mock.repository.jdbi.configureWithAppRequirements
 import isel.openapi.mock.utils.Failure
 import isel.openapi.mock.utils.Success
+import kotlinx.datetime.Clock
 import org.jdbi.v3.core.Jdbi
 import org.junit.jupiter.api.Test
 import org.postgresql.ds.PGSimpleDataSource
@@ -375,7 +376,8 @@ class DynamicHandlerServicesTests {
             return DynamicHandlerServices(
                 router = router,
                 problemsDomain = ProblemsDomain(),
-                transactionManager = JdbiTransactionManager(jdbi)
+                transactionManager = JdbiTransactionManager(jdbi),
+                clock = Clock.System
             )
         }
     }

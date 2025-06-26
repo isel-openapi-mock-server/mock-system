@@ -27,6 +27,7 @@ dependencies {
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("com.github.erosb:json-sKema:0.20.0")
 	implementation("com.google.code.gson:gson:2.13.0")
+	implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
 
 	// for JDBI
 	implementation("org.jdbi:jdbi3-core:3.37.1")

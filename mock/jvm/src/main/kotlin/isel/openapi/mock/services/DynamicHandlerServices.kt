@@ -12,6 +12,7 @@ import isel.openapi.mock.utils.Either
 import isel.openapi.mock.utils.failure
 import isel.openapi.mock.utils.success
 import jakarta.servlet.http.HttpServletRequest
+import kotlinx.datetime.Clock
 import org.springframework.stereotype.Component
 
 sealed interface DynamicHandlerError {
@@ -30,6 +31,7 @@ class DynamicHandlerServices(
     private val router: Router,
     private val problemsDomain: ProblemsDomain,
     private val transactionManager: TransactionManager,
+    private val clock: Clock,
 ) {
 
     fun executeDynamicHandler(
@@ -62,6 +64,8 @@ class DynamicHandlerServices(
                 if(handlerResponse.headers.isNotEmpty()) mapper.writeValueAsString(handlerResponse.headers)
                 else null
 
+            val date = clock.now().epochSeconds
+
             problemsRepository.addRequest(
                 exchangeKey,
                 dynamicHandler.resourceUrl,
@@ -70,6 +74,7 @@ class DynamicHandlerServices(
                 externalKey,
                 host,
                 jsonRequestHeaders,
+                date
             )
 
             if(handlerResponse.body != null) {
