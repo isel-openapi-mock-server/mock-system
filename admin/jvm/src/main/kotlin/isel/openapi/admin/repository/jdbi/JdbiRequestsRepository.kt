@@ -1,6 +1,5 @@
 package isel.openapi.admin.repository.jdbi
 
-import isel.openapi.admin.domain.requests.HeadersInfo
 import isel.openapi.admin.domain.requests.ProblemInfo
 import isel.openapi.admin.domain.requests.RequestDetails
 import isel.openapi.admin.domain.requests.RequestInfo
@@ -17,7 +16,7 @@ class JdbiRequestsRepository(
     ): RequestInfo? {
         val temp = handle.createQuery(
             """
-            SELECT external_key, url, method, host, uuid FROM requests WHERE uuid = :uuid
+            SELECT external_key, path_template, method, host, uuid FROM requests WHERE uuid = :uuid
             """
         )
             .bind("uuid", exchangeKey)
@@ -34,7 +33,7 @@ class JdbiRequestsRepository(
             exchangeKey = exchangeKey,
             externalKey = temp.externalKey,
             method = temp.method,
-            path = temp.url,
+            path = temp.pathTemplate,
             host = temp.host,
             body = body,
             problems = problems
@@ -49,7 +48,7 @@ class JdbiRequestsRepository(
 
         val requestTemp = handle.createQuery(
             """
-            SELECT external_key, url, method, host, uuid FROM requests WHERE external_key = :externalKey
+            SELECT external_key, path_template, method, host, uuid FROM requests WHERE external_key = :externalKey
             """
         )
             .bind("externalKey", externalKey)
@@ -66,7 +65,7 @@ class JdbiRequestsRepository(
                     exchangeKey = it.uuid,
                     externalKey = externalKey,
                     method = it.method,
-                    path = it.url,
+                    path = it.pathTemplate,
                     host = it.host,
                     body = body,
                     problems = problems
@@ -118,7 +117,7 @@ class JdbiRequestsRepository(
 
         val query = StringBuilder(
             """
-            SELECT r.uuid, r.external_key, r.url, r.method, r.host, FROM requests AS r
+            SELECT r.uuid, r.external_key, r.path_template, r.method, r.host, FROM requests AS r
             WHERE r.host = :host
             """
         )
@@ -128,7 +127,7 @@ class JdbiRequestsRepository(
         }
 
         if (path != null) {
-            query.append(" AND r.path LIKE :path")
+            query.append(" AND r.resolved_path LIKE :path")
         }
 
         if (startDate != null && endDate != null && startDate > endDate) {
@@ -158,7 +157,7 @@ class JdbiRequestsRepository(
                     exchangeKey = request.uuid,
                     externalKey = request.externalKey,
                     method = request.method,
-                    path = request.url,
+                    path = request.pathTemplate,
                     host = request.host,
                     body = body,
                     problems = problems
