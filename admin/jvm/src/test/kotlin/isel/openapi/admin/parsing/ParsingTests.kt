@@ -1,11 +1,10 @@
 package isel.openapi.admin.parsing
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.github.erosb.jsonsKema.JsonValue
-import io.swagger.v3.oas.models.media.ArraySchema
-import io.swagger.v3.oas.models.media.IntegerSchema
-import io.swagger.v3.oas.models.media.ObjectSchema
-import io.swagger.v3.oas.models.media.StringSchema
+import io.swagger.v3.oas.models.media.*
 import isel.openapi.admin.parsing.model.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -211,6 +210,38 @@ class ParsingTests {
 
         assertEquals("A", responseHeaders[0].name)
         assertEquals(false, responseHeaders[0].required)
+    }
+
+    @Test
+    fun extractBody() {
+
+        val isValid = parsing.validateOpenApi(openAPIDefinition3)
+
+        assertTrue { isValid }
+
+        val definition = parsing.parseOpenApi(openAPIDefinition3) ?: throw IllegalStateException("Invalid OpenAPI definition")
+        val operations = parsing.extractApiSpec(definition).paths[0].operations
+        assertEquals(1, operations.size)
+        val requestBody = operations[0].requestBody
+        assertTrue { requestBody != null }
+        assertTrue { requestBody?.content?.content?.containsKey("application/json") == true }
+        val schema = requestBody?.content?.content?.get("application/json")?.schema
+
+        val objectMapper = ObjectMapper()
+        val i = objectMapper.readValue(schema, Schema::class.java)
+
+        assertTrue { i is Schema }
+        i as Schema
+        assertTrue { i.type == "object" }
+        assertTrue { i.properties != null }
+        assertTrue { i.properties?.containsKey("name") == true }
+        assertTrue { i.properties?.containsKey("email") == true }
+        assertTrue { i.properties?.containsKey("username") == true }
+        assertTrue { i.properties?.containsKey("password") == true }
+        assertTrue { i.required?.contains("name") == true }
+        assertTrue { i.required?.contains("email") == true }
+        assertTrue { i.required?.contains("username") == true }
+        assertTrue { i.required?.contains("password") == true }
     }
 
     private val openAPIDefinition = """

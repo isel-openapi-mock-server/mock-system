@@ -1,6 +1,8 @@
 package isel.openapi.mock.domain.dynamic
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.erosb.jsonsKema.*
+import io.swagger.v3.oas.models.media.Schema
 import isel.openapi.mock.domain.openAPI.*
 import isel.openapi.mock.domain.problems.ParameterInfo
 import isel.openapi.mock.http.VerificationError
@@ -336,10 +338,52 @@ class DynamicDomain {
                     val validationResult = jsonValidator(value.schema, body)
                     if(!validationResult) {
                         failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.content.content[contentType]?.schema.toString() ?: contentType, body))
+                    } else if(contentType == "application/json") {
+                        val objectMapper = ObjectMapper()
+                        val schemaObj = objectMapper.readValue(value.schema, Schema::class.java)
+
+                        if (schemaObj.type == "object") {
+                            val jsonNode = objectMapper.readTree(body)
+                            if (!jsonNode.isObject) {
+                                failList.add(
+                                    VerifyBodyError.InvalidBodyFormat(
+                                        schemaObj.toString(),
+                                        body
+                                    )
+                                )
+                            } else {
+                                val bodyMap = objectMapper.convertValue(jsonNode, Map::class.java) as Map<String, Any?>
+                                val allFields = schemaObj.properties?.keys ?: emptySet()
+                                val extraFields = bodyMap.keys.filter { it !in allFields }
+                                val requiredFields = schemaObj.required ?: emptyList()
+                                val missingFields = requiredFields.filter { it !in bodyMap.keys }
+                                if (missingFields.isNotEmpty()) {
+                                    missingFields.forEach {
+                                        failList.add(
+                                            VerifyBodyError.InvalidBodyFormat(
+                                                "Missing required field: $it in body",
+                                                body
+                                            )
+                                        )
+                                    }
+                                }
+                                if (extraFields.isNotEmpty()) {
+                                    extraFields.forEach {
+                                        failList.add(
+                                            VerifyBodyError.InvalidBodyFormat(
+                                                "Extra field found: $it in body",
+                                                body
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
         } catch (e: Exception) {
+            println("Erro no JSON do schema: ${e.message}")
             failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.content.content[contentType]?.schema.toString() ?: contentType, body))
         }
         return failList
