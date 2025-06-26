@@ -108,7 +108,7 @@ class Router(
 
         return HandlerAndUUID(
             dynamicHandler = dynamicHandler,
-            resourceUrl = resourceUrl.joinToString("/"),
+            pathTemplate = resourceUrl.joinToString("/"),
             routeNode = current
         )
     }

@@ -46,20 +46,16 @@ class DynamicRouteController(
         )
         return when (res) {
             is Success -> {
-                val resp = ResponseEntity.status(res.value.first.statusCode.code)
-                    .header(EXCHANGE_KEY_HEADER, res.value.second)
+                val resp = ResponseEntity.status(res.value.statusCode.code)
+                    .header(EXCHANGE_KEY_HEADER, res.value.exchangeKey)
 
-                res.value.first.headers?.forEach { header ->
+                res.value.headers?.forEach { header ->
                     resp.header(header.key, header.value)
                 }
 
-                resp.header("Content-Type", res.value.first.contentType)
+                resp.header("Content-Type", res.value.contentType)
 
-                if(res.value.first.contentType == "application/json") {
-                    resp.body(String(res.value.first.body!!, Charsets.UTF_8))
-                } else {
-                    resp.body(res.value.first.body)
-                }
+                resp.body(res.value.body)
 
             }
             is Failure -> {

@@ -229,7 +229,7 @@ class DynamicHandlerServicesTests {
         val match = router.match("host1", HttpMethod.GET, "/users/search")
 
         assert(match != null)
-        assertEquals("/users/search", match!!.resourceUrl)
+        assertEquals("/users/search", match!!.pathTemplate)
         assertEquals(HttpMethod.GET, match.routeNode.operations.first().method)
     }
 

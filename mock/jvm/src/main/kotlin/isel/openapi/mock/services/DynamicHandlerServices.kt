@@ -3,7 +3,9 @@ package isel.openapi.mock.services
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.github.jknack.handlebars.Handlebars
 import isel.openapi.mock.domain.dynamic.HandlerResult
+import isel.openapi.mock.domain.dynamic.ProcessedRequest
 import isel.openapi.mock.domain.dynamic.RouteNode
 import isel.openapi.mock.domain.openAPI.*
 import isel.openapi.mock.domain.problems.ProblemsDomain
@@ -14,6 +16,7 @@ import isel.openapi.mock.utils.success
 import jakarta.servlet.http.HttpServletRequest
 import kotlinx.datetime.Clock
 import org.springframework.stereotype.Component
+import org.apache.commons.text.StringEscapeUtils
 
 sealed interface DynamicHandlerError {
     data object HandlerNotFound: DynamicHandlerError
@@ -24,7 +27,7 @@ sealed interface DynamicHandlerError {
     data class BadRequest(val exchangeKey: String) : DynamicHandlerError
 }
 
-typealias DynamicHandlerResult = Either<DynamicHandlerError, Pair<ResponseConfig, String>>
+typealias DynamicHandlerResult = Either<DynamicHandlerError, ProcessedRequest>
 
 @Component
 class DynamicHandlerServices(
@@ -32,6 +35,7 @@ class DynamicHandlerServices(
     private val problemsDomain: ProblemsDomain,
     private val transactionManager: TransactionManager,
     private val clock: Clock,
+    private val handlebars: Handlebars
 ) {
 
     fun executeDynamicHandler(
@@ -47,7 +51,7 @@ class DynamicHandlerServices(
 
         val dynamicHandler = router.match(host, method, path) ?: return failure(DynamicHandlerError.HandlerNotFound)
 
-        if (!router.doesScenarioExist(dynamicHandler.routeNode, scenarioName, dynamicHandler.resourceUrl, method)) return failure(DynamicHandlerError.ScenarioNotFound)
+        if (!router.doesScenarioExist(dynamicHandler.routeNode, scenarioName, dynamicHandler.pathTemplate, method)) return failure(DynamicHandlerError.ScenarioNotFound)
 
         val handlerResponse : HandlerResult = dynamicHandler.dynamicHandler.handle(request, scenarioName)
 
@@ -68,7 +72,7 @@ class DynamicHandlerServices(
 
             problemsRepository.addRequest(
                 exchangeKey,
-                dynamicHandler.resourceUrl,
+                dynamicHandler.pathTemplate,
                 method.name,
                 path,
                 externalKey,
@@ -102,10 +106,42 @@ class DynamicHandlerServices(
 
         if (fails.isNotEmpty()) return failure(DynamicHandlerError.BadRequest(exchangeKey))
 
+        val body = handlerResponse.response?.body
+
+        val processedBody = if (body != null) {
+            val bodyString = String(body, Charsets.UTF_8)
+            val unescaped = if (bodyString.contains("\\\"")
+                || bodyString.contains("\\u007b")
+                || bodyString.startsWith("\"[")
+                || bodyString.endsWith("]\"")) {
+                StringEscapeUtils.unescapeJson(bodyString)
+            } else {
+                bodyString
+            }
+
+            if(unescaped.contains("{{")) {
+                val context =
+                    HandlebarsContext()
+                        .addBody(handlerResponse.body, handlerResponse.response.contentType ?: "application/json")
+                        .addUrl(request.requestURL.toString())
+                        .pathParts(path)
+                        .addParams(handlerResponse.params)
+                        .addHeaders(handlerResponse.headers)
+                val template = handlebars.compileInline(unescaped)
+                template.apply(context.getContext())
+            } else { unescaped }
+
+        } else {
+            null
+        }
+
         return success(
-            Pair(
-                handlerResponse.response!!,
-                exchangeKey
+            ProcessedRequest(
+                exchangeKey = exchangeKey,
+                statusCode = handlerResponse.response?.statusCode ?: StatusCode.OK,
+                contentType = handlerResponse.response?.contentType,
+                headers = handlerResponse.response?.headers ?: emptyMap(),
+                body = processedBody
             )
         )
     }
@@ -183,6 +219,29 @@ class DynamicHandlerServices(
                 PathParts(part, false)
             }
         }
+    }
+
+    fun processTemplateBody(body: ByteArray?, context: Map<String, Any>): String? {
+        if (body == null) return null
+
+        val bodyString = body.decodeToString()
+
+        val normalized = maybeUnescapeJsonString(bodyString)
+
+        val handlebars = Handlebars()
+        val template = handlebars.compileInline(normalized)
+        return template.apply(context)
+    }
+
+    fun maybeUnescapeJsonString(input: String): String {
+        val looksEscaped = input.contains("\\\"") || input.contains("\\u007b") || input.contains("\\\\")
+        if (!looksEscaped) return input
+
+        return input
+            .replace("\\\"", "\"")
+            .replace("\\\\", "\\")
+            .replace("\\u007b", "{")
+            .replace("\\u007d", "}")
     }
 
 }

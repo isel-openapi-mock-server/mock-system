@@ -1,5 +1,6 @@
 package isel.openapi.mock
 
+import com.github.jknack.handlebars.Handlebars
 import isel.openapi.mock.repository.jdbi.configureWithAppRequirements
 import org.jdbi.v3.core.Jdbi
 import org.postgresql.ds.PGSimpleDataSource
@@ -14,6 +15,9 @@ class MockApplication {
 
 	@Bean
 	fun clock() = Clock.System
+
+	@Bean
+	fun handlebars() = Handlebars()
 
 	@Bean
 	fun dataSource() =
