@@ -24,7 +24,7 @@ class AdminControllerTests {
             .expectBody()
             .json(
                 """
-              {"type":"https://github.com/isel-openapi-mock-server/private-spring/tree/main/docs/problems/invalid-open-api-spec"}
+              {"type":"https://github.com/isel-openapi-mock-server/mock-system/tree/main/docs/problems/invalid-open-api-spec.txt"}
             """.trimIndent()
             )
     }
@@ -72,7 +72,7 @@ class AdminControllerTests {
             .expectBody()
             .json(
                 """
-              {"type":"https://github.com/isel-openapi-mock-server/private-spring/tree/main/docs/problems/invalid-transaction"}
+              {"type":"https://github.com/isel-openapi-mock-server/mock-system/tree/main/docs/problems/invalid-transaction.txt"}
             """.trimIndent()
             )
     }
@@ -108,7 +108,7 @@ class AdminControllerTests {
             .expectBody()
             .json(
                 """
-              {"type":"https://github.com/isel-openapi-mock-server/private-spring/tree/main/docs/problems/host-does-not-exist"}
+              {"type":"https://github.com/isel-openapi-mock-server/mock-system/tree/main/docs/problems/host-does-not-exist.txt"}
             """.trimIndent()
             )
     }
@@ -143,7 +143,7 @@ class AdminControllerTests {
             .expectBody()
             .json(
                 """
-              {"type":"https://github.com/isel-openapi-mock-server/private-spring/tree/main/docs/problems/transaction-or-host-not-provided"}
+              {"type":"https://github.com/isel-openapi-mock-server/mock-system/tree/main/docs/problems/transaction-or-host-not-provided.txt"}
             """.trimIndent()
             )
     }
@@ -179,7 +179,7 @@ class AdminControllerTests {
             .expectBody()
             .json(
                 """
-              {"type":"https://github.com/isel-openapi-mock-server/private-spring/tree/main/docs/problems/path-operation-does-not-exist"}
+              {"type":"https://github.com/isel-openapi-mock-server/mock-system/tree/main/docs/problems/path-operation-does-not-exist.txt"}
             """.trimIndent()
             )
     }
@@ -214,7 +214,7 @@ class AdminControllerTests {
             .expectBody()
             /*.json(
                 """
-              {"type":"https://github.com/isel-openapi-mock-server/private-spring/tree/main/docs/problems/invalid-response-content"}
+              {"type":"https://github.com/isel-openapi-mock-server/mock-system/tree/main/docs/problems/invalid-response-content.txt"}
             """.trimIndent()
             )*/
     }
@@ -269,7 +269,7 @@ class AdminControllerTests {
             .expectBody()
             .json(
             """
-                {"type":"https://github.com/isel-openapi-mock-server/private-spring/tree/main/docs/problems/host-does-not-exist"}
+                {"type":"https://github.com/isel-openapi-mock-server/mock-system/tree/main/docs/problems/host-does-not-exist.txt"}
             """.trimIndent()
             )
     }
@@ -289,7 +289,7 @@ class AdminControllerTests {
             .expectBody()
             .json(
             """
-              {"type":"https://github.com/isel-openapi-mock-server/private-spring/tree/main/docs/problems/invalid-transaction"}
+              {"type":"https://github.com/isel-openapi-mock-server/mock-system/tree/main/docs/problems/invalid-transaction.txt"}
             """.trimIndent()
             )
     }
@@ -309,7 +309,7 @@ class AdminControllerTests {
             .expectBody()
         .json(
             """
-              {"type":"https://github.com/isel-openapi-mock-server/private-spring/tree/main/docs/problems/invalid-transaction"}
+              {"type":"https://github.com/isel-openapi-mock-server/mock-system/tree/main/docs/problems/invalid-transaction.txt"}
             """.trimIndent()
             )
     }

@@ -22,70 +22,70 @@ class Problem(
         val invalidOpenAPISpec =
             Problem(
                 URI(
-                    "https://github.com/isel-openapi-mock-server/private-spring/tree/main/docs/problems/invalid-open-api-spec",
+                    "https://github.com/isel-openapi-mock-server/mock-system/tree/main/docs/problems/invalid-open-api-spec.txt",
                 ),
             )
 
         val pathOperationDoesNotExist =
             Problem(
                 URI(
-                    "https://github.com/isel-openapi-mock-server/private-spring/tree/main/docs/problems/path-operation-does-not-exist",
+                    "https://github.com/isel-openapi-mock-server/mock-system/tree/main/docs/problems/path-operation-does-not-exist.txt",
                 ),
             )
 
         val invalidResponseContent =
             Problem(
                 URI(
-                    "https://github.com/isel-openapi-mock-server/private-spring/tree/main/docs/problems/invalid-response-content",
+                    "https://github.com/isel-openapi-mock-server/mock-system/tree/main/docs/problems/invalid-response-content.txt",
                 ),
             )
 
         val invalidTransaction =
             Problem(
                 URI(
-                    "https://github.com/isel-openapi-mock-server/private-spring/tree/main/docs/problems/invalid-transaction",
+                    "https://github.com/isel-openapi-mock-server/mock-system/tree/main/docs/problems/invalid-transaction.txt",
                 ),
             )
 
         val hostDoesNotExist =
             Problem(
                 URI(
-                    "https://github.com/isel-openapi-mock-server/private-spring/tree/main/docs/problems/host-does-not-exist",
+                    "https://github.com/isel-openapi-mock-server/mock-system/tree/main/docs/problems/host-does-not-exist.txt",
                 ),
             )
 
         val transactionOrHostNotProvided =
             Problem(
                 URI(
-                    "https://github.com/isel-openapi-mock-server/private-spring/tree/main/docs/problems/transaction-or-host-not-provided",
+                    "https://github.com/isel-openapi-mock-server/mock-system/tree/main/docs/problems/transaction-or-host-not-provided.txt",
                 ),
             )
 
         val requestNotFound =
             Problem(
                 URI(
-                    "https://github.com/isel-openapi-mock-server/private-spring/tree/main/docs/problems/request-not-found",
+                    "https://github.com/isel-openapi-mock-server/mock-system/tree/main/docs/problems/request-not-found.txt",
                 ),
             )
 
         val requestCredentialIsRequired =
             Problem(
                 URI(
-                    "https://github.com/isel-openapi-mock-server/private-spring/tree/main/docs/problems/request-credential-is-required",
+                    "https://github.com/isel-openapi-mock-server/mock-system/tree/main/docs/problems/request-credential-is-required.txt",
                 ),
             )
 
         val invalidDateRange =
             Problem(
                 URI(
-                    "https://github.com/isel-openapi-mock-server/private-spring/tree/main/docs/problems/invalid-date-range",
+                    "https://github.com/isel-openapi-mock-server/mock-system/tree/main/docs/problems/invalid-date-range.txt",
                 ),
             )
 
         val invalidMethod =
             Problem(
                 URI(
-                    "https://github.com/isel-openapi-mock-server/private-spring/tree/main/docs/problems/invalid-method",
+                    "https://github.com/isel-openapi-mock-server/mock-system/tree/main/docs/problems/invalid-method.txt",
                 ),
             )
     }

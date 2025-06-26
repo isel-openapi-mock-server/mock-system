@@ -141,7 +141,8 @@ class AdminServicesTests {
         )
 
         assertTrue(res is Failure)
-        assertEquals(SaveScenarioError.InvalidResponseContent, res.value)
+        //assertEquals(SaveScenarioError.InvalidResponseContent, res.value)
+        assertTrue(res.value is SaveScenarioError.InvalidResponseContent)
     }
 
 
@@ -168,10 +169,11 @@ class AdminServicesTests {
         )
 
         assertTrue(res is Failure)
-        assertEquals(SaveScenarioError.InvalidResponseContent, res.value)
+        //assertEquals(SaveScenarioError.InvalidResponseContent, res.value)
+        assertTrue(res.value is SaveScenarioError.InvalidResponseContent)
     }
 
-/*    @Test
+    @Test
     fun `saveResponseConfig should succeed`() {
         val adminServices = createAdminServices()
 
@@ -183,21 +185,27 @@ class AdminServicesTests {
                 method = "GET",
                 responses = listOf(
                     ResponseConfig(
-                        statusCode = "OK",
+                        statusCode = "200",
                         contentType = "application/json",
                         headers = mapOf("A" to "bom dia"),
-                        body = """[{"id":1,"username":"bob123"}]"""
+                        body = """
+                            [
+                                {
+                                    "id": 1,
+                                    "username": "bob123"
+                                }
+                            ]
+                        """.trimIndent()
                     )
                 )
             ),
             null
         )
 
-        //assertTrue(res is Success)
-        assertEquals(Success(""), res)
+        assertTrue(res is Success)
     }
 
-*/
+
     companion object {
         private val adminDomain = AdminDomain()
 

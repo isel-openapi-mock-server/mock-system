@@ -62,7 +62,6 @@ class JdbiRequestRepositoryTests {
 
             val reqBody = repo.getRequestBody(requestId)
 
-
         }
 */
 

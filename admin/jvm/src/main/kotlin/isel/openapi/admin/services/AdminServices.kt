@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import isel.openapi.admin.domain.admin.AdminDomain
+import isel.openapi.admin.domain.admin.VerifyResponseError
 import isel.openapi.admin.http.model.Scenario
 import isel.openapi.admin.parsing.Parsing
 import isel.openapi.admin.parsing.model.ApiPath
@@ -26,7 +27,7 @@ typealias CreateSpecResult = Either<CreateSpecError, String>
 sealed interface SaveScenarioError {
     data object TransactionOrHostNotProvided : SaveScenarioError
     data object PathOperationDoesNotExist : SaveScenarioError
-    data object InvalidResponseContent : SaveScenarioError
+    data class InvalidResponseContent(val fails: List<VerifyResponseError>) : SaveScenarioError
     data object InvalidTransaction : SaveScenarioError
     data object HostDoesNotExist : SaveScenarioError
 }
@@ -155,8 +156,7 @@ class AdminServices(
         scenario.responses.forEach { response ->
             val respValRes = responseValidator.validateResponse(response)
             if (respValRes.isNotEmpty()) {
-                // Guardar as falhas na DB ou retornar as falhas?
-                return failure(SaveScenarioError.InvalidResponseContent)
+                return failure(SaveScenarioError.InvalidResponseContent(respValRes))
             }
         }
 
