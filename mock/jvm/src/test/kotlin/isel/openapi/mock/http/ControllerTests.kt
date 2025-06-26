@@ -7,6 +7,7 @@ import isel.openapi.mock.repository.jdbi.JdbiTransactionManager
 import isel.openapi.mock.repository.jdbi.configureWithAppRequirements
 import isel.openapi.mock.services.DynamicHandlerServices
 import isel.openapi.mock.services.Router
+import kotlinx.datetime.Clock
 import org.jdbi.v3.core.Jdbi
 import org.postgresql.ds.PGSimpleDataSource
 import org.springframework.boot.test.context.SpringBootTest
@@ -74,30 +75,6 @@ class ControllerTests {
               {"type":"https://github.com/isel-openapi-mock-server/private-spring/tree/main/docs/problems/host-does-not-exist"}
             """.trimIndent()
             )
-    }
-
-    companion object {
-
-        private val jdbi = Jdbi.create(
-            PGSimpleDataSource().apply {
-                setURL("jdbc:postgresql://localhost:5435/mock?user=mock&password=mock")
-            }
-        ).configureWithAppRequirements()
-
-        val services = DynamicHandlerServices(
-            router = Router(DynamicRoutesRepository(), DynamicDomain()),
-            problemsDomain = ProblemsDomain(),
-            transactionManager = JdbiTransactionManager(
-                jdbi = jdbi
-            )
-        )
-
-        fun notifyDB() {
-            val handle = jdbi.open()
-            handle.createUpdate("NOTIFY update_spec").execute()
-            handle.close()
-        }
-
     }
 
 }

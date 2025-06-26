@@ -79,9 +79,9 @@ INSERT INTO OPEN_TRANSACTIONS (uuid, host, spec_id, isAlive) VALUES
 ('transaction1', 'host1', 1, false),
 ('transaction2', 'host2', 2, true);
 
-INSERT INTO requests (uuid, external_key, url, method, path, host, spec_id, headers) values
-('request1','type2', '/users/search', 'GET', '/users/search', 'host1', 1, '{"A": "bom dia"}'::jsonb),
-('request2', 'type2', '/users/search', 'GET', '/users/search', 'host1', 1, '{"A": "bom dia"}'::jsonb);
+INSERT INTO requests (uuid, external_key, path_template, method, resolved_path, host, spec_id, headers, date) values
+('request1','type2', '/users/search', 'GET', '/users/search', 'host1', 1, '{"A": "bom dia"}'::jsonb, 1700000000000),
+('request2', 'type2', '/users/search', 'GET', '/users/search', 'host1', 1, '{"A": "bom dia"}'::jsonb, 1700000000000);
 
 INSERT INTO request_params (type, location, name, content, uuid) VALUES
 ('{"type":"string","exampleSetFlag":false,"types":["string"]}', 'query', 'username', 'bob123', 'request1'),

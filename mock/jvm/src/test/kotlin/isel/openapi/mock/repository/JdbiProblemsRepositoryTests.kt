@@ -25,12 +25,13 @@ class JdbiProblemsRepositoryTests {
 
             repo.addRequest(
                 uuid = requestKey,
-                url = "/users/search",
+                resolvedPath = "/users/search",
                 method = "GET",
-                path = "/users/search",
+                pathTemplate = "/users/search",
                 externalKey = "external1",
                 host = "host1",
-                headers = "{\"A\": \"bom dia\"}"
+                headers = "{\"A\": \"bom dia\"}",
+                date = System.currentTimeMillis()
             )
 
             repo.addRequestParams(
@@ -129,7 +130,7 @@ class JdbiProblemsRepositoryTests {
 
         data class RequestDetails(
             val externalKey: String,
-            val url: String,
+            val pathTemplate: String,
             val method: String,
             val host: String,
             val uuid: String
@@ -149,7 +150,7 @@ class JdbiProblemsRepositoryTests {
             ): RequestInfo? {
                 val temp = handle.createQuery(
                     """
-            SELECT external_key, url, method, host, uuid FROM requests WHERE uuid = :uuid
+            SELECT external_key, path_template, method, host, uuid FROM requests WHERE uuid = :uuid
             """
                 )
                     .bind("uuid", exchangeKey)
@@ -164,7 +165,7 @@ class JdbiProblemsRepositoryTests {
                     exchangeKey = exchangeKey,
                     externalKey = temp.externalKey,
                     method = temp.method,
-                    path = temp.url,
+                    path = temp.pathTemplate,
                     host = temp.host,
                     body = null,
                     problems = problems

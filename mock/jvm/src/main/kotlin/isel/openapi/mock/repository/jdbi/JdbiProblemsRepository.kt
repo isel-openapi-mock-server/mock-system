@@ -15,7 +15,7 @@ class JdbiProblemsRepository(
     private val handle: Handle,
 ) : ProblemsRepository {
 
-    override fun addRequest(uuid: String, url: String, method: String, path: String, externalKey: String?, host: String, headers: String?) {
+    override fun addRequest(uuid: String, pathTemplate: String, method: String, resolvedPath: String, externalKey: String?, host: String, headers: String?, date: Long) {
 
         val transactionToken = handle.createQuery(
             """
@@ -35,15 +35,16 @@ class JdbiProblemsRepository(
             .mapTo<Int>()
             .first()
 
-        handle.createUpdate("INSERT INTO requests (uuid, url, method, path, external_key, host, spec_id, headers) VALUES (:uuid, :url, :method, :path, :externalKey, :host, :specId, :headers)")
+        handle.createUpdate("INSERT INTO requests (uuid, path_template, method, resolved_path, external_key, host, spec_id, headers, date) VALUES (:uuid, :path_template, :method, :resolved_path, :externalKey, :host, :specId, :headers, :date)")
             .bind("uuid", uuid)
-            .bind("url", url)
+            .bind("path_template", pathTemplate)
             .bind("method", method)
-            .bind("path", path)
+            .bind("resolved_path", resolvedPath)
             .bind("externalKey", externalKey)
             .bind("host", host)
             .bind("specId", specId)
             .bind("headers", jsonb(headers))
+            .bind("date", date)
             .execute()
     }
 
