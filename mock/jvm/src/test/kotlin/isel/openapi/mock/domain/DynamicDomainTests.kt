@@ -29,7 +29,7 @@ class DynamicDomainTests {
                     "type": "string"
                 },
                 "age": {
-                    "type": "number",
+                    "type": "number"
                 }
             }
         }
@@ -591,6 +591,148 @@ class DynamicDomainTests {
                 paramName = "c"
             ),
             result5[0]
+        )
+    }
+
+    @Test
+    fun requiredVerificationVerificationTest() {
+
+        val schemaJson =
+            """
+        {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "age"],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "age": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+        """.trimIndent()
+
+        val contentType = "application/json"
+
+        val expectedBody =
+            ApiRequestBody(
+                content = ContentOrSchema.ContentField(
+                    mapOf(
+                        contentType to ContentOrSchema.SchemaObject(
+                            schema = schemaJson
+                        )
+                    )
+                ),
+                required = true
+            )
+
+        val body = """
+            [
+                {
+                    "name": "John",
+                    "age": 30
+                },
+                {
+                    "name": "Jane",
+                    "age": 25
+                }
+            ]
+        """.trimIndent()
+        val body2 = """
+            [
+                {
+                    "name": "John",
+                    "age": 30
+                },
+                {
+                    "name": "Jane"
+                }
+            ]
+        """.trimIndent()
+
+        val body3 = """
+            [
+                {
+                    "name": "John",
+                    "age": 30
+                },
+                {
+                    "age": 25
+                }
+            ]
+        """.trimIndent()
+
+        val result1 = dynamicDomain.verifyBody(contentType, body, expectedBody)
+        val result2 = dynamicDomain.verifyBody(contentType, body2, expectedBody)
+        val result3 = dynamicDomain.verifyBody(contentType, body3, expectedBody)
+
+        assertTrue { result1.isEmpty() }
+        assertEquals(
+            VerifyBodyError.InvalidBodyFormat(
+                schemaJson.toString(),
+                receivedBody = body2,
+            ), result2[0]
+        )
+        assertEquals(
+            VerifyBodyError.InvalidBodyFormat(
+                schemaJson.toString(),
+                receivedBody = body3,
+            ), result3[0]
+        )
+
+    }
+
+    @Test
+    fun extraFieldsVerificationTest() {
+
+        val schemaJson =
+            """
+        {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "age": {
+              "type": "integer"
+            }
+          }
+        }
+        """.trimIndent()
+
+        val contentType = "application/json"
+
+        val expectedBody =
+            ApiRequestBody(
+                content = ContentOrSchema.ContentField(
+                    mapOf(
+                        contentType to ContentOrSchema.SchemaObject(
+                            schema = schemaJson
+                        )
+                    )
+                ),
+                required = true
+            )
+
+        val body = """
+            {
+                "name": "John",
+                "age": 30,
+                "extraField": "extraValue"
+            }
+        """.trimIndent()
+
+        val result1 = dynamicDomain.verifyBody(contentType, body, expectedBody)
+
+        assertEquals(
+            VerifyBodyError.InvalidBodyFormat(
+                "Extra field found: extraField in body",
+                receivedBody = body,
+            ), result1[0]
         )
     }
 

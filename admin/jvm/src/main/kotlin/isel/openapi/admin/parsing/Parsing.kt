@@ -268,7 +268,7 @@ class Parsing {
 
     private fun schemaToJson(schema: Schema<*>): String {
         val objectMapper = ObjectMapper()
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL) //Ignora propriedades/entrada/atributos com valor nulo
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL)
         return objectMapper.writeValueAsString(schema)
     }
 
