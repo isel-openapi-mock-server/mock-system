@@ -26,7 +26,12 @@ dependencies {
 	implementation("com.google.guava:guava:32.1.2-jre")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
+	// https://mvnrepository.com/artifact/com.networknt/json-schema-validator
+	implementation("com.networknt:json-schema-validator:1.5.7")
+	// https://mvnrepository.com/artifact/com.github.erosb/json-sKema
 	implementation("com.github.erosb:json-sKema:0.20.0")
+	// https://mvnrepository.com/artifact/com.github.jknack/handlebars
+	implementation("com.github.jknack:handlebars:4.4.0")
 
 	// for JDBI
 	implementation("org.jdbi:jdbi3-core:3.37.1")

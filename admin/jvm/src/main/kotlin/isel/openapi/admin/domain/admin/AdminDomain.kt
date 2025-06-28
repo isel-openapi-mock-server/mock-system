@@ -1,6 +1,12 @@
 package isel.openapi.admin.domain.admin
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.erosb.jsonsKema.*
+import com.networknt.schema.JsonSchema
+import com.networknt.schema.JsonSchemaFactory
+import com.networknt.schema.SpecVersion
+import com.networknt.schema.ValidationMessage
 import isel.openapi.admin.domain.Type
 import isel.openapi.admin.parsing.model.*
 import org.springframework.stereotype.Component
@@ -28,6 +34,8 @@ sealed interface VerifyResponseError {
 
 @Component
 class AdminDomain {
+
+    private val factory: JsonSchemaFactory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7)
 
     fun generateHost(): String {
         val chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -104,8 +112,11 @@ class AdminDomain {
             when(val headerType = headerSpec.type) {
                 is ContentOrSchema.SchemaObject -> {
                     val validationResult = jsonValidator(headerType.schema , "\"$headerValue\"" )
-                    if(validationResult != null) {
-                        failList.add(VerifyResponseError.InvalidType(headerSpec.name, headerSpec.type.toString(), convertToType(headerValue).toString()))
+                    if(validationResult != null && validationResult.isNotEmpty()) {
+                        for (message in validationResult) {
+                            if (!isHandleBars(message))
+                                failList.add(VerifyResponseError.InvalidType(headerSpec.name, headerSpec.type.toString(), convertToType(headerValue).toString()))
+                        }
                     }
                 }
                 is ContentOrSchema.ContentField -> {
@@ -114,8 +125,11 @@ class AdminDomain {
                         failList.add(VerifyResponseError.InvalidType(headerSpec.name, headerSpec.type.toString(), convertToType(headerValue).toString()))
                     }
                     val validationResult = jsonValidator(contentField?.schema, "\"$headerValue\"")
-                    if(validationResult != null) {
-                        failList.add(VerifyResponseError.InvalidType(headerSpec.name, headerSpec.type.toString(), convertToType(headerValue).toString()))
+                    if(validationResult != null && validationResult.isNotEmpty()) {
+                        for (message in validationResult) {
+                            if (!isHandleBars(message))
+                                failList.add(VerifyResponseError.InvalidType(headerSpec.name, headerSpec.type.toString(), convertToType(headerValue).toString()))
+                        }
                     }
                 }
             }
@@ -135,19 +149,23 @@ class AdminDomain {
                 bodySpec.content.forEach { (key, value) ->
                     if (key == contentType) {
                         val validationResult = jsonValidator(value.schema, String(body, Charsets.UTF_8))
-                        if (validationResult != null) {
-                            failList.add(
-                                VerifyResponseError.InvalidBodyFormat(
-                                    bodySpec.content[contentType]?.schema.toString() ?: contentType, body
-                                )
-                            )
+                        if (validationResult != null && validationResult.isNotEmpty()) {
+                            for (message in validationResult) {
+                                if (!isHandleBars(message)) {
+                                    failList.add(
+                                        VerifyResponseError.InvalidBodyFormat(
+                                            bodySpec.content[contentType]?.schema.toString(), body
+                                        )
+                                    )
+                                }
+                            }
                         }
                     }
                 }
             } catch (e: Exception) {
                 failList.add(
                     VerifyResponseError.InvalidBodyFormat(
-                        bodySpec.content[contentType]?.schema.toString() ?: contentType, body
+                        bodySpec.content[contentType]?.schema.toString(), body
                     )
                 )
             }
@@ -160,6 +178,24 @@ class AdminDomain {
     }
 
     private fun jsonValidator(
+        schema: String?,
+        receivedType: String,
+    ): Set<ValidationMessage>? {
+
+        if(schema == null) { return null }
+
+        val jsonSchema: JsonSchema = factory.getSchema(schema)
+
+        val mapper = ObjectMapper()
+
+        val jsonNode: JsonNode = mapper.readTree(receivedType)
+
+        val errors: Set<ValidationMessage> = jsonSchema.validate(jsonNode)
+
+        return errors
+    }
+
+/*    private fun jsonValidator(
         schema: String?,
         receivedType: String,
     ): ValidationFailure? {
@@ -184,7 +220,7 @@ class AdminDomain {
             return null // TODO mudar
         }
     }
-
+*/
     private fun convertToType(value: Any?): Type {
         return when (value) {
             null -> Type.NullType
@@ -205,6 +241,15 @@ class AdminDomain {
             }
             else -> Type.UnknownType
         }
+    }
+
+    private fun isHandleBars(message: ValidationMessage): Boolean {
+
+        val node = message.instanceNode.asText()
+        val size = node.length
+
+        return node.first() == '{' && node[1] == '{' && node.last() == '}' && node[size - 2] == '}'
+
     }
 
 }
