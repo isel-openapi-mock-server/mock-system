@@ -23,8 +23,6 @@ class Router(
         apiSpec.paths.forEach { apiPath ->
             apiPath.operations.forEach { operation ->
 
-                val operationScenarios = scenarios.filter { it.method == operation.method && it.path == apiPath.fullPath }
-
                 val handler = DynamicHandler(
                     apiPath.path,
                     operation.method,
@@ -33,7 +31,7 @@ class Router(
                     operation.headers,
                     operation.security,
                     dynamicDomain,
-                    operationScenarios
+                    scenarios.firstOrNull { it.method == operation.method && it.path == apiPath.fullPath }
                 )
 
                 val parts = apiPath.fullPath.split("/").filter { it.isNotEmpty() }
@@ -50,12 +48,12 @@ class Router(
                             current.children[part]!!
                         }
                     } else {
+                        //TODO: TESTE FALHA AQUI? TIMEOUT
                         if(current.children.containsKey(part)) {
                             current.children[part]!!.operations.add(
                                 RouteOperation(
                                     operation.method,
                                     apiPath.fullPath,
-                                    operationScenarios.map { it.name },
                                     handler))
                             current
                         } else {
@@ -65,7 +63,6 @@ class Router(
                                 RouteOperation(
                                     operation.method,
                                     apiPath.fullPath,
-                                    operationScenarios.map { it.name },
                                     handler))
                             newNode
                         }
@@ -116,8 +113,8 @@ class Router(
 
     fun doesHostExist(host: String): Boolean = repository.getOperations(host) != null
 
-    fun doesScenarioExist(routeNode: RouteNode, scenarioName: String, path: String, method: HttpMethod): Boolean =
-        repository.isScenarioExists(routeNode, scenarioName, path, method)
+    fun doesScenarioExist(routeNode: RouteNode, path: String, method: HttpMethod): Boolean =
+        repository.isScenarioExists(routeNode, path, method)
 }
 
 

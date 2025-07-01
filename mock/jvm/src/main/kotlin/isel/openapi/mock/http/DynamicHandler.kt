@@ -37,12 +37,11 @@ class DynamicHandler(
     private val headers : List<ApiHeader>?,
     private val security: Boolean = false,
     private val dynamicDomain: DynamicDomain,
-    private val scenarios: List<Scenario>,
+    private val scenario: Scenario?,
 ) {
 
     fun handle(
-        request: HttpServletRequest,
-        scenarioName: String
+        request: HttpServletRequest
     ): HandlerResult {
 
         val requestBody = request.reader.readText().ifBlank { null }
@@ -50,8 +49,6 @@ class DynamicHandler(
         val requestPathParams = dynamicDomain.getPathParams(path, request.requestURI)
         val requestHeaders = request.headerNames.toList().associateWith { request.getHeader(it) }
         val cookies = request.cookies ?: emptyArray()
-
-        //val currentParameters = mutableListOf<ParameterInfo>()
 
         val contentType = request.contentType
 
@@ -74,7 +71,7 @@ class DynamicHandler(
         val cookiesResult = dynamicDomain.verifyCookies(cookies, params?.filter { it.location == Location.COOKIE } ?: emptyList())
         cookiesResult.forEach { fails.add(it) }
 
-        val response = if(fails.isEmpty()) scenarios.find { it.name == scenarioName }?.getResponse() else null
+        val response = if(fails.isEmpty()) scenario!!.getResponse() else null
 
         return HandlerResult(
             fails = fails,
@@ -84,6 +81,10 @@ class DynamicHandler(
             params = pathParamsResult.params + queryParamsResult.params,
             response = response
         )
+    }
+
+    fun hasScenario() : Boolean {
+        return scenario != null
     }
 
     private fun String.toTypedValue(): Any {

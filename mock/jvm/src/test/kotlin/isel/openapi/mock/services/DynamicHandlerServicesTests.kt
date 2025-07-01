@@ -47,7 +47,6 @@ class DynamicHandlerServicesTests {
             path = "/users/1",
             request = MockHttpServletRequest("GET", "/users/1"),
             externalKey = null,
-            scenarioName = "test1"
         )
 
         assert(result is Success) { "Expected success but got failure: $result" }
@@ -82,7 +81,6 @@ class DynamicHandlerServicesTests {
                 path = "/users/1",
                 request = MockHttpServletRequest("GET", "/users/1"),
                 externalKey = null,
-                scenarioName = "test1"
             )
             if (result is Success) {
                 results.add(result)
@@ -116,16 +114,19 @@ class DynamicHandlerServicesTests {
 
         val dynamicServices = createDynamicServices(router)
 
-        val node = router.createRouterNode(apiSpec, listOf(scenario))
+        val node = router.createRouterNode(apiSpec, listOf())
         router.register(mapOf("host1" to node))
+
+        val request = MockHttpServletRequest("GET", "/users/search")
+        request.queryString = "username=bob"
+        request.addHeader("Authorization", "Bearer Token123456789012345678901234567890")
 
         val result = dynamicServices.executeDynamicHandler(
             host = "host1",
             method = HttpMethod.GET,
-            path = "/users/1",
-            request = MockHttpServletRequest("GET", "/users/1"),
+            path = "/users/search",
+            request = request,
             externalKey = null,
-            scenarioName = "nonExistentScenario"
         )
 
         assert(result is Failure)
@@ -150,7 +151,6 @@ class DynamicHandlerServicesTests {
             path = "/users/1",
             request = MockHttpServletRequest("GET", "/users/1"),
             externalKey = null,
-            scenarioName = "test1"
         )
 
         assert(result is Failure)
@@ -176,7 +176,6 @@ class DynamicHandlerServicesTests {
             path = "/users/1",
             request = MockHttpServletRequest("POST", "/users/1"),
             externalKey = null,
-            scenarioName = "test1"
         )
 
         assert(result is Failure)
@@ -205,7 +204,6 @@ class DynamicHandlerServicesTests {
             path = "/users/1",
             request = request,
             externalKey = null,
-            scenarioName = "test1"
         )
 
         assert(result is Failure)

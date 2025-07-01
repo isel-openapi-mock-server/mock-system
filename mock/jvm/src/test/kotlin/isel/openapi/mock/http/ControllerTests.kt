@@ -1,15 +1,5 @@
 package isel.openapi.mock.http
 
-import isel.openapi.mock.domain.dynamic.DynamicDomain
-import isel.openapi.mock.domain.problems.ProblemsDomain
-import isel.openapi.mock.repository.DynamicRoutesRepository
-import isel.openapi.mock.repository.jdbi.JdbiTransactionManager
-import isel.openapi.mock.repository.jdbi.configureWithAppRequirements
-import isel.openapi.mock.services.DynamicHandlerServices
-import isel.openapi.mock.services.Router
-import kotlinx.datetime.Clock
-import org.jdbi.v3.core.Jdbi
-import org.postgresql.ds.PGSimpleDataSource
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -35,7 +25,6 @@ class ControllerTests {
                 .build()
         }
             .header("Host", "host1")
-            .header("Scenario-name", "test1")
             .header("Authorization", "Bearer Token123456789012345678901234567890")
             .header("A", "bom dia")
             .exchange()
@@ -64,7 +53,6 @@ class ControllerTests {
                 .build()
         }
             .header("Host", "host123")
-            .header("Scenario-name", "test1")
             .header("Authorization", "Bearer Token123456789012345678901234567890")
             .header("A", "bom dia")
 

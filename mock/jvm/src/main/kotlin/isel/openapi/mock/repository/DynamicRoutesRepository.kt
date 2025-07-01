@@ -19,13 +19,12 @@ class DynamicRoutesRepository{
 
     fun isScenarioExists(
         routeNode: RouteNode,
-        scenarioName: String,
         path: String,
         method: HttpMethod
     ): Boolean {
-        return  routeNode.operations.find {
-            it.method == method && it.fullPath== path && it.scenariosNames.contains(scenarioName)
-        } != null
+        return routeNode.operations.find {
+            it.method == method && it.fullPath== path
+        }?.handler?.hasScenario() == true
     }
 
 }

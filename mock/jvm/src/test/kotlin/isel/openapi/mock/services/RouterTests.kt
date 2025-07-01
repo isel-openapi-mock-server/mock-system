@@ -19,13 +19,14 @@ class RouterTests {
         assert(node.part == "")
         assert(node.children.size == 1)
         assert(node.children["users"] != null)
-        assert(node.children["users"]!!.children.size == 1)
+        assert(node.children["users"]!!.children.size == 2)
         assert(node.children["users"]!!.children["{id}"] != null)
         assert(node.children["users"]!!.part == "users")
         assert(node.children["users"]!!.operations.size == 1)
         assert(node.children["users"]!!.operations.first().method == HttpMethod.POST)
         assert(node.children["users"]!!.operations.first().fullPath == "/users")
-        assert(node.children["users"]!!.operations.first().scenariosNames.isEmpty())
+        assert(node.children["users"]!!.operations.first().handler.hasScenario() == false)
+        assert(node.children["users"]!!.children["search"] != null)
 
     }
 
@@ -73,12 +74,11 @@ class RouterTests {
         assert(matchedNode.routeNode.operations.size == 1)
         assert(matchedNode.routeNode.operations.first().method == HttpMethod.GET)
         assert(matchedNode.routeNode.operations.first().fullPath == "/users/{id}")
-        assert(matchedNode.routeNode.operations.first().scenariosNames.contains(getScenario.name))
+        assert(matchedNode.routeNode.operations.first().handler.hasScenario())
         assert(matchedNode.resourceUrl == "/users/{id}")
 
         assertTrue(router.doesScenarioExist(
             matchedNode.routeNode,
-            getScenario.name,
             "/users/{id}",
             HttpMethod.GET
         ))
@@ -182,6 +182,68 @@ class RouterTests {
                             ),
                             Response(StatusCode.fromCode("404")!!, ContentOrSchema.SchemaObject("""{ "type": "string", "example": "User not found" }""")),
                             Response(StatusCode.fromCode("500")!!, null)
+                        ),
+                        servers = listOf("http://localhost:8080/api"),
+                        headers = emptyList()
+                    )
+                )
+            ),
+            ApiPath(
+                fullPath = "/users/search",
+                path = listOf(
+                    PathParts("users", isParam = false),
+                    PathParts("search", isParam = false)
+                ),
+                operations = listOf(
+                    PathOperation(
+                        method = HttpMethod.GET,
+                        security = true,
+                        parameters = listOf(
+                            ApiParameter(
+                                name = "username",
+                                location = Location.QUERY,
+                                description = "The ID of the user",
+                                type = ContentOrSchema.SchemaObject("""{ "type": "string" }"""),
+                                required = true,
+                                allowEmptyValue = false,
+                                style = ParameterStyle.SIMPLE,
+                                explode = false
+                            ),
+                            ApiParameter(
+                                name = "limit",
+                                location = Location.QUERY,
+                                description = "The ID of the user",
+                                type = ContentOrSchema.SchemaObject("""{ "type": "integer" }"""),
+                                required = false,
+                                allowEmptyValue = false,
+                                style = ParameterStyle.SIMPLE,
+                                explode = false
+                            )
+                        ),
+                        requestBody = null,
+                        responses = listOf(
+                            Response(
+                                StatusCode.fromCode("200")!!,
+                                ContentOrSchema.ContentField(
+                                    content = mapOf(
+                                        "application/json" to ContentOrSchema.SchemaObject(
+                                            """
+                                            {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": { "type": "integer", "example": 1 },
+                                                        "username": { "type": "string", "example": "bob123" }
+                                                    }
+                                                }
+                                            }
+                                            """.trimIndent()
+                                        )
+                                    )
+                                )
+                            ),
+                            Response(StatusCode.INTERNAL_SERVER_ERROR, null)
                         ),
                         servers = listOf("http://localhost:8080/api"),
                         headers = emptyList()
