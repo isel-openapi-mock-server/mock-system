@@ -90,7 +90,7 @@ class AdminDomainTests {
         val errors = adminDomain.verifyResponse(responseSpec, StatusCode.OK, null, givenHeader, null)
         assertEquals(listOf(VerifyResponseError.InvalidHeader(name = headerName)), errors)
     }
-/*
+
     @Test
     fun `verifyResponse should detect invalid body schema`() {
         val type = """
@@ -109,11 +109,65 @@ class AdminDomainTests {
             )
         )
         val responseSpec = Response(statusCode = StatusCode.OK, schema = body)
-        val givenBody = "bom dia".toByteArray()
+        val givenBody = "\"bom dia\"".toByteArray()
         val errors = adminDomain.verifyResponse(responseSpec, StatusCode.OK, "application/json", null, givenBody)
         assertEquals(listOf(VerifyResponseError.InvalidBodyFormat(expectedFormat = type, givenFormat = givenBody)), errors)
     }
-*/
+
+    /*@Test
+    fun `verifyResponse should detect invalid body schema with handlebars only on the non handlebars value`() {
+        val type = """
+                    {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "name": {
+                                "type": "boolean"
+                            }
+                        }
+                    }
+                    """.trimIndent()
+        val body = ContentOrSchema.ContentField(
+            content = mapOf(
+                Pair(
+                    "application/json",
+                    ContentOrSchema.SchemaObject(
+                        schema = type
+                    )
+                )
+            )
+        )
+        val responseSpec = Response(statusCode = StatusCode.OK, schema = body)
+        val givenBody = "{\"id\": \"{{request.param.1}}\", \"name\": \"{{Tomané}}\"}".toByteArray()
+        val errors = adminDomain.verifyResponse(responseSpec, StatusCode.OK, "application/json", null, givenBody)
+        assertEquals(listOf(VerifyResponseError.InvalidBodyFormat(expectedFormat = type, givenFormat = givenBody)), errors)
+    }*/
+
+    @Test
+    fun `verifyResponse should be a success with handlebars value in body`() {
+        val type = """
+                    {
+                        "type": "integer"
+                    }                    
+                    """.trimIndent()
+        val body = ContentOrSchema.ContentField(
+            content = mapOf(
+                Pair(
+                    "application/json",
+                    ContentOrSchema.SchemaObject(
+                        schema = type
+                    )
+                )
+            )
+        )
+        val responseSpec = Response(statusCode = StatusCode.OK, schema = body)
+        val givenBody = "\"{{request.param.1}}\"".toByteArray()
+        val errors = adminDomain.verifyResponse(responseSpec, StatusCode.OK, "application/json", null, givenBody)
+        assertEquals(emptyList(), errors)
+    }
+
 
     @Test
     fun `verifyResponse should be a success`() {
@@ -152,8 +206,10 @@ class AdminDomainTests {
         )
         val responseSpec = Response(statusCode = StatusCode.OK, schema = body, headers = headers)
         val givenHeader = mapOf(Pair(headerName,"bom dia"))
-        val givenBody = "ola".toByteArray()
+        val givenBody = "\"ola\"".toByteArray()
         val errors = adminDomain.verifyResponse(responseSpec, StatusCode.OK, "application/json", givenHeader, givenBody)
         assertEquals(emptyList(), errors)
     }
+
+
 }

@@ -1,6 +1,8 @@
 package isel.openapi.mock.services
 
+import com.github.jknack.handlebars.Handlebars
 import isel.openapi.mock.domain.dynamic.DynamicDomain
+import isel.openapi.mock.domain.dynamic.ProcessedRequest
 import isel.openapi.mock.domain.openAPI.ApiParameter
 import isel.openapi.mock.domain.openAPI.ApiPath
 import isel.openapi.mock.domain.openAPI.ApiRequestBody
@@ -52,10 +54,10 @@ class DynamicHandlerServicesTests {
         assert(result is Success) { "Expected success but got failure: $result" }
         val response = (result as Success).value
 
-        assertEquals(StatusCode.fromCode("500"), response.first.statusCode)
-        assertEquals(null, response.first.contentType)
-        assertEquals(null, response.first.headers)
-        assertEquals(null, response.first.body)
+        assertEquals(StatusCode.fromCode("500"), response.statusCode)
+        assertEquals(null, response.contentType)
+        assertEquals(null, response.headers)
+        assertEquals(null, response.body)
 
     }
 
@@ -71,7 +73,7 @@ class DynamicHandlerServicesTests {
         val node = router.createRouterNode(apiSpec, listOf(scenario))
         router.register(mapOf("host1" to node))
 
-        val results = mutableListOf<Success<Pair<ResponseConfig, String>>>()
+        val results = mutableListOf<Success<ProcessedRequest>>()
 
         // Simulate multiple requests to the same scenario
         for (i in 1..4) {
@@ -90,19 +92,19 @@ class DynamicHandlerServicesTests {
         }
 
         assertEquals(4, results.size)
-        assertEquals(StatusCode.fromCode("500"), results[0].value.first.statusCode)
-        assertEquals(null, results[0].value.first.contentType)
-        assertEquals(null, results[0].value.first.headers)
-        assertEquals(null, results[0].value.first.body)
-        assertEquals(StatusCode.fromCode("404"), results[1].value.first.statusCode)
-        assertEquals("application/json", results[1].value.first.contentType)
-        assertEquals(null, results[1].value.first.headers)
-        assertEquals("""{"error": "User not found"}""", results[1].value.first.body!!.toString(Charsets.UTF_8))
-        assertEquals(StatusCode.fromCode("200"), results[2].value.first.statusCode)
-        assertEquals("application/json", results[2].value.first.contentType)
-        assertEquals(null, results[2].value.first.headers)
-        assertEquals("""{"id": 1, "username": "bob123"}""", results[2].value.first.body!!.toString(Charsets.UTF_8))
-        assertEquals(StatusCode.fromCode("500"), results[3].value.first.statusCode)
+        assertEquals(StatusCode.fromCode("500"), results[0].value.statusCode)
+        assertEquals(null, results[0].value.contentType)
+        assertEquals(null, results[0].value.headers)
+        assertEquals(null, results[0].value.body)
+        assertEquals(StatusCode.fromCode("404"), results[1].value.statusCode)
+        assertEquals("application/json", results[1].value.contentType)
+        assertEquals(null, results[1].value.headers)
+        assertEquals("""{"error": "User not found"}""", results[1].value.body)
+        assertEquals(StatusCode.fromCode("200"), results[2].value.statusCode)
+        assertEquals("application/json", results[2].value.contentType)
+        assertEquals(null, results[2].value.headers)
+        assertEquals("""{"id": 1, "username": "bob123"}""", results[2].value.body)
+        assertEquals(StatusCode.fromCode("500"), results[3].value.statusCode)
     }
 
     @Test
@@ -227,7 +229,7 @@ class DynamicHandlerServicesTests {
         val match = router.match("host1", HttpMethod.GET, "/users/search")
 
         assert(match != null)
-        assertEquals("/users/search", match!!.resourceUrl)
+        assertEquals("/users/search", match!!.pathTemplate)
         assertEquals(HttpMethod.GET, match.routeNode.operations.first().method)
     }
 
@@ -375,7 +377,8 @@ class DynamicHandlerServicesTests {
                 router = router,
                 problemsDomain = ProblemsDomain(),
                 transactionManager = JdbiTransactionManager(jdbi),
-                clock = Clock.System
+                clock = Clock.System,
+                handlebars = Handlebars()
             )
         }
     }

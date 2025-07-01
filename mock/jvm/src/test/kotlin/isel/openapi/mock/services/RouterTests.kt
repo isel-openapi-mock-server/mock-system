@@ -75,7 +75,7 @@ class RouterTests {
         assert(matchedNode.routeNode.operations.first().method == HttpMethod.GET)
         assert(matchedNode.routeNode.operations.first().fullPath == "/users/{id}")
         assert(matchedNode.routeNode.operations.first().handler.hasScenario())
-        assert(matchedNode.resourceUrl == "/users/{id}")
+        assert(matchedNode.pathTemplate == "/users/{id}")
 
         assertTrue(router.doesScenarioExist(
             matchedNode.routeNode,
