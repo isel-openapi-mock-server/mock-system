@@ -56,7 +56,7 @@ class DynamicHandlerServicesTests {
 
         assertEquals(StatusCode.fromCode("500"), response.statusCode)
         assertEquals(null, response.contentType)
-        assertEquals(null, response.headers)
+        assertEquals(emptyMap<String, String>(), response.headers)
         assertEquals(null, response.body)
 
     }
@@ -94,15 +94,15 @@ class DynamicHandlerServicesTests {
         assertEquals(4, results.size)
         assertEquals(StatusCode.fromCode("500"), results[0].value.statusCode)
         assertEquals(null, results[0].value.contentType)
-        assertEquals(null, results[0].value.headers)
+        assertEquals(emptyMap<String, String>(), results[0].value.headers)
         assertEquals(null, results[0].value.body)
         assertEquals(StatusCode.fromCode("404"), results[1].value.statusCode)
         assertEquals("application/json", results[1].value.contentType)
-        assertEquals(null, results[1].value.headers)
+        assertEquals(emptyMap<String, String>(), results[1].value.headers)
         assertEquals("""{"error": "User not found"}""", results[1].value.body)
         assertEquals(StatusCode.fromCode("200"), results[2].value.statusCode)
         assertEquals("application/json", results[2].value.contentType)
-        assertEquals(null, results[2].value.headers)
+        assertEquals(emptyMap<String, String>(), results[2].value.headers)
         assertEquals("""{"id": 1, "username": "bob123"}""", results[2].value.body)
         assertEquals(StatusCode.fromCode("500"), results[3].value.statusCode)
     }
