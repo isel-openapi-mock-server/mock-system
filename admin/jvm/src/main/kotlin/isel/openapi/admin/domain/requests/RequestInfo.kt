@@ -8,4 +8,5 @@ data class RequestInfo(
     val host: String,
     val body: ByteArray?,
     val problems: List<ProblemInfo>,
+    val response: ResponseInfo? = null,
 )
