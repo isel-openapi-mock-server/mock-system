@@ -545,7 +545,7 @@ class DynamicDomainTests {
 
         val cookie2 = arrayOf(Cookie("a", "Bom dia"), Cookie("b", "123"))
 
-        val cookie3 = arrayOf(Cookie("b", "asd"))
+        val cookie3 = arrayOf(Cookie("b", "\"asd\""))
 
         val cookie4 = arrayOf(Cookie("a", ""))
 

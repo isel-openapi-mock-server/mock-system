@@ -25,7 +25,7 @@ class TempTests {
 
         val bodyType = """
                     {
-                        "type": "object"
+                        "type": "integer"
                     }                    
                     """.trimIndent()
 
@@ -33,11 +33,19 @@ class TempTests {
 
         val mapper = ObjectMapper()
 
-        val dataNode: JsonNode = mapper.readTree("{\"id\": \"{{request.param.1}}\", \"name\": \"{{Tomané}}\"}")
+        val dataNode: JsonNode = mapper.readTree("123")
 
         val errors: Set<ValidationMessage> = schema.validate(dataNode)
 
         println(String("ola".toByteArray(), Charsets.UTF_8))
+
+        val valMsg = ValidationMessage.builder()
+            .message("Invalid JSON format: ")
+            .build()
+
+        val node = valMsg.instanceNode?.asText()
+
+        println(node)
 
         for (message in errors) {
             println("Message - ${message.message}")

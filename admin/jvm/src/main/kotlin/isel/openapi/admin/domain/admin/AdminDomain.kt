@@ -188,11 +188,19 @@ class AdminDomain {
 
         val mapper = ObjectMapper()
 
-        val jsonNode: JsonNode = mapper.readTree(receivedType)
+        try {
+            val jsonNode: JsonNode = mapper.readTree(receivedType)
 
-        val errors: Set<ValidationMessage> = jsonSchema.validate(jsonNode)
+            val errors: Set<ValidationMessage> = jsonSchema.validate(jsonNode)
 
-        return errors
+            return errors
+        } catch (e: JsonParseException) {
+            return setOf(
+                ValidationMessage.builder()
+                    .message("Invalid JSON format: ${e.message}")
+                    .build()
+            )
+        }
     }
 
 /*    private fun jsonValidator(
@@ -245,7 +253,7 @@ class AdminDomain {
 
     private fun isHandleBars(message: ValidationMessage): Boolean {
 
-        val node = message.instanceNode.asText()
+        val node = message.instanceNode?.asText() ?: return false
         val size = node.length
 
         return node.first() == '{' && node[1] == '{' && node.last() == '}' && node[size - 2] == '}'

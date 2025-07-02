@@ -1,6 +1,9 @@
 package isel.openapi.mock.services
 
 import jakarta.annotation.PostConstruct
+import jakarta.annotation.PreDestroy
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.DisposableBean
 import org.springframework.stereotype.Component
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -15,13 +18,15 @@ import kotlin.concurrent.withLock
 @Component
 class  Synchronizer(
     private val services: DynamicHandlerServices
-) {
+)  {
 
     private val lock = ReentrantLock()
 
     private val condition = lock.newCondition()
 
     private var update = false
+
+    private lateinit var thread: Thread
 
     fun queue() {
         lock.withLock {
@@ -33,16 +38,37 @@ class  Synchronizer(
 
     @PostConstruct
     fun dequeue() {
-        Thread.ofPlatform().start {
+        thread = Thread.ofPlatform().start {
             while (true) {
-                lock.withLock {
-                    while (!update) {
-                        condition.await()
+                try {
+                    lock.withLock {
+                        while (!update) {
+                            condition.await()
+                        }
+                        update = false
                     }
-                    update = false
+                    services.updateDynamicRouter()
+                } catch (e: InterruptedException) {
+                    logger.info("Thread interrupted, stopping synchronizer.")
+                    Thread.currentThread().interrupt()
+                    break
                 }
-                services.updateDynamicRouter()
             }
         }
+
+        thread.start()
+    }
+
+    @PreDestroy
+    fun destroy() {
+        logger.info("Stopping synchronizer thread.")
+        thread.interrupt()
+        logger.info("Waiting for synchronizer thread to finish.")
+        thread.join()
+        logger.info("Synchronizer thread stopped.")
+    }
+
+    companion object {
+        private val logger = LoggerFactory.getLogger("Synchronizer")
     }
 }

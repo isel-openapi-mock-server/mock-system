@@ -1,7 +1,12 @@
 package isel.openapi.mock.domain.dynamic
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.erosb.jsonsKema.*
+import com.networknt.schema.JsonSchema
+import com.networknt.schema.JsonSchemaFactory
+import com.networknt.schema.SpecVersion
+import com.networknt.schema.ValidationMessage
 import io.swagger.v3.oas.models.media.Schema
 import isel.openapi.mock.domain.openAPI.*
 import isel.openapi.mock.domain.problems.ParameterInfo
@@ -20,6 +25,8 @@ class VerifyParamsResult(
 //TODO: meti aqui porque tava a precisar nos services (talvez voltar a meter onde tava ou separar em classes)
 @Component
 class DynamicDomain {
+
+    private val factory: JsonSchemaFactory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7)
 
     fun getPathParams(
         path: List<PathParts>,
@@ -122,7 +129,7 @@ class DynamicDomain {
             is ContentOrSchema.SchemaObject -> {
                 val currentValue = if(valueType is Type.StringType) "\"$value\"" else value.toString()
                 val validationResult = jsonValidator(contentOrSchema.schema , currentValue )
-                if(!validationResult) {
+                if(validationResult.isNotEmpty() && validationResult.any { !isHandleBars(it) }) {
                     return error
                 }
             }
@@ -133,7 +140,7 @@ class DynamicDomain {
                     return error
                 }
                 val validationResult = jsonValidator(contentField, currentValue)
-                if(!validationResult) {
+                if(validationResult.isNotEmpty() && validationResult.any { !isHandleBars(it) }) {
                     return error
                 }
             }
@@ -248,8 +255,8 @@ class DynamicDomain {
                     failList.add(VerifyParamsError.ParamCantBeEmpty(location = Location.COOKIE, cookie.name))
                 }
             } else {
-                val validationResult = jsonValidator(schema, cookie.value) //TODO temos de fazer algo com isto, acrescentar uma falha para se vier algum erro daqui e adicionar à lista.
-                if (!validationResult) {
+                val validationResult = jsonValidator(schema, cookie.value)
+                if (validationResult.isNotEmpty() && validationResult.any { !isHandleBars(it) }) {
                     failList.add(VerifyParamsError.JsonValidationError(location = Location.COOKIE))
                 }
             }
@@ -291,7 +298,7 @@ class DynamicDomain {
             when(val headerType = expectedHeader.type) {
                 is ContentOrSchema.SchemaObject -> {
                     val validationResult = jsonValidator(headerType.schema , "\"$headerValue\"" )
-                    if(!validationResult) {
+                    if(validationResult.isNotEmpty() && validationResult.any { !isHandleBars(it) }) {
                         failList.add(VerifyHeadersError.InvalidType(expectedHeader.name, expectedHeader.type.toString(), convertToType(headerValue).toString()))
                     }
                 }
@@ -301,7 +308,7 @@ class DynamicDomain {
                         failList.add(VerifyHeadersError.InvalidType(expectedHeader.name, expectedHeader.type.toString(), convertToType(headerValue).toString()))
                     }
                     val validationResult = jsonValidator(contentField?.schema, "\"$headerValue\"")
-                    if(!validationResult) {
+                    if(validationResult.isNotEmpty() && validationResult.any { !isHandleBars(it) }) {
                         failList.add(VerifyHeadersError.InvalidType(expectedHeader.name, expectedHeader.type.toString(), convertToType(headerValue).toString()))
                     }
                 }
@@ -336,7 +343,7 @@ class DynamicDomain {
             expectedBody.content.content.forEach { (key, value) ->
                 if (key == contentType) {
                     val validationResult = jsonValidator(value.schema, body)
-                    if(!validationResult) {
+                    if(validationResult.isNotEmpty() && validationResult.any { !isHandleBars(it) }) {
                         failList.add(VerifyBodyError.InvalidBodyFormat(expectedBody.content.content[contentType]?.schema.toString() ?: contentType, body))
                     } else if(contentType == "application/json") {
                         val objectMapper = ObjectMapper()
@@ -392,6 +399,31 @@ class DynamicDomain {
     private fun jsonValidator(
         schema: String?,
         receivedType: String,
+    ): Set<ValidationMessage> {
+
+        if(schema == null) { return emptySet() }
+
+        val jsonSchema: JsonSchema = factory.getSchema(schema)
+
+        val mapper = ObjectMapper()
+        try {
+            val jsonNode: JsonNode = mapper.readTree(receivedType)
+
+            val errors: Set<ValidationMessage> = jsonSchema.validate(jsonNode)
+
+            return errors
+        } catch (e: JsonParseException) {
+            return setOf(
+                ValidationMessage.builder()
+                    .message("Invalid JSON format: ${e.message}")
+                    .build()
+            )
+        }
+    }
+
+    /*private fun jsonValidator(
+        schema: String?,
+        receivedType: String,
     ): Boolean {
 
         if(schema == null) { return true }
@@ -413,7 +445,7 @@ class DynamicDomain {
             println(e.stackTrace)
             return false
         }
-    }
+    }*/
 
     private fun convertToType(value: Any?): Type {
         return when (value) {
@@ -435,6 +467,15 @@ class DynamicDomain {
             }
             else -> Type.UnknownType
         }
+    }
+
+    private fun isHandleBars(message: ValidationMessage): Boolean {
+
+        val node = message.instanceNode?.asText() ?: return false
+        val size = node.length
+
+        return node.first() == '{' && node[1] == '{' && node.last() == '}' && node[size - 2] == '}'
+
     }
 
 }
