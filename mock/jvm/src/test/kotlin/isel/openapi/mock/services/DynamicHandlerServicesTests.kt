@@ -1,5 +1,6 @@
 package isel.openapi.mock.services
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.jknack.handlebars.Handlebars
 import isel.openapi.mock.domain.dynamic.DynamicDomain
 import isel.openapi.mock.domain.dynamic.ProcessedRequest
@@ -15,6 +16,7 @@ import isel.openapi.mock.domain.openAPI.PathOperation
 import isel.openapi.mock.domain.openAPI.PathParts
 import isel.openapi.mock.domain.openAPI.Response
 import isel.openapi.mock.domain.openAPI.StatusCode
+import isel.openapi.mock.domain.problems.ParameterInfo
 import isel.openapi.mock.domain.problems.ProblemsDomain
 import isel.openapi.mock.repository.DynamicRoutesRepository
 import isel.openapi.mock.repository.jdbi.JdbiTransactionManager
@@ -364,6 +366,146 @@ class DynamicHandlerServicesTests {
             )
         )
     )
+
+    @Test
+    fun `can process template body with handlebars context`() {
+        val handlebars = Handlebars()
+        val mapper = jacksonObjectMapper()
+        val context = HandlebarsContext()
+            .addParams(
+                listOf(
+                    ParameterInfo(
+                        name = "name",
+                        content = "John",
+                        location = Location.QUERY,
+                        type = ContentOrSchema.SchemaObject("""{ "type": "string" }"""),
+                    ),
+                    ParameterInfo(
+                        name = "name",
+                        content = "Anna",
+                        location = Location.QUERY,
+                        type = ContentOrSchema.SchemaObject("""{ "type": "string" }"""),
+                    ),
+                    ParameterInfo(
+                        name = "name",
+                        content = "Kevin",
+                        location = Location.QUERY,
+                        type = ContentOrSchema.SchemaObject("""{ "type": "string" }"""),
+                    )
+                )
+            )
+            .getContext()
+
+        val template = """
+            {{#each queryParams.name}} { "name": "{{this}}" }{{#if @last}} {{else}},{{/if}} {{/each}}
+        """.trimIndent()
+
+        val compiledTemplate = handlebars.compileInline(template)
+        val result = compiledTemplate.apply(context)
+        val parsed = mapper.readTree(result)
+        val parsedResult = mapper.readTree("""
+            {
+                "name": "John"
+            },
+            {
+                "name": "Anna"
+            },
+            {
+                "name": "Kevin"
+            },
+            """.trimIndent())
+
+        assertEquals(
+            parsedResult,
+            parsed
+        )
+    }
+
+    @Test
+    fun `can process template body with handlebars context and path parts`() {
+        val handlebars = Handlebars()
+        val mapper = jacksonObjectMapper()
+        val context = HandlebarsContext()
+            .addParams(
+                listOf(
+                    ParameterInfo(
+                        name = "id",
+                        content = "123",
+                        location = Location.PATH,
+                        type = ContentOrSchema.SchemaObject("""{ "type": "integer" }"""),
+                    )
+                )
+            )
+            .pathParts("/users/123")
+            .getContext()
+
+        val template = """
+            { "userId": "{{pathParts.0}}" }
+        """.trimIndent()
+
+        val compiledTemplate = handlebars.compileInline(template)
+        val result = compiledTemplate.apply(context)
+        val parsed = mapper.readTree(result)
+
+        assertEquals(
+            mapper.readTree("""{ "userId": "users" }"""),
+            parsed
+        )
+    }
+
+    @Test
+    fun `can process template body with handlebars context 1`() {
+        val handlebars = Handlebars()
+        val mapper = jacksonObjectMapper()
+        val context = HandlebarsContext()
+            .addParams(
+                listOf(
+                    ParameterInfo(
+                        name = "name",
+                        content = "John",
+                        location = Location.PATH,
+                        type = ContentOrSchema.SchemaObject("""{ "type": "string" }"""),
+                    ),
+                    ParameterInfo(
+                        name = "name",
+                        content = "Anna",
+                        location = Location.PATH,
+                        type = ContentOrSchema.SchemaObject("""{ "type": "string" }"""),
+                    ),
+                    ParameterInfo(
+                        name = "name",
+                        content = "Kevin",
+                        location = Location.PATH,
+                        type = ContentOrSchema.SchemaObject("""{ "type": "string" }"""),
+                    )
+                )
+            )
+            .getContext()
+
+        val template = """
+            {{#each pathParams.name}} { "name": "{{this}}" }{{#if @last}} {{else}},{{/if}} {{/each}}
+        """.trimIndent()
+
+        val compiledTemplate = handlebars.compileInline(template)
+        val result = compiledTemplate.apply(context)
+        val parsed = mapper.readTree(result)
+        val parsedResult = mapper.readTree("""
+            {
+                "name": "John"
+            },
+            {
+                "name": "Anna"
+            },
+            {
+                "name": "Kevin"
+            },
+            """.trimIndent())
+
+        assertEquals(
+            parsedResult,
+            parsed
+        )
+    }
 
     companion object {
         private val jdbi = Jdbi.create(

@@ -29,6 +29,16 @@ class JdbiRequestsRepository(
 
         val body = getRequestBody(exchangeKey)
 
+        //TODO
+        val response = handle.createQuery(
+            """
+            SELECT content, status_code, headers, content_type FROM responses WHERE uuid = :uuid
+            """
+        )
+            .bind("uuid", exchangeKey)
+            .mapTo<ResponseInfo>()
+            .firstOrNull()
+
         return RequestInfo(
             exchangeKey = exchangeKey,
             externalKey = temp.externalKey,

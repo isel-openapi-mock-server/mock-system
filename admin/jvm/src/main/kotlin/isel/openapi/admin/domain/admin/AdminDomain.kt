@@ -28,6 +28,8 @@ sealed interface VerifyResponseError {
 
     data object WrongStatusCode : VerifyResponseError
 
+    data class InvalidTemplate(val message: String) : VerifyResponseError
+
 }
 
 //typealias VerifyResponseResult = Either<VerifyResponseError, Boolean>
@@ -40,9 +42,10 @@ class AdminDomain {
     fun generateHost(): String {
         val chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
         val length = 16
-        return (1..length)
+        val host = (1..length)
             .map { chars.random() }
             .joinToString("")
+        return "$host.mocksystem.com"
     }
 
     fun generateTokenValue(): String =
@@ -195,32 +198,6 @@ class AdminDomain {
         return errors
     }
 
-/*    private fun jsonValidator(
-        schema: String?,
-        receivedType: String,
-    ): ValidationFailure? {
-
-        if(schema == null) { return null }
-
-        val jsonVal = JsonParser(schema).parse()
-
-        val schemaLoader = SchemaLoader(jsonVal)
-        val validator = Validator.create(schemaLoader.load(), ValidatorConfig(FormatValidationPolicy.ALWAYS))
-        try {
-            val receivedJsonType = JsonParser(receivedType).parse()
-            val validationResult = validator.validate(receivedJsonType)
-            return validationResult
-        } catch (e: JsonParseException) {
-            println(e.location)
-            println(e.message)
-            println(e.localizedMessage)
-            println(e.cause)
-            println(e.suppressed)
-            println(e.stackTrace)
-            return null // TODO mudar
-        }
-    }
-*/
     private fun convertToType(value: Any?): Type {
         return when (value) {
             null -> Type.NullType
@@ -250,6 +227,10 @@ class AdminDomain {
 
         return node.first() == '{' && node[1] == '{' && node.last() == '}' && node[size - 2] == '}'
 
+    }
+
+    fun isBodyHandleBarsTemplate(body: String?): Boolean {
+        return body != null && body.contains("{{") && body.contains("}}")
     }
 
 }

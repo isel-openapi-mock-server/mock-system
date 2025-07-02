@@ -68,19 +68,22 @@ class HandlebarsContext {
     }
 
     fun addParams(params: List<ParameterInfo>): HandlebarsContext {
-        val queryParams = mutableMapOf<String, Any?>()
-        val pathParams = mutableMapOf<String, Any?>()
-        val cookies = mutableMapOf<String, Any?>()
+        val queryParams = mutableMapOf<String, MutableList<Any>>()
+        val pathParams = mutableMapOf<String, MutableList<Any>>()
+        val cookies = mutableMapOf<String, MutableList<Any>>()
         params.forEach {
             when (it.location) {
                 Location.QUERY -> {
-                    queryParams[it.name] = it.content
+                    val list = queryParams.getOrPut(it.name) { mutableListOf() }
+                    list.add(it.content)
                 }
                 Location.PATH -> {
-                    pathParams[it.name] = it.content
+                    val list = pathParams.getOrPut(it.name) { mutableListOf() }
+                    list.add(it.content)
                 }
                 Location.COOKIE -> {
-                    cookies[it.name] = it.content
+                    val list = cookies.getOrPut(it.name) { mutableListOf() }
+                    list.add(it.content)
                 }
                 else -> { }
             }
