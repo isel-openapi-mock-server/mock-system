@@ -238,7 +238,7 @@ class AdminDomain {
     }
 
     fun isBodyHandleBarsTemplate(body: String?): Boolean {
-        return body != null && body.contains("{{") && body.contains("}}")
+        return body != null && (body.contains("{{") && body.contains("}}") || body.contains("\\u007b") && body.contains("\\u007d") )
     }
 
 }

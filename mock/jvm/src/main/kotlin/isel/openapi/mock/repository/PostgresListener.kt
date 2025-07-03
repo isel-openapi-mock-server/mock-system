@@ -1,15 +1,12 @@
 package isel.openapi.mock.repository
 
-import isel.openapi.mock.services.DynamicHandlerServices
 import isel.openapi.mock.services.Synchronizer
 import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
 import org.postgresql.PGConnection
-import org.postgresql.ds.PGSimpleDataSource
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import javax.sql.DataSource
-import kotlin.concurrent.thread
 
 @Component
 class PostgresListener(
@@ -47,8 +44,6 @@ class PostgresListener(
 
             }
         }
-
-        thread.start()
     }
 
     @PreDestroy

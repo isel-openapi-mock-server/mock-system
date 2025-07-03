@@ -55,8 +55,6 @@ class  Synchronizer(
                 }
             }
         }
-
-        thread.start()
     }
 
     @PreDestroy
