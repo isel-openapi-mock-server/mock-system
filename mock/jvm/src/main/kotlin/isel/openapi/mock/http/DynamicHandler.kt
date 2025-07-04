@@ -1,17 +1,21 @@
 package isel.openapi.mock.http
 
+import com.github.jknack.handlebars.Handlebars
 import jakarta.servlet.http.HttpServletRequest
 import isel.openapi.mock.domain.dynamic.DynamicDomain
 import isel.openapi.mock.domain.dynamic.HandlerResult
 import isel.openapi.mock.domain.openAPI.*
 import isel.openapi.mock.domain.problems.ParameterInfo
+import isel.openapi.mock.services.HandlebarsContext
 import isel.openapi.mock.services.ResponseConfig
 import isel.openapi.mock.services.Scenario
+import org.apache.commons.text.StringEscapeUtils
 
 interface VerificationError
 
 sealed class VerifyBodyError: VerificationError {
     data class InvalidBodyFormat(val expectedBodyType: String, val receivedBody: String): VerifyBodyError()
+    data class InvalidResponseBodyFormat(val expectedType: String, val receivedType: String): VerifyBodyError()
 }
 
 sealed class VerifyHeadersError: VerificationError {
@@ -38,40 +42,79 @@ class DynamicHandler(
     private val security: Boolean = false,
     private val dynamicDomain: DynamicDomain,
     private val scenario: Scenario?,
+    private val responses: List<Response>
 ) {
 
     fun handle(
-        request: HttpServletRequest
+        request: HttpServletRequest,
+        handlebars: Handlebars
     ): HandlerResult {
 
         val requestBody = request.reader.readText().ifBlank { null }
-        val requestQueryParams = request.parameterMap.mapValues { entry -> entry.value.map { value -> value.toTypedValue() } }
+        val requestQueryParams = extractQueryParams(request)
         val requestPathParams = dynamicDomain.getPathParams(path, request.requestURI)
-        val requestHeaders = request.headerNames.toList().associateWith { request.getHeader(it) }
+        val requestHeaders = extractHeaders(request)
         val cookies = request.cookies ?: emptyArray()
-
         val contentType = request.contentType
 
         val fails = mutableListOf<VerificationError>()
 
         if(body != null && requestBody != null) {
-            val bodyResult = dynamicDomain.verifyBody(contentType, requestBody, body)
-            bodyResult.forEach { fails.add(it) }
+            fails.addAll(
+                dynamicDomain.verifyBody(
+                    contentType,
+                    requestBody,
+                    body
+                )
+            )
         }
 
-        val headersResult = dynamicDomain.verifyHeaders(requestHeaders, headers ?: emptyList(), contentType, security)
-        headersResult.forEach { fails.add(it) }
+        fails.addAll(
+            dynamicDomain.verifyHeaders(
+                requestHeaders,
+                headers ?: emptyList(),
+                contentType,
+                security
+            )
+        )
 
-        val queryParamsResult = dynamicDomain.verifyQueryParams(requestQueryParams, params?.filter { it.location == Location.QUERY } ?: emptyList())
+        fails.addAll(
+            dynamicDomain.verifyCookies(
+                cookies,
+                params?.filter { it.location == Location.COOKIE } ?: emptyList()
+            )
+        )
+
+        val queryParamsResult = dynamicDomain.verifyQueryParams(
+            requestQueryParams,
+            params?.filter { it.location == Location.QUERY } ?: emptyList()
+        )
         queryParamsResult.errors.forEach { fails.add(it) }
 
-        val pathParamsResult = dynamicDomain.verifyPathParams(requestPathParams, params?.filter { it.location == Location.PATH } ?: emptyList())
+        val pathParamsResult = dynamicDomain.verifyPathParams(
+            requestPathParams,
+            params?.filter { it.location == Location.PATH } ?: emptyList()
+        )
         pathParamsResult.errors.forEach { fails.add(it) }
 
-        val cookiesResult = dynamicDomain.verifyCookies(cookies, params?.filter { it.location == Location.COOKIE } ?: emptyList())
-        cookiesResult.forEach { fails.add(it) }
-
         val response = if(fails.isEmpty()) scenario!!.getResponse() else null
+
+        val processedBody = processResponseBody(
+            response,
+            request,
+            requestBody,
+            requestHeaders,
+            pathParamsResult.params + queryParamsResult.params,
+            handlebars
+        )
+
+        fails.addAll(
+            dynamicDomain.verifyResponseBody(
+                processedBody,
+                response?.contentType ?: "application/json",
+                responses.firstOrNull { r -> r.statusCode == response?.statusCode }?.schema
+            )
+        )
 
         return HandlerResult(
             fails = fails,
@@ -79,12 +122,53 @@ class DynamicHandler(
             headers = requestHeaders,
             cookies = cookies.toList(),
             params = pathParamsResult.params + queryParamsResult.params,
-            response = response
+            response = response,
+            processedBody = processedBody
         )
     }
 
     fun hasScenario() : Boolean {
         return scenario != null
+    }
+
+    private fun extractHeaders(request: HttpServletRequest): Map<String, String> {
+        return request.headerNames.toList().associateWith { request.getHeader(it) }
+    }
+
+    private fun extractQueryParams(request: HttpServletRequest): Map<String, List<Any>> {
+        return request.parameterMap.mapValues { entry -> entry.value.map { value -> value.toTypedValue() } }
+    }
+
+    private fun processResponseBody(
+        response: ResponseConfig?,
+        request: HttpServletRequest,
+        requestBody: String?,
+        headers: Map<String, String>,
+        params: List<ParameterInfo>,
+        handlebars: Handlebars
+    ): ByteArray? {
+        val rawBody = response?.body ?: return null
+        val bodyString = String(rawBody, Charsets.UTF_8)
+
+        val unescaped = if (bodyString.contains("\\\"") ||
+            bodyString.contains("\\u007b") ||
+            bodyString.startsWith("\"[") ||
+            bodyString.endsWith("]\"")
+        ) {
+            StringEscapeUtils.unescapeJson(bodyString)
+        } else bodyString
+
+        return if (unescaped.contains("{{")) {
+            val context = HandlebarsContext()
+                .addBody(requestBody, response.contentType ?: "application/json")
+                .addUrl(request.requestURL.toString())
+                .pathParts(request.requestURI)
+                .addParams(params)
+                .addHeaders(headers)
+
+            val template = handlebars.compileInline(unescaped)
+            template.apply(context.getContext()).toByteArray()
+        } else unescaped.toByteArray()
     }
 
     private fun String.toTypedValue(): Any {

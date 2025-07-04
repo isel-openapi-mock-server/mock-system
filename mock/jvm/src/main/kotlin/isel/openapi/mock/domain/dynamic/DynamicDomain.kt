@@ -421,31 +421,44 @@ class DynamicDomain {
         }
     }
 
-    /*private fun jsonValidator(
-        schema: String?,
-        receivedType: String,
-    ): Boolean {
+    fun verifyResponseBody(
+        body: ByteArray?,
+        contentType: String,
+        bodySpec: ContentOrSchema.ContentField?
+    ): List<VerificationError> {
 
-        if(schema == null) { return true }
+        if (body == null) return emptyList()
 
-        val jsonVal = JsonParser(schema).parse()
+        val bodyString = String(body, Charsets.UTF_8)
 
-        val schemaLoader = SchemaLoader(jsonVal)
-        val validator = Validator.create(schemaLoader.load(), ValidatorConfig(FormatValidationPolicy.ALWAYS))
+        val failList = mutableListOf<VerificationError>()
+
+        if (bodySpec == null) return failList
+
         try {
-            val receivedJsonType = JsonParser(receivedType).parse()
-            val validationResult = validator.validate(receivedJsonType)
-            return validationResult == null
-        } catch (e: JsonParseException) {
-            println(e.location)
-            println(e.message)
-            println(e.localizedMessage)
-            println(e.cause)
-            println(e.suppressed)
-            println(e.stackTrace)
-            return false
+            bodySpec.content.forEach { (key, value) ->
+                if (key == contentType) {
+                    val validationResult = jsonValidator(value.schema, bodyString)
+                    if (validationResult != null && validationResult.isNotEmpty()) {
+                        for (message in validationResult) {
+                            failList.add(
+                                VerifyBodyError.InvalidResponseBodyFormat(
+                                        bodySpec.content[contentType]?.schema.toString(), bodyString
+                                    )
+                                )
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            failList.add(
+                VerifyBodyError.InvalidResponseBodyFormat(
+                    bodySpec.content[contentType]?.schema.toString(), bodyString
+                )
+            )
         }
-    }*/
+        return failList
+    }
 
     private fun convertToType(value: Any?): Type {
         return when (value) {

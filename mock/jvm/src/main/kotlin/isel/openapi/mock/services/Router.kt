@@ -31,7 +31,8 @@ class Router(
                     operation.headers,
                     operation.security,
                     dynamicDomain,
-                    scenarios.firstOrNull { it.method == operation.method && it.path == apiPath.fullPath }
+                    scenarios.firstOrNull { it.method == operation.method && it.path == apiPath.fullPath },
+                    operation.responses
                 )
 
                 val parts = apiPath.fullPath.split("/").filter { it.isNotEmpty() }

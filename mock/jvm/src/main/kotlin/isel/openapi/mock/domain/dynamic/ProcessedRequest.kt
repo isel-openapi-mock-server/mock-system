@@ -7,5 +7,5 @@ class ProcessedRequest(
     val statusCode: StatusCode,
     val contentType: String?,
     val headers: Map<String, String>?,
-    val body: String?,
+    val body: ByteArray?,
 )

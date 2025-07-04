@@ -12,4 +12,5 @@ class HandlerResult(
     val cookies: List<Cookie> = emptyList(),
     val params: List<ParameterInfo>,
     val response: ResponseConfig?,
+    val processedBody: ByteArray? = null,
 )

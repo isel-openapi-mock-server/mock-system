@@ -46,13 +46,17 @@ class DynamicHandlerServices(
         externalKey: String? = null,
     ) : DynamicHandlerResult {
 
-        if (!router.doesHostExist(host)) return failure(DynamicHandlerError.HostDoesNotExist)
+        val splitHost = host.split(".").first()
 
-        val dynamicHandler = router.match(host, method, path) ?: return failure(DynamicHandlerError.HandlerNotFound)
+        if (!router.doesHostExist(splitHost)) return failure(DynamicHandlerError.HostDoesNotExist)
 
-        if (!router.doesScenarioExist(dynamicHandler.routeNode, dynamicHandler.pathTemplate, method)) return failure(DynamicHandlerError.ScenarioNotFound)
+        val dynamicHandler = router.match(splitHost, method, path)
+            ?: return failure(DynamicHandlerError.HandlerNotFound)
 
-        val handlerResponse : HandlerResult = dynamicHandler.dynamicHandler.handle(request)
+        if (!router.doesScenarioExist(dynamicHandler.routeNode, dynamicHandler.pathTemplate, method))
+            return failure(DynamicHandlerError.ScenarioNotFound)
+
+        val handlerResponse : HandlerResult = dynamicHandler.dynamicHandler.handle(request, handlebars)
 
         val exchangeKey = problemsDomain.generateUuidValue()
         val fails = handlerResponse.fails
@@ -75,13 +79,17 @@ class DynamicHandlerServices(
                 method.name,
                 path,
                 externalKey,
-                host,
+                splitHost,
                 jsonRequestHeaders,
                 date
             )
 
             if(handlerResponse.body != null) {
-                problemsRepository.addRequestBody(exchangeKey, handlerResponse.body.toByteArray(), handlerResponse.headers["content-type"] ?: "")
+                problemsRepository.addRequestBody(
+                    exchangeKey,
+                    handlerResponse.body.toByteArray(),
+                    handlerResponse.headers["Content-Type"] ?: ""
+                )
             }
 
             if(handlerResponse.params.isNotEmpty()) {
@@ -97,42 +105,13 @@ class DynamicHandlerServices(
 
                 val responseId = problemsRepository.addResponse(exchangeKey, handlerResponse.response!!.statusCode.code, jsonResponseHeaders)
 
-                if(handlerResponse.response.body != null) {
-                    problemsRepository.addResponseBody(responseId, handlerResponse.response.body, handlerResponse.response.contentType!!)
+                if(handlerResponse.processedBody != null) {
+                    problemsRepository.addResponseBody(responseId, handlerResponse.processedBody, handlerResponse.response.contentType!!)
                 }
             }
         }
 
         if (fails.isNotEmpty()) return failure(DynamicHandlerError.BadRequest(exchangeKey))
-
-        val body = handlerResponse.response?.body
-
-        val processedBody = if (body != null) {
-            val bodyString = String(body, Charsets.UTF_8)
-            val unescaped = if (bodyString.contains("\\\"")
-                || bodyString.contains("\\u007b")
-                || bodyString.startsWith("\"[")
-                || bodyString.endsWith("]\"")) {
-                StringEscapeUtils.unescapeJson(bodyString)
-            } else {
-                bodyString
-            }
-
-            if(unescaped.contains("{{")) {
-                val context =
-                    HandlebarsContext()
-                        .addBody(handlerResponse.body, handlerResponse.response.contentType ?: "application/json")
-                        .addUrl(request.requestURL.toString())
-                        .pathParts(path)
-                        .addParams(handlerResponse.params)
-                        .addHeaders(handlerResponse.headers)
-                val template = handlebars.compileInline(unescaped)
-                template.apply(context.getContext())
-            } else { unescaped }
-
-        } else {
-            null
-        }
 
         return success(
             ProcessedRequest(
@@ -140,7 +119,7 @@ class DynamicHandlerServices(
                 statusCode = handlerResponse.response?.statusCode ?: StatusCode.OK,
                 contentType = handlerResponse.response?.contentType,
                 headers = handlerResponse.response?.headers ?: emptyMap(),
-                body = processedBody
+                body = handlerResponse.processedBody,
             )
         )
     }
