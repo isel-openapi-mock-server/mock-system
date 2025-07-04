@@ -90,7 +90,7 @@ class DynamicHandlerServicesTests {
             if (result is Success) {
                 results.add(result)
             } else {
-                throw Exception("Expected success but got failure: $result")
+                throw Exception("$i - Expected success but got failure: $result")
             }
         }
 
@@ -102,7 +102,12 @@ class DynamicHandlerServicesTests {
         assertEquals(StatusCode.fromCode("404"), results[1].value.statusCode)
         assertEquals("application/json", results[1].value.contentType)
         assertEquals(emptyMap<String, String>(), results[1].value.headers)
-        assertEquals("""{"error": "User not found"}""", String(results[1].value.body!!, Charsets.UTF_8))
+        assertEquals(
+            """
+            "User not found"
+            """.trimIndent(),
+            String(results[1].value.body!!, Charsets.UTF_8)
+        )
         assertEquals(StatusCode.fromCode("200"), results[2].value.statusCode)
         assertEquals("application/json", results[2].value.contentType)
         assertEquals(emptyMap<String, String>(), results[2].value.headers)
@@ -251,7 +256,9 @@ class DynamicHandlerServicesTests {
                 statusCode = StatusCode.fromCode("404")!!,
                 contentType = "application/json",
                 headers = null,
-                body = "User not found".toByteArray()
+                body = """
+                    "User not found"
+                    """.trimIndent().toByteArray()
             ),
             ResponseConfig(
                 statusCode = StatusCode.fromCode("200")!!,
