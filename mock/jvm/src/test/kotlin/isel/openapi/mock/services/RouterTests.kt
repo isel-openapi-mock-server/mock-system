@@ -120,7 +120,9 @@ class RouterTests {
                             Response(StatusCode.fromCode("201")!!, null),
                             Response(
                                 StatusCode.fromCode("400")!!,
-                                ContentOrSchema.SchemaObject(
+                                ContentOrSchema.ContentField(
+                                    content = mapOf(
+                                        "application/json" to ContentOrSchema.SchemaObject(
                                     """
                                 {
                                     "type": "string",
@@ -133,7 +135,7 @@ class RouterTests {
                                     "example": "User already exists"
                                 }
                                 """.trimIndent()
-                                )
+                                )))
                             ),
                             Response(StatusCode.fromCode("500")!!, null)
                         ),
@@ -168,7 +170,9 @@ class RouterTests {
                         responses = listOf(
                             Response(
                                 StatusCode.fromCode("200")!!,
-                                ContentOrSchema.SchemaObject(
+                                ContentOrSchema.ContentField(
+                                    content = mapOf(
+                                        "application/json" to ContentOrSchema.SchemaObject(
                                     """
                                 {
                                     "type": "object",
@@ -178,9 +182,9 @@ class RouterTests {
                                     }
                                 }
                                 """.trimIndent()
-                                )
+                                )))
                             ),
-                            Response(StatusCode.fromCode("404")!!, ContentOrSchema.SchemaObject("""{ "type": "string", "example": "User not found" }""")),
+                            Response(StatusCode.fromCode("404")!!, ContentOrSchema.ContentField(content= mapOf("application/json" to ContentOrSchema.SchemaObject("""{ "type": "string", "example": "User not found" }""")))),
                             Response(StatusCode.fromCode("500")!!, null)
                         ),
                         servers = listOf("http://localhost:8080/api"),

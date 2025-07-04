@@ -63,6 +63,7 @@ class DynamicHandlerServicesTests {
 
     }
 
+    //TODO: Corrigir
     @Test
     fun `scenario with multiple responses returns correct response`() {
         val router = Router(
@@ -101,11 +102,11 @@ class DynamicHandlerServicesTests {
         assertEquals(StatusCode.fromCode("404"), results[1].value.statusCode)
         assertEquals("application/json", results[1].value.contentType)
         assertEquals(emptyMap<String, String>(), results[1].value.headers)
-        assertEquals("""{"error": "User not found"}""", results[1].value.body)
+        assertEquals("""{"error": "User not found"}""", String(results[1].value.body!!, Charsets.UTF_8))
         assertEquals(StatusCode.fromCode("200"), results[2].value.statusCode)
         assertEquals("application/json", results[2].value.contentType)
         assertEquals(emptyMap<String, String>(), results[2].value.headers)
-        assertEquals("""{"id": 1, "username": "bob123"}""", results[2].value.body)
+        assertEquals("""{"id": 1, "username": "bob123"}""", String(results[2].value.body!!, Charsets.UTF_8))
         assertEquals(StatusCode.fromCode("500"), results[3].value.statusCode)
     }
 
@@ -250,7 +251,7 @@ class DynamicHandlerServicesTests {
                 statusCode = StatusCode.fromCode("404")!!,
                 contentType = "application/json",
                 headers = null,
-                body = """{"error": "User not found"}""".toByteArray()
+                body = "User not found".toByteArray()
             ),
             ResponseConfig(
                 statusCode = StatusCode.fromCode("200")!!,
@@ -296,8 +297,10 @@ class DynamicHandlerServicesTests {
                             Response(StatusCode.fromCode("201")!!, null),
                             Response(
                                 StatusCode.fromCode("400")!!,
-                                ContentOrSchema.SchemaObject(
-                                    """
+                                ContentOrSchema.ContentField(
+                                    content = mapOf(
+                                        "application/json" to ContentOrSchema.SchemaObject(
+                                            schema = """
                                 {
                                     "type": "string",
                                     "enum": [
@@ -309,7 +312,9 @@ class DynamicHandlerServicesTests {
                                     "example": "User already exists"
                                 }
                                 """.trimIndent()
-                                )
+                                        )
+                                    )
+                                ),
                             ),
                             Response(StatusCode.fromCode("500")!!, null)
                         ),
@@ -344,19 +349,24 @@ class DynamicHandlerServicesTests {
                         responses = listOf(
                             Response(
                                 StatusCode.fromCode("200")!!,
-                                ContentOrSchema.SchemaObject(
-                                    """
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "id": { "type": "integer" },
-                                        "username": { "type": "string" }
-                                    }
-                                }
-                                """.trimIndent()
-                                )
+                                ContentOrSchema.ContentField(
+                                    content = mapOf(
+                                        "application/json" to ContentOrSchema.SchemaObject(
+                                            schema =
+                                                """
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "id": { "type": "integer" },
+                                                    "username": { "type": "string" }
+                                                }
+                                            }
+                                            """.trimIndent()
+                                            )
+                                        )
+                                    )
                             ),
-                            Response(StatusCode.fromCode("404")!!, ContentOrSchema.SchemaObject("""{ "type": "string", "example": "User not found" }""")),
+                            Response(StatusCode.fromCode("404")!!, ContentOrSchema.ContentField(content=mapOf("application/json" to ContentOrSchema.SchemaObject( """{ "type": "string", "example": "User not found" }""")))),
                             Response(StatusCode.fromCode("500")!!, null)
                         ),
                         servers = listOf("http://localhost:8080/api"),
