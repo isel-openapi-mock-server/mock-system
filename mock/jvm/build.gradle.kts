@@ -80,3 +80,16 @@ tasks.named("check") {
 	dependsOn("dbWait")
     finalizedBy("dbTestsDown")
 }
+
+java {
+	withSourcesJar() // <-- Export sources, needed for IntelliJ imports
+}
+
+tasks.bootJar {
+	enabled = false
+}
+
+tasks.jar {
+	enabled = true // <-- Needed to make it a library module
+}
+

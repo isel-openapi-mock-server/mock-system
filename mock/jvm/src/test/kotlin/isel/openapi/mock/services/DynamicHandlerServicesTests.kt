@@ -63,7 +63,6 @@ class DynamicHandlerServicesTests {
 
     }
 
-    //TODO: Corrigir
     @Test
     fun `scenario with multiple responses returns correct response`() {
         val router = Router(
