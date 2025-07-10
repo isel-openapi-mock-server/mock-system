@@ -81,8 +81,16 @@ class RequestsServices(
             return failure(SearchError.InvalidDateRange)
         }
 
-        method?.uppercase()?.let { HttpMethod.valueOf(it) }
-            ?: return failure(SearchError.InvalidMethod)
+        if (!method.isNullOrBlank()) {
+            try {
+                HttpMethod.valueOf(method.uppercase())
+            } catch (e: IllegalArgumentException) {
+                return failure(SearchError.InvalidMethod)
+            }
+        } else {
+            return failure(SearchError.InvalidMethod)
+        }
+
 
         return transactionManager.run {
             val requestsRepository = it.requestsRepository

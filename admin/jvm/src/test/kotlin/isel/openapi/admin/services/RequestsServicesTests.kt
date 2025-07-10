@@ -64,6 +64,46 @@ class RequestsServicesTests {
         assertEquals("request2", reqInfoList[1].exchangeKey)
     }
 
+    @Test
+    fun `searchRequests should return error for non-existing host`() {
+
+        val result = requestsServices.searchRequests("nonexistent", "GET", null, null, null)
+
+        assertTrue(result is Failure)
+
+        assertEquals(SearchError.HostDoesNotExist, result.value)
+    }
+
+    @Test
+    fun `searchRequests should return error for invalid date range`() {
+
+        val result = requestsServices.searchRequests("host1", "GET", null, 1000, 500)
+
+        assertTrue(result is Failure)
+
+        assertEquals(SearchError.InvalidDateRange, result.value)
+    }
+
+    @Test
+    fun `searchRequests should return error for invalid HTTP method`() {
+
+        val result = requestsServices.searchRequests("host1", "INVALID_METHOD", null, null, null)
+
+        assertTrue(result is Failure)
+
+        assertEquals(SearchError.InvalidMethod, result.value)
+    }
+
+    @Test
+    fun `searchRequests should return success with valid parameters`() {
+
+        val result = requestsServices.searchRequests("host1", "GET", null, null, null)
+
+        assertTrue(result is Success)
+
+        assertEquals(2, result.value.size)
+    }
+
 
     companion object {
         private val jdbi = Jdbi.create(

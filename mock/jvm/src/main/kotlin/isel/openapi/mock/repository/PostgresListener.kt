@@ -1,6 +1,6 @@
 package isel.openapi.mock.repository
 
-import isel.openapi.mock.services.Synchronizer
+import isel.openapi.mock.services.DynamicHandlerServices
 import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
 import org.postgresql.PGConnection
@@ -11,7 +11,7 @@ import javax.sql.DataSource
 @Component
 class PostgresListener(
     private val dataSource: DataSource,
-    private val synchronizer: Synchronizer,
+    private val services: DynamicHandlerServices
 ) {
 
     private lateinit var thread: Thread
@@ -31,7 +31,7 @@ class PostgresListener(
                         for (notification in notifications) {
                             if(notification.name == "update_spec") {
                                 println("Received notification: ${notification.name}")
-                                synchronizer.queue()
+                                services.updateDynamicRouter()
                             }
                         }
                     }
