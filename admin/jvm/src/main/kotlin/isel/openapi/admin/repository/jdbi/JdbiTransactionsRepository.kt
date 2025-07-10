@@ -299,15 +299,28 @@ class JdbiTransactionsRepository(
     }
 
     override fun getTransactionsToDelete(date: Long): List<String> {
-        return handle.createQuery(
+
+        val uuids = handle.createQuery(
             """
-            DELETE FROM open_transactions
-            WHERE date < (:date - 86400)
-              AND isAlive = true;
-            """
+        SELECT uuid FROM open_transactions
+        WHERE date < (:date - 86400)
+          AND isAlive = true
+        """
         )
+            .bind("date", date)
             .mapTo<String>()
             .list()
+
+        handle.createUpdate(
+            """
+        DELETE FROM open_transactions
+        WHERE uuid IN (<uuids>)
+        """
+        )
+            .bindList("uuids", uuids)
+            .execute()
+
+        return uuids
     }
 
     private fun jsonb(value: String): PGobject {

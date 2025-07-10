@@ -205,6 +205,15 @@ class AdminServicesTests {
         assertTrue(res is Success)
     }
 
+    @Test
+    fun `delete transactions should delete the 2 open transactions`() {
+        val adminServices = createAdminServices()
+
+        val res = adminServices.deleteTransactions()
+
+        assertEquals(2, res)
+    }
+
 
     companion object {
         private val adminDomain = AdminDomain()

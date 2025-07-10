@@ -314,6 +314,18 @@ class AdminControllerTests {
             )
     }
 
+    @Test
+    fun `delete transaction 2 open transactions`() {
+        val client = WebTestClient.bindToServer().baseUrl("http://localhost:$port/").build()
+
+        client.delete().uri { uriBuilder ->
+            uriBuilder
+                .path("/admin/transactions")
+                .build()
+        }
+            .exchange()
+            .expectStatus().isOk
+    }
 
     private val emptyOpenAPISpec =
         """

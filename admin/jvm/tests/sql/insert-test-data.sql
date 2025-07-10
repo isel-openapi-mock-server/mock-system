@@ -78,8 +78,8 @@ INSERT INTO transactions (uuid, host) VALUES
 
 INSERT INTO OPEN_TRANSACTIONS (uuid, host, spec_id, isAlive, date) VALUES
                                                                        ('transaction1', 'host1', 1, false, 1720617600),
-                                                                       ('transaction2', 'host2', 2, true, 1752105600),
-                                                                       ('transaction3', 'host3', 3, true, 1751932800);
+                                                                       ('transaction2', 'host2', 2, true, 1552105600),
+                                                                       ('transaction3', 'host3', 3, true, 1551932800);
 
 INSERT INTO requests (uuid, external_key, path_template, method, resolved_path, host, spec_id, headers, date) values
                                                                                                                   ('request1','type2', '/users/search', 'GET', '/users/search', 'host1', 1, '{"A": "bom dia"}'::jsonb, 1752105600),
