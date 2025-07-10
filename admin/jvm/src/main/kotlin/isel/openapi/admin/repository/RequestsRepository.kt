@@ -3,6 +3,7 @@ package isel.openapi.admin.repository
 import isel.openapi.admin.domain.requests.HeadersInfo
 import isel.openapi.admin.domain.requests.ProblemInfo
 import isel.openapi.admin.domain.requests.RequestInfo
+import isel.openapi.admin.domain.requests.ResponseInfo
 
 interface RequestsRepository {
 
@@ -29,5 +30,9 @@ interface RequestsRepository {
         startDate: Long?,
         endDate: Long?
     ) : List<RequestInfo>
+
+    fun getResponse(
+        requestUUID: String
+    ) : ResponseInfo
 
 }

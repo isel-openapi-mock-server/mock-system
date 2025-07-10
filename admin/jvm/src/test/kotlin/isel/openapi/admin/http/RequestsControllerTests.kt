@@ -23,6 +23,26 @@ class RequestsControllerTests {
         }
             .exchange()
             .expectStatus().isOk
+            .expectBody()
+            .json(
+                """
+      [{
+        "exchangeKey": "request1",
+        "externalKey": "type2",
+        "method": "GET",
+        "path": "/users/search",
+        "host": "host1",
+        "body": null,
+        "problems": [],
+        "response": {
+          "body": "W3siaWQiOjUsInVzZXJuYW1lIjoiZGlvZ28ifSx7ImlkIjo0MCwidXNlcm5hbWUiOiJtYXJ0aW0ifV0=",
+          "statusCode": 200,
+          "contentType": "application/json"
+        }
+      }]
+    """.trimIndent()
+            )
+
     }
 
     @Test

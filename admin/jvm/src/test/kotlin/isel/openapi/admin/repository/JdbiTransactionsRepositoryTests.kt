@@ -159,7 +159,7 @@ class JdbiTransactionsRepositoryTests {
         runWithHandle { handle ->
             val repo = JdbiTransactionsRepository(handle)
 
-            val transactionId = "transaction1"
+            val transactionId = adminDomain.generateTokenValue()
 
             val res = repo.getScenarioNameByTransaction(transactionId)
 

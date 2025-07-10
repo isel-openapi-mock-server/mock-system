@@ -3,6 +3,9 @@ package isel.openapi.admin.repository.jdbi
 import isel.openapi.admin.domain.requests.ProblemInfo
 import isel.openapi.admin.domain.requests.RequestDetails
 import isel.openapi.admin.domain.requests.RequestInfo
+import isel.openapi.admin.domain.requests.RequestResponse
+import isel.openapi.admin.domain.requests.ResponseBody
+import isel.openapi.admin.domain.requests.ResponseInfo
 import isel.openapi.admin.repository.RequestsRepository
 import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.kotlin.mapTo
@@ -29,18 +32,11 @@ class JdbiRequestsRepository(
 
         val body = getRequestBody(exchangeKey)
 
-        //TODO
-        /*
-        val response = handle.createQuery(
-            """
-            SELECT content, status_code, headers, content_type FROM responses WHERE uuid = :uuid
-            """
-        )
-            .bind("uuid", exchangeKey)
-            .mapTo<ResponseInfo>()
-            .firstOrNull()
-
-         */
+        val response = if(problems.isEmpty()) {
+            getResponse(exchangeKey)
+        } else {
+            null
+        }
 
         return RequestInfo(
             exchangeKey = exchangeKey,
@@ -49,7 +45,8 @@ class JdbiRequestsRepository(
             path = temp.pathTemplate,
             host = temp.host,
             body = body,
-            problems = problems
+            problems = problems,
+            response = response
         )
     }
 
@@ -72,6 +69,12 @@ class JdbiRequestsRepository(
             val problems = getRequestProblems(it.uuid)
 
             val body = getRequestBody(it.uuid)
+
+            val response = if(problems.isEmpty()) {
+                getResponse(it.uuid)
+            } else {
+                null
+            }
 
             toReturn.add(
                 RequestInfo(
@@ -178,4 +181,32 @@ class JdbiRequestsRepository(
         }
         return toReturn
     }
+
+    override fun getResponse(requestUUID: String): ResponseInfo {
+        val response = handle.createQuery(
+            """
+            SELECT id, status_code FROM responses WHERE uuid = :uuid
+            """
+        )
+            .bind("uuid", requestUUID)
+            .mapTo<RequestResponse>()
+            .first()
+
+        val responseBody = handle.createQuery(
+            """
+            SELECT content, content_type FROM response_body WHERE response_id = :id
+            """
+        )
+            .bind("id", response.id)
+            .mapTo<ResponseBody>()
+            .firstOrNull()
+
+        return ResponseInfo(
+            body = responseBody?.content,
+            contentType = responseBody?.contentType,
+            statusCode = response.statusCode
+        )
+
+    }
+
 }
