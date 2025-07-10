@@ -16,8 +16,10 @@ class AdminDomainTests {
     @Test
     fun `generateHost should return a 16-character alphanumeric string`() {
         val host = adminDomain.generateHost()
-        assertEquals(16, host.length)
-        assertTrue(host.all { it.isLetterOrDigit() })
+        val hostParts = host.split('.')
+        assertEquals(16, hostParts[0].length)
+        assertEquals("mocksystem", hostParts[1])
+        assertEquals("com", hostParts[2])
     }
 
     @Test

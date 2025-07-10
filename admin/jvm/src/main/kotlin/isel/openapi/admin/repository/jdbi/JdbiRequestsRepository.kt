@@ -117,7 +117,6 @@ class JdbiRequestsRepository(
             .bind("uuid", requestUUID)
             .mapTo<ByteArray>() //Base64
             .firstOrNull()
-
     }
 
     override fun searchRequests(
@@ -130,7 +129,7 @@ class JdbiRequestsRepository(
 
         val query = StringBuilder(
             """
-            SELECT r.uuid, r.external_key, r.path_template, r.method, r.host, FROM requests AS r
+            SELECT r.uuid, r.external_key, r.path_template, r.method, r.host FROM requests AS r
             WHERE r.host = :host
             """
         )

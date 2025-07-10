@@ -65,4 +65,84 @@ class RequestsControllerTests {
             .exchange()
             .expectStatus().isBadRequest
     }
+
+    @Test
+    fun `searchRequests returns 400 when host doesn't exist`() {
+        val client = WebTestClient.bindToServer().baseUrl("http://localhost:$port/").build()
+
+        client.get().uri { uriBuilder ->
+            uriBuilder
+                .path("admin/requests/search")
+                .queryParam("host", "nonexistent-host")
+                .queryParam("method", "GET")
+                .build()
+        }
+            .exchange()
+            .expectStatus().isBadRequest
+            .expectBody()
+            .json(
+                """
+              {"type":"https://github.com/isel-openapi-mock-server/mock-system/tree/main/docs/problems/host-does-not-exist.txt"}
+            """.trimIndent()
+            )
+    }
+
+    @Test
+    fun `searchRequests returns 400 when invalid date range`() {
+        val client = WebTestClient.bindToServer().baseUrl("http://localhost:$port/").build()
+
+        client.get().uri { uriBuilder ->
+            uriBuilder
+                .path("admin/requests/search")
+                .queryParam("host", "host1")
+                .queryParam("method", "GET")
+                .queryParam("startDate", "123")
+                .queryParam("endDate", "12")
+                .build()
+        }
+            .exchange()
+            .expectStatus().isBadRequest
+            .expectBody()
+            .json(
+                """
+              {"type":"https://github.com/isel-openapi-mock-server/mock-system/tree/main/docs/problems/invalid-date-range.txt"}
+            """.trimIndent()
+            )
+    }
+
+    @Test
+    fun `searchRequests returns 400 when invalid method`() {
+        val client = WebTestClient.bindToServer().baseUrl("http://localhost:$port/").build()
+
+        client.get().uri { uriBuilder ->
+            uriBuilder
+                .path("admin/requests/search")
+                .queryParam("host", "host1")
+                .queryParam("method", "invalid-method")
+                .build()
+        }
+            .exchange()
+            .expectStatus().isBadRequest
+            .expectBody()
+            .json(
+                """
+              {"type":"https://github.com/isel-openapi-mock-server/mock-system/tree/main/docs/problems/invalid-method.txt"}
+            """.trimIndent()
+            )
+    }
+
+    @Test
+    fun `searchRequests returns 200`() {
+        val client = WebTestClient.bindToServer().baseUrl("http://localhost:$port/").build()
+
+        client.get().uri { uriBuilder ->
+            uriBuilder
+                .path("admin/requests/search")
+                .queryParam("host", "host1")
+                .queryParam("method", "GET")
+                .build()
+        }
+            .exchange()
+            .expectStatus().isOk
+    }
 }

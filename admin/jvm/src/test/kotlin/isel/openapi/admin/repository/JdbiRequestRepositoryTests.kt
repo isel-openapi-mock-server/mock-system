@@ -62,8 +62,20 @@ class JdbiRequestRepositoryTests {
 
             val reqBody = repo.getRequestBody(requestId)
 
+            assertTrue(reqBody != null)
         }
 */
+
+    @Test
+    fun `get requests for host host1`() =
+        runWithHandle { handle ->
+            val repo = JdbiRequestsRepository(handle)
+
+            val reqInfo = repo.searchRequests("host1", "GET", null, null, null)
+
+            assertEquals(2, reqInfo.size)
+        }
+
 
     companion object {
         private fun runWithHandle(block: (Handle) -> Unit) = jdbi.useTransaction<Exception>(block)
