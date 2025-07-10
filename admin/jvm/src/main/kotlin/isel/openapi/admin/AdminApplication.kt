@@ -1,6 +1,7 @@
 package isel.openapi.admin
 
 import isel.openapi.admin.repository.jdbi.configureWithAppRequirements
+import kotlinx.datetime.Clock
 import org.jdbi.v3.core.Jdbi
 import org.postgresql.ds.PGSimpleDataSource
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -17,6 +18,9 @@ class AdminApplication {
 				setURL(Environment.getDbUrl())
 			},
 		).configureWithAppRequirements()
+
+	@Bean
+	fun clock() = Clock.System
 
 }
 

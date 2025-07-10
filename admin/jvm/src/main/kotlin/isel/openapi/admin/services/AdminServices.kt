@@ -17,6 +17,7 @@ import isel.openapi.admin.utils.Failure
 import isel.openapi.admin.utils.failure
 import isel.openapi.admin.utils.success
 import org.springframework.stereotype.Component
+import kotlinx.datetime.Clock
 
 sealed interface CreateSpecError {
     data object InvalidOpenApiSpec : CreateSpecError
@@ -47,6 +48,7 @@ class AdminServices(
     private val transactionManager: TransactionManager,
     private val adminDomain: AdminDomain,
     private val router: RouteValidatorResolver,
+    private val clock: Clock
 ) {
 
     /**
@@ -80,7 +82,8 @@ class AdminServices(
             transactionsRepository.addNewTransaction(
                 transactionToken,
                 specId,
-                null
+                null,
+                clock.now().epochSeconds
             )
 
             for (path in apiSpec.paths) {
@@ -142,7 +145,7 @@ class AdminServices(
 
                 //Cria uma nova transação
                 currentSpecId = transactionsRepository.copySpecToTransaction(token, specId)
-                transactionsRepository.addNewTransaction(token, currentSpecId, host)
+                transactionsRepository.addNewTransaction(token, currentSpecId, host, clock.now().epochSeconds)
 
             }
             router.register(spec, token)
@@ -177,7 +180,7 @@ class AdminServices(
             }
 
             // Regista o cenário no repositório
-            transactionsRepository.addScenario(token, scenario.name, scenario.method, scenario.path, currentSpecId)
+            transactionsRepository.addScenario(token, scenario.name, scenario.method, scenario.path, currentSpecId, clock.now().epochSeconds)
 
             // Regista as respostas no repositório
             for (i in scenario.responses.indices) {
@@ -254,6 +257,32 @@ class AdminServices(
                 router.remove(transactionToken)
                 return success(currentHost)
             }
+        }
+    }
+
+    fun deleteTransactions() : Int {
+        return transactionManager.run {
+            val transactionsRepository = it.transactionsRepository
+
+            val transactionsToDelete = transactionsRepository.getTransactionsToDelete(
+                clock.now().epochSeconds
+            )
+
+            transactionsToDelete.forEach { transaction ->
+                // Remove o token do router
+                router.remove(transaction)
+
+                // Remove o cenário associado ao token
+                transactionsRepository.deleteScenarioFromTransaction(transaction)
+
+                // Remove a especificação associada ao token
+                transactionsRepository.deleteSpecFromTransaction(transaction)
+
+                // Remove a transação
+                transactionsRepository.deleteTransaction(transaction)
+            }
+
+            return@run transactionsToDelete.size
         }
     }
 

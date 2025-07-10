@@ -16,7 +16,8 @@ interface TransactionsRepository {
     fun addNewTransaction(
         uuid: String,
         specId: Int,
-        host: String?
+        host: String?,
+        date: Long
     )
 
     fun copySpecToTransaction(
@@ -38,7 +39,8 @@ interface TransactionsRepository {
         scenarioName: String,
         method: String,
         path: String,
-        specId: Int
+        specId: Int,
+        date: Long
     )
 
     fun addScenarioResponse(
@@ -59,5 +61,21 @@ interface TransactionsRepository {
     fun getHostByTransactionToken(
         transactionToken: String
     ): String?
+
+    fun deleteSpecFromTransaction(
+        transactionToken: String,
+    ): Boolean
+
+    fun deleteScenarioFromTransaction(
+        transactionToken: String,
+    ): Boolean
+
+    fun deleteTransaction(
+        transactionToken: String,
+    ): Boolean
+
+    fun getTransactionsToDelete(
+        date: Long
+    ): List<String>
 
 }

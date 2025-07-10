@@ -18,16 +18,11 @@ class MockSystemTest {
     private lateinit var mockContext: ConfigurableApplicationContext
 
     @BeforeAll // Executa antes de todos os testes da classe, apenas uma vez.
-    fun startApps(): Unit {
-        mockContext = SpringApplication(MockApplication::class.java).apply {
-            setDefaultProperties(mapOf("server.port" to "8082"))
-            webApplicationType = WebApplicationType.SERVLET
-        }.run()
-
-        adminContext = SpringApplication(AdminApplication::class.java).apply {
-            setDefaultProperties(mapOf("server.port" to "8081"))
-            webApplicationType = WebApplicationType.SERVLET
-        }.run()
+    fun startApps() {
+        println("STARTING APP...")
+        adminContext = SpringApplication.run(AdminApplication::class.java)
+        mockContext = SpringApplication.run(MockApplication::class.java)
+        println("APP STARTED")
     }
 
     @AfterAll // Executa depois de todos os testes da classe estarem concluídos, apenas uma vez.

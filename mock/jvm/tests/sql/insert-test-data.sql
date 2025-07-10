@@ -1,6 +1,7 @@
 INSERT INTO SPECS (name, description, transaction_token) VALUES
 ('ChIMP API', 'API for Instant messaging application', 'transaction1'),
-('ChIMP API', 'API for Instant messaging application', 'transaction2');
+('ChIMP API', 'API for Instant messaging application', 'transaction2'),
+('ChIMP API', 'API for Instant messaging application', 'transaction3');
 
 INSERT INTO PATHS (full_path, operations, spec_id) VALUES
 ('/users/search', '[{"method": "GET", "headers": [], "servers": [], "security": true, "responses": [{"schema": {"@type": "ContentField", "content": {"application/json": {"@type": "SchemaObject", "schema": "{\"type\":\"array\",\"exampleSetFlag\":false,\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"integer\",\"example\":1,\"exampleSetFlag\":true,\"types\":[\"integer\"]},\"username\":{\"type\":\"string\",\"example\":\"bob123\",\"exampleSetFlag\":true,\"types\":[\"string\"]}},\"exampleSetFlag\":false,\"types\":[\"object\"]},\"types\":[\"array\"]}"}}}, "headers": [{"name": "A", "type": {"@type": "SchemaObject", "schema": "{\"type\":\"string\",\"exampleSetFlag\":false,\"types\":[\"string\"]}"}, "style": "FORM", "explode": false, "required": false, "description": "bom dia"}], "statusCode": "OK"}, {"schema": null, "headers": [], "statusCode": "INTERNAL_SERVER_ERROR"}], "parameters": [{"name": "username", "type": {"@type": "SchemaObject", "schema": "{\"type\":\"string\",\"exampleSetFlag\":false,\"types\":[\"string\"]}"}, "style": "FORM", "explode": true, "location": "QUERY", "required": true, "description": null, "allowEmptyValue": false}, {"name": "limit", "type": {"@type": "SchemaObject", "schema": "{\"type\":\"integer\",\"exampleSetFlag\":false,\"types\":[\"integer\"]}"}, "style": "FORM", "explode": true, "location": "QUERY", "required": false, "description": null, "allowEmptyValue": false}, {"name": "skip", "type": {"@type": "SchemaObject", "schema": "{\"type\":\"integer\",\"exampleSetFlag\":false,\"types\":[\"integer\"]}"}, "style": "FORM", "explode": true, "location": "QUERY", "required": false, "description": null, "allowEmptyValue": false}], "requestBody": {"content": {"@type": "ContentField", "content": {}}, "required": false}}]'::jsonb, 1),
@@ -75,13 +76,14 @@ INSERT INTO PATHS (full_path, operations, spec_id) VALUES
 INSERT INTO transactions (uuid, host) VALUES
 ('transaction1', 'host1');
 
-INSERT INTO OPEN_TRANSACTIONS (uuid, host, spec_id, isAlive) VALUES
-('transaction1', 'host1', 1, false),
-('transaction2', 'host2', 2, true);
+INSERT INTO OPEN_TRANSACTIONS (uuid, host, spec_id, isAlive, date) VALUES
+('transaction1', 'host1', 1, false, 1720617600),
+('transaction2', 'host2', 2, true, 1752105600),
+('transaction3', 'host3', 3, true, 1751932800);
 
 INSERT INTO requests (uuid, external_key, path_template, method, resolved_path, host, spec_id, headers, date) values
-('request1','type2', '/users/search', 'GET', '/users/search', 'host1', 1, '{"A": "bom dia"}'::jsonb, 1700000000000),
-('request2', 'type2', '/users/search', 'GET', '/users/search', 'host1', 1, '{"A": "bom dia"}'::jsonb, 1700000000000);
+('request1','type2', '/users/search', 'GET', '/users/search', 'host1', 1, '{"A": "bom dia"}'::jsonb, 1752105600),
+('request2', 'type2', '/users/search', 'GET', '/users/search', 'host1', 1, '{"A": "bom dia"}'::jsonb, 1751932800);
 
 INSERT INTO request_params (type, location, name, content, uuid) VALUES
 ('{"type":"string","exampleSetFlag":false,"types":["string"]}', 'query', 'username', 'bob123', 'request1'),

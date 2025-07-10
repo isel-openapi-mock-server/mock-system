@@ -3,6 +3,7 @@ package isel.openapi.admin.repository
 import isel.openapi.admin.domain.admin.AdminDomain
 import isel.openapi.admin.repository.jdbi.JdbiTransactionsRepository
 import isel.openapi.admin.repository.jdbi.configureWithAppRequirements
+import kotlinx.datetime.Clock
 import org.jdbi.v3.core.Handle
 import org.jdbi.v3.core.Jdbi
 import org.postgresql.ds.PGSimpleDataSource
@@ -16,9 +17,10 @@ class JdbiTransactionsRepositoryTests {
         runWithHandle { handle ->
             val repo = JdbiTransactionsRepository(handle)
 
-            val transactionId = "transaction2"
+            val newTransaction = adminDomain.generateTokenValue()
+            repo.addNewTransaction(newTransaction, 1, null, Clock.System.now().epochSeconds)
 
-            val res = repo.isTransactionActive(transactionId)
+            val res = repo.isTransactionActive(newTransaction)
 
             assertTrue(res)
         }
@@ -40,15 +42,16 @@ class JdbiTransactionsRepositoryTests {
         runWithHandle { handle ->
             val repo = JdbiTransactionsRepository(handle)
 
-            val transactionId = "transaction2"
+            val newTransaction = adminDomain.generateTokenValue()
+            repo.addNewTransaction(newTransaction, 1, null, Clock.System.now().epochSeconds)
 
-            val res = repo.isTransactionActive(transactionId)
+            val res = repo.isTransactionActive(newTransaction)
 
             assertTrue(res)
 
-            repo.commitTransaction(transactionId, "host2")
+            repo.commitTransaction(newTransaction, "host2")
 
-            val res2 = repo.isTransactionActive(transactionId)
+            val res2 = repo.isTransactionActive(newTransaction)
 
             assertFalse(res2)
         }
@@ -106,12 +109,13 @@ class JdbiTransactionsRepositoryTests {
     fun `add new transaction`() =
         runWithHandle { handle ->
             val repo = JdbiTransactionsRepository(handle)
+            val now = Clock.System.now()
 
             val transactionToken = adminDomain.generateTokenValue()
 
             val host = "host5"
 
-            repo.addNewTransaction(transactionToken, 1, host)
+            repo.addNewTransaction(transactionToken, 1, host, now.epochSeconds)
 
             val res = repo.isTransactionActive(transactionToken)
 
@@ -123,12 +127,13 @@ class JdbiTransactionsRepositoryTests {
     fun `copy spec to transaction`() =
         runWithHandle { handle ->
             val repo = JdbiTransactionsRepository(handle)
+            val now = Clock.System.now()
 
             val transactionId = adminDomain.generateTokenValue()
 
             val res = repo.copySpecToTransaction(transactionId, 1)
 
-            repo.addNewTransaction(transactionId, res, "host1")
+            repo.addNewTransaction(transactionId, res, "host1", now.epochSeconds)
 
             val id = repo.getSpecIdByTransaction(transactionId)
 
@@ -167,11 +172,11 @@ class JdbiTransactionsRepositoryTests {
         runWithHandle { handle ->
             val repo = JdbiTransactionsRepository(handle)
 
-            val transactionId = "transaction1"
+            val newTransaction = adminDomain.generateTokenValue()
+            repo.addNewTransaction(newTransaction, 1, null, Clock.System.now().epochSeconds)
+            repo.addScenario(newTransaction, "banana", "GET", "/users/search", 1, Clock.System.now().epochSeconds)
 
-            val scenarioName = "test1"
-
-            val res = repo.deleteScenario(transactionId, scenarioName)
+            val res = repo.deleteScenario(newTransaction, "banana")
 
             assertTrue(res)
 
@@ -196,12 +201,13 @@ class JdbiTransactionsRepositoryTests {
     fun `should add scenario`() =
         runWithHandle { handle ->
             val repo = JdbiTransactionsRepository(handle)
+            val now = Clock.System.now()
 
             val transactionId = "transaction1"
 
             val scenarioName = "scenario123"
 
-            repo.addScenario(transactionId, scenarioName, "GET", "/users/search", 1)
+            repo.addScenario(transactionId, scenarioName, "GET", "/users/search", 1, now.epochSeconds)
 
             val res = repo.deleteScenario(transactionId, scenarioName)
 
@@ -214,12 +220,14 @@ class JdbiTransactionsRepositoryTests {
         runWithHandle { handle ->
             val repo = JdbiTransactionsRepository(handle)
 
-            val transactionId = "transaction2"
+            val scenarioName = adminDomain.generateTokenValue()
 
-            val scenarioName = "test2"
+            val newTransaction = adminDomain.generateTokenValue()
+            repo.addNewTransaction(newTransaction, 2, null, Clock.System.now().epochSeconds)
+            repo.addScenario(newTransaction, scenarioName, "GET", "/users/search", 2, Clock.System.now().epochSeconds)
 
             val res = repo.addScenarioResponse(
-                transactionToken = transactionId,
+                transactionToken = newTransaction,
                 scenarioName = scenarioName,
                 index = 0,
                 statusCode = "200",
@@ -295,5 +303,7 @@ class JdbiTransactionsRepositoryTests {
                     setURL("jdbc:postgresql://localhost:5434/admin?user=mock&password=mock")
                 },
             ).configureWithAppRequirements()
+
+        val clock = Clock
     }
 }

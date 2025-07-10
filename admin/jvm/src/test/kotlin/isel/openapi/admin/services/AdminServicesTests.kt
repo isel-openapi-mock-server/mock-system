@@ -237,7 +237,8 @@ class AdminServicesTests {
             router = RouteValidatorResolver(
                 repository = ResolverRepository(),
                 dynamicDomain = adminDomain
-            )
+            ),
+            clock = kotlinx.datetime.Clock.System
         )
     }
 

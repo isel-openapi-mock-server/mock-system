@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS OPEN_TRANSACTIONS(
     uuid VARCHAR(256) PRIMARY KEY,
     host varchar(256),
     spec_id integer not null,
-    isAlive boolean not null DEFAULT true
+    isAlive boolean not null DEFAULT true,
+    date bigint not null
 );
 
 CREATE TABLE IF NOT EXISTS SPECS(

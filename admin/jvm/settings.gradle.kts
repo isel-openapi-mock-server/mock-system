@@ -1,1 +1,1 @@
-rootProject.name = "jvm"
+rootProject.name = "admin-jvm"

@@ -83,4 +83,11 @@ class AdminController(
             }
         }
     }
+
+    @DeleteMapping(Uris.Admin.DELETE)
+    fun deleteTransactions() : ResponseEntity<*> {
+        return ResponseEntity
+            .ok().body(1)
+    }
+
 }

@@ -92,16 +92,17 @@ class JdbiTransactionsRepository(
             .firstOrNull()
     }
 
-    override fun addNewTransaction(uuid: String, specId: Int, host: String?) {
+    override fun addNewTransaction(uuid: String, specId: Int, host: String?, date: Long) {
         handle.createUpdate(
             """
-            INSERT INTO open_transactions (uuid, host, spec_id)
-            VALUES (:uuid, :host, :specId)
+            INSERT INTO open_transactions (uuid, host, spec_id, date)
+            VALUES (:uuid, :host, :specId, :date)
             """
         )
             .bind("uuid", uuid)
             .bind("host", host)
             .bind("specId", specId)
+            .bind("date", date)
             .execute()
     }
 
@@ -176,9 +177,7 @@ class JdbiTransactionsRepository(
         return rowsAffected > 0
     }
 
-    override fun addScenario(transactionToken: String, scenarioName: String, method: String, path: String, specId: Int) {
-
-        println(specId)
+    override fun addScenario(transactionToken: String, scenarioName: String, method: String, path: String, specId: Int, date: Long) {
 
         handle.createUpdate(
             """
@@ -192,6 +191,18 @@ class JdbiTransactionsRepository(
             .bind("method", method.uppercase())
             .bind("path", path)
             .execute()
+
+        handle.createUpdate(
+            """
+            UPDATE open_transactions
+            SET date = :date
+            WHERE uuid = :transactionToken
+            """
+        )
+            .bind("transactionToken", transactionToken)
+            .bind("date", date)
+            .execute()
+
     }
 
     override fun addScenarioResponse(
@@ -246,6 +257,57 @@ class JdbiTransactionsRepository(
             .bind("transactionToken", transactionToken)
             .mapTo<String>()
             .firstOrNull()
+    }
+
+    override fun deleteSpecFromTransaction(transactionToken: String): Boolean {
+        val rowsAffected = handle.createUpdate(
+            """
+            DELETE FROM specs
+            WHERE transaction_token = :transactionToken
+            """
+        )
+            .bind("transactionToken", transactionToken)
+            .execute()
+
+        return rowsAffected > 0
+    }
+
+    override fun deleteScenarioFromTransaction(transactionToken: String): Boolean {
+        val rowsAffected = handle.createUpdate(
+            """
+            DELETE FROM scenarios
+            WHERE transaction_token = :transactionToken
+            """
+        )
+            .bind("transactionToken", transactionToken)
+            .execute()
+
+        return rowsAffected > 0
+    }
+
+    override fun deleteTransaction(transactionToken: String): Boolean {
+        val rowsAffected = handle.createUpdate(
+            """
+            DELETE FROM open_transactions
+            WHERE uuid = :transactionToken
+            """
+        )
+            .bind("transactionToken", transactionToken)
+            .execute()
+
+        return rowsAffected > 0
+    }
+
+    override fun getTransactionsToDelete(date: Long): List<String> {
+        return handle.createQuery(
+            """
+            DELETE FROM open_transactions
+            WHERE date < (:date - 86400)
+              AND isAlive = true;
+            """
+        )
+            .mapTo<String>()
+            .list()
     }
 
     private fun jsonb(value: String): PGobject {

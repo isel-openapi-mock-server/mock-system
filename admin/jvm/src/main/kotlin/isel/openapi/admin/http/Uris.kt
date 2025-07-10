@@ -8,6 +8,7 @@ object Uris {
         const val API_SPEC = "$API/openapi"
         const val RESPONSES = "$API/response"
         const val COMMIT = "$API/commit"
+        const val DELETE = "$API/transactions"
     }
 
     object Requests {
