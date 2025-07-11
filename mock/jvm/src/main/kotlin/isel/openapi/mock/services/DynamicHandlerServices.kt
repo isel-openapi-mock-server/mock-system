@@ -46,11 +46,11 @@ class DynamicHandlerServices(
         externalKey: String? = null,
     ) : DynamicHandlerResult {
 
-        val splitHost = host.split(".").first()
+        //val splitHost = host.split(".").first()
 
-        if (!router.doesHostExist(splitHost)) return failure(DynamicHandlerError.HostDoesNotExist)
+        if (!router.doesHostExist(host)) return failure(DynamicHandlerError.HostDoesNotExist)
 
-        val dynamicHandler = router.match(splitHost, method, path)
+        val dynamicHandler = router.match(host, method, path)
             ?: return failure(DynamicHandlerError.HandlerNotFound)
 
         if (!router.doesScenarioExist(dynamicHandler.routeNode, dynamicHandler.pathTemplate, method))
@@ -79,7 +79,7 @@ class DynamicHandlerServices(
                 method.name,
                 path,
                 externalKey,
-                splitHost,
+                host,
                 jsonRequestHeaders,
                 date
             )
