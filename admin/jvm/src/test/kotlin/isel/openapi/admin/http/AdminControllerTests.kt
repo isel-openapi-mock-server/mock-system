@@ -324,7 +324,7 @@ class AdminControllerTests {
                 .build()
         }
             .exchange()
-            .expectStatus().isOk
+            .expectStatus().isNoContent
     }
 
     private val emptyOpenAPISpec =
