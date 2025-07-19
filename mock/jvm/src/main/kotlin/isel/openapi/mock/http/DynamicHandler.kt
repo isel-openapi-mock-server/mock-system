@@ -160,7 +160,7 @@ class DynamicHandler(
 
         return if (unescaped.contains("{{")) {
             val context = HandlebarsContext()
-                .addBody(requestBody, response.contentType ?: "application/json")
+                .addBody(requestBody, request.contentType ?: "application/json")
                 .addUrl(request.requestURL.toString())
                 .pathParts(request.requestURI)
                 .addParams(params)

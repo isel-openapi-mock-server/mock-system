@@ -38,7 +38,7 @@ class AdminController(
         }
     }
 
-    @PutMapping(Uris.Admin.RESPONSES)
+    @PostMapping(Uris.Admin.RESPONSES)
     fun addResponseConfig(
         @RequestBody scenario: Scenario,
         @RequestParam host: String?,

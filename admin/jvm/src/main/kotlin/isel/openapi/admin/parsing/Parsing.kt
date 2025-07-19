@@ -64,7 +64,7 @@ class Parsing {
                             ),
                             responses = extractResponses(
                                 operation.responses,
-                                allResponse
+                                allSchemas
                             ),
                             servers = operation.servers?.map { it.url } ?: emptyList(),
                             headers = extractHeaders(
@@ -191,7 +191,7 @@ class Parsing {
         )
     }
 
-    fun extractResponses(responses: ApiResponses?, allResponse: Map<String?, ApiResponse?>): List<Response> {
+    fun extractResponses(responses: ApiResponses?, allResponse: Map<String, Schema<Any>>): List<Response> {
 
         if (responses == null) return emptyList()
 
@@ -199,15 +199,15 @@ class Parsing {
             //TODO() faltam os headers, response.headers
             var responseHeaders = response?.headers ?: emptyMap()
             var contentTypes = response.content
-            if(response.`$ref` != null) {
-                val ref = response.`$ref`
-                val refResponse = allResponse[ref.substringAfterLast("/")]
-                contentTypes = refResponse?.content
-                responseHeaders = refResponse?.headers ?: emptyMap()
-            }
             val content = mutableMapOf<String, ContentOrSchema.SchemaObject>()
             contentTypes?.forEach { contType, mediaType ->
-                content[contType] = ContentOrSchema.SchemaObject(schemaToJson(mediaType.schema))
+                val schema = mediaType.schema ?: Schema<Any>()
+                if (schema.`$ref` != null) {
+                    val ref = schema.`$ref`
+                    val refSchema = allResponse[ref.substringAfterLast("/")]
+                    content[contType] = ContentOrSchema.SchemaObject(schemaToJson(refSchema ?: Schema<Any>()))
+                }
+                else  content[contType] = ContentOrSchema.SchemaObject(schemaToJson(mediaType.schema))
             }
             val headers = mutableListOf<ApiHeader>()
             responseHeaders.forEach { (headerName, header) ->
