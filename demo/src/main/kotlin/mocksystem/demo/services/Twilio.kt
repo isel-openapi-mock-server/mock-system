@@ -13,7 +13,7 @@ interface Twilio {
 
     suspend fun createInvite(serviceSid: String, channelSid: String, roleSid: String, identity: String): ServiceChannelInvite?
 
-    suspend fun createMemberInChannel(serviceSid: String, channelSid: String, members: String): ServiceChannelMember?
+    suspend fun createMemberInChannel(serviceSid: String, channelSid: String, members: String): CreateMemberResp?
 
     suspend fun createMessage(serviceSid: String, channelSid: String, messageBody: String, from: String): ServiceChannelMessage?
 

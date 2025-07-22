@@ -8,7 +8,13 @@ import io.ktor.client.call.body
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.http.*
+import mocksystem.demo.domain.ErrorClass
 import org.slf4j.LoggerFactory
+
+sealed interface CreateMemberResp {
+    data class Success(val member: ServiceChannelMember) : CreateMemberResp
+    data class Error(val error: ErrorClass) : CreateMemberResp
+}
 
 class TwilioMock(
     override val client: HttpClient,
@@ -38,14 +44,16 @@ class TwilioMock(
 
     }
 
-    override suspend fun createMemberInChannel(serviceSid: String, channelSid: String, members: String): ServiceChannelMember? {
+    override suspend fun createMemberInChannel(serviceSid: String, channelSid: String, members: String): CreateMemberResp? {
         try {
             val response = client.post("http://$host/v1/Services/$serviceSid/Channels/$channelSid/Members?members=$members") {
                 contentType(ContentType.Application.FormUrlEncoded)
             }
 
             return if(response.status == HttpStatusCode.Created) {
-                response.body<ServiceChannelMember>()
+                CreateMemberResp.Success(response.body<ServiceChannelMember>())
+            } else if (response.status == HttpStatusCode.BadRequest) {
+                CreateMemberResp.Error(response.body<ErrorClass>())
             } else {
                 null
             }

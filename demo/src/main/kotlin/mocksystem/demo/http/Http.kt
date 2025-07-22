@@ -4,6 +4,7 @@ import mocksystem.demo.services.Services
 import mocksystem.demo.domain.CreateInviteReqBody
 import mocksystem.demo.domain.CreateMemberReqBody
 import mocksystem.demo.domain.CreateMessageReqBody
+import mocksystem.demo.services.CreateMemberResp
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -38,10 +39,10 @@ class Http(
 
         val res = services.createMemberInChannel(serviceSid, channelSid, members)
 
-        return if (res != null) {
-            ResponseEntity.status(201).body(res)
-        } else {
-            ResponseEntity.status(404).body("Member not created\n")
+        return when (res) {
+            is CreateMemberResp.Success -> ResponseEntity.status(201).body(res)
+            is CreateMemberResp.Error -> ResponseEntity.status(400).body(res)
+            else -> ResponseEntity.status(404).body("Member not created\n")
         }
 
     }
