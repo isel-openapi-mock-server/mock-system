@@ -2,15 +2,6 @@ package mocksystem.demo.domain
 
 @kotlinx.serialization.Serializable
 class ServiceChannelMember(
-    val sid: String,
-    val accountSid: String,
-    val channelSid: String,
-    val serviceSid: String,
-    val identity: String,
-    val dateCreated: String,
-    val dateUpdated: String,
-    val roleSid: String,
-    val lastConsumedMessageIndex: Int,
-    val lastConsumedTimestamp: String,
-    val url: String
+    val username: String,
+    val id: Int,
 )

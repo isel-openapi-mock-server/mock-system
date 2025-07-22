@@ -33,10 +33,10 @@ class Http(
     suspend fun createMemberInChannel(
         @PathVariable serviceSid: String,
         @PathVariable channelSid: String,
-        @RequestBody body: CreateMemberReqBody
+        @RequestParam members: String,
     ): ResponseEntity<*>{
 
-        val res = services.createMemberInChannel(serviceSid, channelSid, body.roleSid, body.identity)
+        val res = services.createMemberInChannel(serviceSid, channelSid, members)
 
         return if (res != null) {
             ResponseEntity.status(201).body(res)

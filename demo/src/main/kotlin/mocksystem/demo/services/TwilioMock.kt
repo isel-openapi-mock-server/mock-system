@@ -38,18 +38,10 @@ class TwilioMock(
 
     }
 
-    override suspend fun createMemberInChannel(serviceSid: String, channelSid: String, roleSid: String, identity: String): ServiceChannelMember? {
+    override suspend fun createMemberInChannel(serviceSid: String, channelSid: String, members: String): ServiceChannelMember? {
         try {
-            val response = client.post("http://$host/v1/Services/$serviceSid/Channels/$channelSid/Members") {
+            val response = client.post("http://$host/v1/Services/$serviceSid/Channels/$channelSid/Members?members=$members") {
                 contentType(ContentType.Application.FormUrlEncoded)
-                setBody(
-                    FormDataContent(
-                        Parameters.build {
-                            append("Identity", identity)
-                            append("RoleSid", roleSid)
-                        }
-                    )
-                )
             }
 
             return if(response.status == HttpStatusCode.Created) {
