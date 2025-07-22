@@ -1,6 +1,8 @@
-import domain.ServiceChannelInvite
-import domain.ServiceChannelMember
-import domain.ServiceChannelMessage
+package mocksystem.demo.services
+
+import mocksystem.demo.domain.ServiceChannelInvite
+import mocksystem.demo.domain.ServiceChannelMember
+import mocksystem.demo.domain.ServiceChannelMessage
 import io.ktor.client.*
 
 interface Twilio {

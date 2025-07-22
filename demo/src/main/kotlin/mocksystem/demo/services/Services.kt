@@ -1,4 +1,8 @@
+package mocksystem.demo.services
 
+import org.springframework.stereotype.Component
+
+@Component
 class Services(
     private val twilio: Twilio
 ) {

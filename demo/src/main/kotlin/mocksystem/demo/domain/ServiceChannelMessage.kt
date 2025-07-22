@@ -1,5 +1,6 @@
-package domain
+package mocksystem.demo.domain
 
+@kotlinx.serialization.Serializable
 class ServiceChannelMessage (
     val sid: String,
     val accountSid: String,

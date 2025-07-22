@@ -1,6 +1,7 @@
-package domain
+package mocksystem.demo.domain
 
-class ServiceChannelInvite(
+@kotlinx.serialization.Serializable
+class ServiceChannelMember(
     val sid: String,
     val accountSid: String,
     val channelSid: String,
@@ -9,6 +10,7 @@ class ServiceChannelInvite(
     val dateCreated: String,
     val dateUpdated: String,
     val roleSid: String,
-    val createdBy: String,
+    val lastConsumedMessageIndex: Int,
+    val lastConsumedTimestamp: String,
     val url: String
 )
