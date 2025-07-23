@@ -21,7 +21,7 @@ class TwilioMock(
     override val host: String,
 ) : Twilio {
 
-    override suspend fun createInvite(serviceSid: String, channelSid: String, roleSid: String, identity: String): ServiceChannelInvite? {
+    override suspend fun createInvite(serviceSid: String, channelSid: String, roleSid: String, identity: String): Pair<ServiceChannelInvite?, Boolean> {
         try {
             val response = client.post("http://$host/v1/Services/$serviceSid/Channels/$channelSid/Invites") {
                 contentType(ContentType.Application.FormUrlEncoded)
@@ -35,13 +35,12 @@ class TwilioMock(
                 )
             }
 
-            return if(response.status == HttpStatusCode.Created) response.body<ServiceChannelInvite>() else null
+            return if(response.status == HttpStatusCode.Created) Pair(response.body<ServiceChannelInvite>(), false) else Pair(null, true)
         } catch (e: Exception) {
             // Handle exceptions, e.g., log them or rethrow
             logger.info("Error creating invite: ${e.message}")
-            return null
+            return Pair(null, false)
         }
-
     }
 
     override suspend fun createMemberInChannel(serviceSid: String, channelSid: String, members: List<String>): CreateMemberResp? {

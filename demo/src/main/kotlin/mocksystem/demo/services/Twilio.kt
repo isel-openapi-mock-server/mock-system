@@ -11,7 +11,7 @@ interface Twilio {
 
     val host: String
 
-    suspend fun createInvite(serviceSid: String, channelSid: String, roleSid: String, identity: String): ServiceChannelInvite?
+    suspend fun createInvite(serviceSid: String, channelSid: String, roleSid: String, identity: String): Pair<ServiceChannelInvite?, Boolean>
 
     suspend fun createMemberInChannel(serviceSid: String, channelSid: String, members: List<String>): CreateMemberResp?
 

@@ -3,6 +3,7 @@ package mocksystem.demo.http
 import mocksystem.demo.services.Services
 import mocksystem.demo.domain.InviteInputModel
 import mocksystem.demo.domain.MessagesInputModel
+import mocksystem.demo.domain.ServiceChannelInvite
 import mocksystem.demo.services.CreateMemberResp
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -17,12 +18,14 @@ class Http(
         @RequestBody body: InviteInputModel
     ): ResponseEntity<*> {
 
-        val res = services.createInvite(body.serviceSid, body.channelSid, body.roleSid, body.identity)
+        val res : Pair<ServiceChannelInvite?, Boolean> = services.createInvite(body.serviceSid, body.channelSid, body.roleSid, body.identity)
 
-        return if (res != null) {
-            ResponseEntity.status(201).body(res)
+        return if (res.first != null) {
+            ResponseEntity.status(201).body(res.first)
+        } else if(res.second) {
+            ResponseEntity.status(404).body("Try again\n")
         } else {
-            ResponseEntity.status(404).body("Invite not created\n")
+            ResponseEntity.status(500).body("Error\n")
         }
     }
 
