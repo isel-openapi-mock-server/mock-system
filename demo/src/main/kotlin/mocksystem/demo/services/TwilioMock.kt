@@ -12,7 +12,7 @@ import mocksystem.demo.domain.ErrorClass
 import org.slf4j.LoggerFactory
 
 sealed interface CreateMemberResp {
-    data class Success(val member: ServiceChannelMember) : CreateMemberResp
+    data class Success(val member: List<ServiceChannelMember>) : CreateMemberResp
     data class Error(val error: ErrorClass) : CreateMemberResp
 }
 
@@ -44,14 +44,16 @@ class TwilioMock(
 
     }
 
-    override suspend fun createMemberInChannel(serviceSid: String, channelSid: String, members: String): CreateMemberResp? {
+    override suspend fun createMemberInChannel(serviceSid: String, channelSid: String, members: List<String>): CreateMemberResp? {
         try {
-            val response = client.post("http://$host/v1/Services/$serviceSid/Channels/$channelSid/Members?members=$members") {
-                contentType(ContentType.Application.FormUrlEncoded)
+            val response = client.get("http://$host/v1/Services/$serviceSid/Channels/$channelSid/Members") {
+                url {
+                    parameters.appendAll("name", members)
+                }
             }
 
             return if(response.status == HttpStatusCode.Created) {
-                CreateMemberResp.Success(response.body<ServiceChannelMember>())
+                CreateMemberResp.Success(response.body<List<ServiceChannelMember>>())
             } else if (response.status == HttpStatusCode.BadRequest) {
                 CreateMemberResp.Error(response.body<ErrorClass>())
             } else {

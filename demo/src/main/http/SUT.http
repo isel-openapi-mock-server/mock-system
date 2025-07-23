@@ -1,0 +1,33 @@
+### 5. Realizar pedidos inválidos para as rotas configuradas e analisar as respostas - 1
+POST http://localhost:8085/channels/invites
+Content-Type: application/json
+//o campo "serviceSid" está com um valor inválido (34 caracteres)
+
+{
+  "serviceSid": "invalidValue",
+  "channelSid": "CHaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "roleSid": "RLaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "identity": "identity"
+}
+
+### 6. Realizar pedidos válidos e verificar que está de acordo com o esperado
+POST http://localhost:8085/channels/invites
+Content-Type: application/json
+// duas vezes - cenário com duas respostas
+
+{
+  "serviceSid": "ISaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "channelSid": "CHaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "roleSid": "RLaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "identity": "identity"
+}
+
+### 6. Realizar pedidos válidos e verificar que está de acordo com o esperado
+GET http://localhost:8085/channels/members?serviceSid=ISaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&channelSid=CHaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&members=tomas,diogo
+
+### 9. Realizar pedidos para verificar que a nova configuração ainda não está disponível
+// deve retornar o mesmo que o pedido em 6
+GET http://localhost:8085/channels/members?serviceSid=ISaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&channelSid=CHaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&members=maria,ana
+
+### 11. Realizar pedidos e verificar que as respostas vêm de acordo com os templates
+GET http://localhost:8085/channels/members?serviceSid=ISaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&channelSid=CHaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&members=maria,ana

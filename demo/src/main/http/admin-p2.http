@@ -1,0 +1,39 @@
+### 7. Iniciar uma nova transação submetendo apenas cenários de resposta
+@host = demohost.mocksystem.com
+POST http://localhost:8081/admin/response?host={{ host }}
+Content-Type: application/json
+//{{# each queryParams.members }}
+// {
+//  "username": {{ this }},
+//  "id": "{{ randomId }}"
+// }{{#if @last}} {{else }},{{/if}}
+//{{/ each}}
+
+{
+  "name": "CreateMembers",
+  "path": "/v1/Services/{ServiceSid}/Channels/{ChannelSid}/Members",
+  "method": "GET",
+  "responses": [
+    {
+      "statusCode": "201",
+      "contentType": "application/json",
+      "body": "[\u007b\u007b#each queryParams.name\u007d\u007d { \"username\": \"\u007b\u007bthis\u007d\u007d\", \"id\": \u007b\u007brandomId\u007d\u007d }\u007b\u007b#if @last\u007d\u007d\u007b\u007belse\u007d\u007d,\u007b\u007b/if\u007d\u007d \u007b\u007b/each\u007d\u007d]"
+    }
+  ]
+}
+
+> {%
+    client.global.set("transaction_token", response.body.transactionToken);
+%}
+
+
+### 10. Confirmar a transação
+POST http://localhost:8081/admin/commit
+Transaction-token: {{ transaction_token }}
+
+> {%
+    client.global.clear("transaction_token");
+%}
+
+### 12. Obter informação sobre os pedidos realizados - 1
+GET http://localhost:8081/admin/requests/search?host={{ host }}&method=GET&path=/v1/Services/ISaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/Channels/CHaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/Members

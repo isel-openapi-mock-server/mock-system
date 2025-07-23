@@ -1,6 +1,8 @@
 package mocksystem.demo.domain
 
-data class CreateMessageReqBody(
+class MessagesInputModel(
+    val serviceSid: String,
+    val channelSid: String,
     val messageBody: String,
     val from: String,
     val attributes: String? = null,

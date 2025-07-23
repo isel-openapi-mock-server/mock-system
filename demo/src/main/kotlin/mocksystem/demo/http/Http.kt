@@ -1,9 +1,8 @@
 package mocksystem.demo.http
 
 import mocksystem.demo.services.Services
-import mocksystem.demo.domain.CreateInviteReqBody
-import mocksystem.demo.domain.CreateMemberReqBody
-import mocksystem.demo.domain.CreateMessageReqBody
+import mocksystem.demo.domain.InviteInputModel
+import mocksystem.demo.domain.MessagesInputModel
 import mocksystem.demo.services.CreateMemberResp
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -13,48 +12,52 @@ class Http(
     private val services: Services,
 ) {
 
-    @PostMapping("/v1/services.Services/{serviceSid}/Channels/{channelSid}/Invites")
+    @PostMapping("/channels/invites")
     suspend fun createInvite(
-        @PathVariable serviceSid: String,
-        @PathVariable channelSid: String,
-        @RequestBody body: CreateInviteReqBody
+        @RequestBody body: InviteInputModel
     ): ResponseEntity<*> {
 
-        val res = services.createInvite(serviceSid, channelSid, body.roleSid, body.identity)
+        val res = services.createInvite(body.serviceSid, body.channelSid, body.roleSid, body.identity)
 
         return if (res != null) {
             ResponseEntity.status(201).body(res)
         } else {
             ResponseEntity.status(404).body("Invite not created\n")
         }
-
     }
 
-    @PostMapping("/v1/services.Services/{serviceSid}/Channels/{channelSid}/Members")
+    @GetMapping("/channels/members")
     suspend fun createMemberInChannel(
-        @PathVariable serviceSid: String,
-        @PathVariable channelSid: String,
-        @RequestParam members: String,
+        @RequestParam serviceSid: String,
+        @RequestParam channelSid: String,
+        @RequestParam members: List<String>
     ): ResponseEntity<*>{
 
-        val res = services.createMemberInChannel(serviceSid, channelSid, members)
+        val res = services.createMemberInChannel(
+            serviceSid = serviceSid,
+            channelSid = channelSid,
+            members = members
+        )
 
         return when (res) {
-            is CreateMemberResp.Success -> ResponseEntity.status(201).body(res)
-            is CreateMemberResp.Error -> ResponseEntity.status(400).body(res)
-            else -> ResponseEntity.status(404).body("Member not created\n")
+            is CreateMemberResp.Success -> ResponseEntity.status(201).body(res.member)
+            is CreateMemberResp.Error -> ResponseEntity.status(400).body(res.error)
+            else -> ResponseEntity.status(404).body("Member not found\n")
         }
 
     }
 
-    @PostMapping("/v1/services.Services/{serviceSid}/Channels/{channelSid}/Messages")
+    @PostMapping("/channels/messages")
     suspend fun createMessage(
-        @PathVariable serviceSid: String,
-        @PathVariable channelSid: String,
-        @RequestBody body: CreateMessageReqBody
+        @RequestBody body: MessagesInputModel,
     ): ResponseEntity<*> {
 
-        val res = services.createMessage(serviceSid, channelSid, body.messageBody, body.from)
+        val res = services.createMessage(
+            serviceSid = body.serviceSid,
+            channelSid = body.channelSid,
+            messageBody = body.messageBody,
+            from = body.from
+        )
 
         return if (res != null) {
             ResponseEntity.status(201).body(res)

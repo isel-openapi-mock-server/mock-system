@@ -1,6 +1,8 @@
 package mocksystem.demo.domain
 
-@kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializable
+
+@Serializable
 class ServiceChannelMember(
     val username: String,
     val id: Int,

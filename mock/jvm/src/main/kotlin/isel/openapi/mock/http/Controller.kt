@@ -33,6 +33,7 @@ class DynamicRouteController(
         }
         val host = request.getHeader("Host")
             ?: return Problem.response(400, Problem.hostHeader)
+        println(host)
         val externalKey = request.getHeader(EXCHANGE_KEY_HEADER)
         val res = services.executeDynamicHandler(
             host = host,

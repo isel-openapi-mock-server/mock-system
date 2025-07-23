@@ -2,6 +2,8 @@ package mocksystem.demo
 
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.json.Json
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
@@ -17,10 +19,14 @@ class Application {
         TwilioMock(
             client = HttpClient {
                 install(ContentNegotiation) { // enables automatic serialization and deserialization of req and resp bodies.
-                    json() // faz o uso do Jackson para serialização e desserialização de JSON
+                    json(
+                        Json {
+                            ignoreUnknownKeys = true
+                        }
+                    ) // faz o uso do Jackson para serialização e desserialização de JSON
                 }
             },
-            host = "localhost:8081"
+            host = "demohost.mocksystem.com",
         )
 }
 

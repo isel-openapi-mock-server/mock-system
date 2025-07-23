@@ -40,12 +40,15 @@ class AdminDomain {
     private val factory: JsonSchemaFactory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7)
 
     fun generateHost(): String {
+        return "demohost.mocksystem.com"
+        /*
         val chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
         val length = 16
         val host = (1..length)
             .map { chars.random() }
             .joinToString("")
         return "$host.mocksystem.com"
+         */
     }
 
     fun generateTokenValue(): String =

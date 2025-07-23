@@ -10,9 +10,8 @@ class Services(
     suspend fun createInvite(serviceSid: String, channelSid: String, roleSid: String, identity: String) =
         twilio.createInvite(serviceSid, channelSid, roleSid, identity)
 
-    suspend fun createMemberInChannel(serviceSid: String, channelSid: String, members: String) =
+    suspend fun createMemberInChannel(serviceSid: String, channelSid: String, members: List<String>) =
         twilio.createMemberInChannel(serviceSid, channelSid, members)
-
 
     suspend fun createMessage(serviceSid: String, channelSid: String, messageBody: String, from: String) =
         twilio.createMessage(serviceSid, channelSid, messageBody, from)
