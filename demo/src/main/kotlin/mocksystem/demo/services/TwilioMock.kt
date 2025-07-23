@@ -34,7 +34,6 @@ class TwilioMock(
                     )
                 )
             }
-
             return if(response.status == HttpStatusCode.Created) Pair(response.body<ServiceChannelInvite>(), false) else Pair(null, true)
         } catch (e: Exception) {
             // Handle exceptions, e.g., log them or rethrow

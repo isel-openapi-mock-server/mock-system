@@ -74,7 +74,7 @@ Transaction-token: {{ transaction_token }}
     {
       "statusCode": "201",
       "contentType": "application/json",
-      "body": "{\"accountSid\": \"ACaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", \"channelSid\": \"CHaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", \"created_by\": \"created_by\", \"date_created\": \"2015-07-30T20:00:00Z\", \"date_updated\": \"2015-07-30T20:00:00Z\", \"identity\": \"identity\", \"role_sid\": \"RLaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", \"service_sid\": \"ISaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", \"sid\": \"INaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", \"url\": \"https://chat.twilio.com/v1/Services/ISaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/Channels/CHaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/Invites/INaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
+      "body": "{\"account_sid\": \"ACaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", \"channel_sid\": \"CHaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", \"created_by\": \"created_by\", \"date_created\": \"2015-07-30T20:00:00Z\", \"date_updated\": \"2015-07-30T20:00:00Z\", \"identity\": \"identity\", \"role_sid\": \"RLaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", \"service_sid\": \"ISaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", \"sid\": \"INaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", \"url\": \"https://chat.twilio.com/v1/Services/ISaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/Channels/CHaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/Invites/INaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
       "headers": {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
